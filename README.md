@@ -18,6 +18,17 @@ camera record on one clock. Gripper poses are reconstructed from fiducial marker
 is robotized, planned with joint-limit-aware IK and safety checks, and replayed open loop; human, command and robot are
 compared. Policy learning on relative SE(3) labels is future work.*
 
+## The real system
+
+**Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
+clock, shown at the human's speed; the bar shows the robot jaw commands.
+
+![human vs robot replay](media/human_vs_robot_replay.gif)
+
+| The hand-worn grippers (left / right), each with three fiducial markers | One world frame: start markers on the table, measured once in robot coordinates; every take starts there |
+|---|---|
+| ![UMI hands](media/umi_hands.jpg) | ![start markers](media/world_frame_start_markers.jpg) |
+
 **Contents:** [Motivation](#motivation) · [Research questions](#research-questions) ·
 [Research directions](#research-directions) · [System overview](#system-overview) ·
 [Demonstration interface](#demonstration-interface-and-attribution) ·
@@ -256,7 +267,7 @@ scripts/             small self-contained utilities (numpy / scipy / matplotlib)
   plot_example.py    figure of a processed trajectory
 tests/               pytest checks on the synthetic example
 report/              short technical note (LaTeX source + PDF)
-media/               intentionally empty (see media/README.md)
+media/               short clip and photos of the real setup (see media/README.md)
 ```
 
 ## Quick start
