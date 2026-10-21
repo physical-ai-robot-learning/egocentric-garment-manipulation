@@ -42,7 +42,7 @@ from teleoperation; SpeedFolding~\cite{avigal2022speedfolding} and FlingBot~\cit
 primitives. We keep the UMI-style gripper but take pose from fixed-camera fiducials~\cite{olson2011apriltag,wang2016apriltag2}
 plus depth, warp rather than filter infeasible paths, and test the data by replay.
 
-\section{System and World Frame}
+\section{System Overview}
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.86\textwidth]{../docs/architecture.pdf}
@@ -50,14 +50,44 @@ plus depth, warp rather than filter infeasible paths, and test the data by repla
 and future policy learning.}
 \label{fig:pipe}
 \end{figure*}
-Two grippers carry several AprilTags each, a wrist fisheye camera and an IMU; a fixed RGB-D camera (about 1\,m above the
-table) observes the tags; two low-cost 6-DoF arms replay (Fig.~\ref{fig:pipe}). All poses live in the robot base frame
-$B$. Once per installation: (1) the robot moves a wrist-mounted tag through a set of poses in front of the camera,
-giving $T_{BC}$ (initialised with~\cite{shah2013robotworld}, refined on reprojection and depth residuals); (2) two start
-tags on the table are measured in $B$; (3) each gripper's tags are calibrated to its jaw tip by touching known board
-corners (robust least squares), checked by an independent pivot test. Every take starts with the grippers on the start
-tags, so a camera measurement of a gripper tag is already a robot-frame pose. All streams, and later the robot's
-commanded and measured joints, are stamped by one host clock.
+Figure~\ref{fig:pipe} shows the data flow. A fixed RGB-D camera, two wrist fisheye cameras and two wrist IMUs record the
+demonstration; gripper poses are reconstructed in the robot base frame, completed by gap filling and paired with a jaw
+state; the trajectory is robotized, planned and replayed, and human, command and robot are compared. Two principles run
+through the system: \emph{one world frame} (Sec.~\ref{sec:world}) and \emph{one clock}: all streams, and later the
+robot's commanded and measured joints, are stamped by one host clock, so no synchronisation hardware is needed.
+
+\section{Hardware}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figures/umi_hands.jpg}
+\caption{The two hand-worn grippers (HandUMI, left and right) as used, each with three AprilTags.}
+\label{fig:umi}
+\end{figure}
+The demonstrator wears two HandUMI grippers~\cite{handumi,meza2026handumi}, an open-source design by BrikHMP18 (not ours),
+each with several AprilTags on different faces, a wrist fisheye camera and an IMU; the jaw servo was removed and the jaw
+state is inferred from the wrist video (Fig.~\ref{fig:umi}). A fixed RGB-D camera about 1\,m above the table sees the
+tags and the scene; two low-cost 6-DoF arms with parallel jaws replay.
+
+\section{One World Frame for Human and Robot}\label{sec:world}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/world_frame_start_markers.jpg}
+\caption{(a) Start markers on the table, measured once in robot coordinates. (b) Every take starts with the grippers at
+the markers.}
+\label{fig:start}
+\end{figure*}
+All poses live in the robot base frame $B$. It is set up once per installation:
+\begin{enumerate}
+\item \emph{Camera to robot.} The robot moves a wrist-mounted tag through a set of poses in front of the camera, giving
+  $T_{BC}$ (initialised with~\cite{shah2013robotworld}, refined on reprojection and depth residuals). From then on any
+  camera measurement can be written in $B$.
+\item \emph{Start markers.} Two tags on the table are measured in $B$ with the calibrated camera (Fig.~\ref{fig:start}a).
+\item \emph{Gripper tags to jaw tip.} Each gripper's tags are calibrated to its jaw tip by touching known board corners
+  (robust least squares), checked by an independent pivot test.
+\item \emph{Start of every take.} Each take starts with the grippers at the start markers (Fig.~\ref{fig:start}b).
+\end{enumerate}
+No per-take alignment (SLAM map, point-cloud registration) is needed: a camera measurement of a gripper tag is already a
+robot-frame pose.
 
 \section{From Recording to Robot Motion}
 \textbf{Pose.} Tags are solved with IPPE~\cite{collins2014ippe}; the tag range, the least accurate PnP coordinate, is
@@ -70,6 +100,17 @@ position and are flagged. MASt3R-SLAM~\cite{murai2025mast3rslam} on the wrist vi
 segment only if a Sim(3) fit on alignment frames keeps it close to the tag path on held-out validation frames. An
 ImageNet-pretrained~\cite{deng2009imagenet} ResNet-18~\cite{he2016resnet} per hand classifies the jaws in the wrist
 fisheye.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/trajectory_sources.png}
+\caption{Reconstructed jaw-tip trajectories of one demonstration (one frame of the animation in \texttt{media/}). Left: the
+last 3\,s of both paths projected into the fixed camera, coloured by source: tags + depth (green), SLAM filler (blue), IMU
+rotation + interpolation while tags are hidden (orange). Right: both paths in the robot base frame.}
+\label{fig:traj}
+\end{figure*}
+Figure~\ref{fig:traj} shows which source supplies each frame: the orange (tag-hidden) parts occur exactly when a hand
+grasps or lifts the cloth.
 
 \textbf{Robotization.} The path is changed only by continuous warps. With $y_o,y_i$ the outer and inner lateral extent of
 a hand and $d$ a minimum separation, the lateral coordinate is compressed toward the hand's own side and the height gets
@@ -121,6 +162,13 @@ left & 29.0--30.3\mm & 50--51\mm & 12.3--12.7$^\circ$ & 15\mm & 22.6\mm \\
 \end{tabular}
 \end{table}
 
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.66\textwidth]{figures/replay_frames.jpg}
+\caption{Human demonstration (left) and robot replay of the converted trajectory (right), same fixed camera, aligned on one
+clock; two moments of the 33\,s demonstration. The bar shows the robot jaw commands.}
+\label{fig:replay}
+\end{figure*}
 \textbf{Two-arm replay.} In the demonstration, 79\,\% (right) and 95\,\% (left) of frames had a visible tag; robotization
 moved frames by a median of 0.1/1.1\mm (p95 9.3/20.6\mm). Three runs of one plan agree within $\approx$1\mm
 (Table~\ref{tab:rep}): the robot is deterministic and the error systematic; the larger left error comes mainly from
@@ -128,7 +176,7 @@ conversion and planning (B$-$A). With a conservative finger-corner clearance the
 missed the cloth; allowing the corner to touch the table plane, as human fingers do, gave 14--16\mm (right) and
 5--19\mm (left), human $\approx$10\mm, within 2--8\mm of the command. Tilting the tool instead made the IK fail. In two
 runs the shirt lay 15--20\,cm away and the jaws closed on the empty table; in one the jaws caught the shirt edge and
-dragged it. The shirt was not folded.
+dragged it (Fig.~\ref{fig:replay}). The shirt was not folded.
 
 \textbf{SLAM as the pose source (negative).} MASt3R-SLAM with restarts was accurate where it tracked (2--14\mm on held-out
 tag frames) but kept only 19--48\,\% of frames and 0--38\,\% of tag-hidden frames near grasps. ORB-SLAM3 mono-inertial
