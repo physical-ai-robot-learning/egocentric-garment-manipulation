@@ -177,8 +177,8 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 | Calibration | camera ↔ robot: 0.98 px held-out reprojection (≈1.3 mm lateral); marker rig → jaw tip: 1–4 mm static (leave-one-out 1.8–4.8 mm) |
 | Single-arm replay parity | 16/18 translation strokes pass; median per-axis RMSE 5.5–11.6 mm; rotation strokes 0.3–1.6° median error; command vs. human ≤ 3.4 mm, so the residual was robot tracking |
 | First cloth grasp from human data | one arm replayed a grasp window of a demonstration and picked up and lifted the T-shirt |
-| Full two-arm replay of one 33 s demo | three runs with one unchanged plan repeat within ≈1 mm; position error vs. the human ≈17 mm (right) / ≈30 mm (left) RMSE |
-| Jaw height at grasp | after allowing finger contact, jaws close 5–19 mm above the table (human ≈10 mm), within 2–8 mm of the commanded position |
+| Full two-arm replay of one 33 s demo | four runs with one unchanged plan repeat within ≈1 mm; whole-demo position RMSE ≈17 mm (right) / ≈30 mm (left) against the robotized path, ≈22 / 32–34 mm against the raw human path |
+| Jaw height at grasp | after allowing finger contact, jaws close 14–16 mm (right) / 5–19 mm (left) above the table (human ≈10 mm), within 2–8 mm of the commanded position |
 | Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
 | Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
 
@@ -224,7 +224,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 
 ### Open questions
 
-1. Is the remaining 17–30 mm grasp-point error a constant bias (calibration) or varying (needs visual correction at the
+1. Is the remaining ≈2–3 cm trajectory error (not yet measured at the grasp points themselves) a constant bias (calibration) or varying (needs visual correction at the
    grasp)? A per-grasp error table from the video will tell.
 2. Can tag-hidden contact phases be recovered well enough by an offline smoother (markers, IMU, depth, gated SLAM) with
    confidence-weighted labels?

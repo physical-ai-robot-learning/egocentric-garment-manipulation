@@ -75,16 +75,16 @@ Input: one 33 s demonstration, replayed at roughly one third of human speed (94 
 
 Plan: IK error ≤ 6.3 mm / 11.5° (right) and ≤ 10.3 mm / 21° (left); the two arms stayed ≥ 27 cm apart.
 
-**Error against the human (three runs, same plan, whole demo as one window):**
+**Error of the replay (runs with the same plan, whole demo as one window).** Here A is the *robotized* path that was replayed; against the raw human path the RMSE is ≈22 mm (right) and 32–34 mm (left), because the robotization displacement then also counts as error.
 
 | arm | pos. RMSE | pos. p95 | rot. median | rot. p95 | C − B | B − A |
 |---|---|---|---|---|---|---|
 | right | 17.2–17.4 mm | 35–37 mm | 8.1° | 12.6–12.7° | 12.1–12.3 mm | 8.6 mm |
 | left | 29.0–30.3 mm | 50–51 mm | 12.3–12.7° | 17.1–17.2° | 14.5–15.5 mm | 22.6 mm |
 
-* The three runs agree within ≈1 mm: the robot is deterministic and the remaining error is systematic.
-* The larger left error comes mostly from conversion and planning (B − A): robotization moves the left hand more and
-  the left IK gives up more orientation.
+* The runs agree within ≈1 mm: the robot is deterministic and the remaining error is systematic.
+* The left command already deviates more from the replayed path (B − A 22.6 mm vs 8.6 mm): the left IK gives up more
+  orientation. Against the raw human path, the larger left robotization adds to this.
 
 ## 5. Jaw height at grasp
 

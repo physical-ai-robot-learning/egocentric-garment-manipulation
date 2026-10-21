@@ -19,7 +19,7 @@ trained. The demonstrator wears two HandUMI grippers (an open-source design by B
 fisheye cameras and IMUs; a fixed RGB-D camera observes the tags. With one world frame (the robot base) and one host
 clock, single-arm replays reach 5.5--11.6\mm median per-axis RMSE, one arm grasped and lifted a T-shirt from human data,
 and full two-arm replays of a 33\,s demonstration repeat within about 1\mm, close the jaws 5--19\mm above the table
-(human $\approx$10\mm), and deviate from the human by 17\mm (right) and 30\mm (left) RMSE. The robot does not yet fold
+(human $\approx$10\mm), and deviate by 17\mm (right) and 30\mm (left) RMSE from the robotized path that was replayed (22 and 32--34\mm from the raw human path). The robot does not yet fold
 like the human, and we report no success rate. Wrist-camera SLAM was rejected as the pose source because it loses
 tracking exactly at grasps.
 \end{abstract}
@@ -150,7 +150,7 @@ reduced stroke RMSE from 25--37\mm to 12--14\mm.
 \textbf{First cloth grasp.} One arm replayed a demonstration's grasp window and picked up and lifted the T-shirt.
 
 \begin{table}[t]
-\caption{Two-arm replay of one 33\,s demonstration vs.\ the human (three runs, one plan)}\label{tab:rep}
+\caption{Two-arm replay of one 33\,s demonstration vs.\ the replayed (robotized) path A (runs with one plan)}\label{tab:rep}
 \centering\footnotesize\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lccccc@{}}
 \toprule
@@ -170,9 +170,10 @@ clock; two moments of the 33\,s demonstration. The bar shows the robot jaw comma
 \label{fig:replay}
 \end{figure*}
 \textbf{Two-arm replay.} In the demonstration, 79\,\% (right) and 95\,\% (left) of frames had a visible tag; robotization
-moved frames by a median of 0.1/1.1\mm (p95 9.3/20.6\mm). Three runs of one plan agree within $\approx$1\mm
-(Table~\ref{tab:rep}): the robot is deterministic and the error systematic; the larger left error comes mainly from
-conversion and planning (B$-$A). With a conservative finger-corner clearance the jaws closed 19--61\mm above the table and
+moved frames by a median of 0.1/1.1\mm (p95 9.3/20.6\mm). Four runs of one plan agree within $\approx$1\mm
+(Table~\ref{tab:rep}): the robot is deterministic and the error systematic. Against the raw human path the RMSE is
+22\mm (right) and 32--34\mm (left), since the robotization displacement then counts as error; the left command also
+deviates more from the replayed path (B$-$A). With a conservative finger-corner clearance the jaws closed 19--61\mm above the table and
 missed the cloth; allowing the corner to touch the table plane, as human fingers do, gave 14--16\mm (right) and
 5--19\mm (left), human $\approx$10\mm, within 2--8\mm of the command. Tilting the tool instead made the IK fail. In two
 runs the shirt lay 15--20\,cm away and the jaws closed on the empty table; in one the jaws caught the shirt edge and
