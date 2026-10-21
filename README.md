@@ -13,7 +13,7 @@ policy is trained on it.
 **Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.
 
-![human vs robot replay](media/human_vs_robot_replay_v2.gif)
+![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
 **Contents:** [1. Motivation and research question](#1-motivation-and-research-question) · [2. System overview](#2-system-overview) · [3. Hardware and demonstration interface](#3-hardware-and-demonstration-interface) · [4. One world frame for human and robot](#4-one-world-frame-for-human-and-robot) · [5. From recording to robot motion](#5-from-recording-to-robot-motion) · [6. Results](#6-results) · [7. What was hard, and what I changed](#7-what-was-hard-and-what-i-changed) · [8. Limitations](#8-limitations) · [9. Research directions and next steps](#9-research-directions-and-next-steps) · [10. Previous and related work](#10-previous-and-related-work) · [11. Repository and quick start](#11-repository-and-quick-start) · [12. Author](#12-author) · [13. Disclaimer](#13-disclaimer)
 
@@ -128,7 +128,7 @@ by the source of each frame: AprilTag markers + depth (green), MASt3R-SLAM gap f
 interpolation where markers are hidden (orange). Right: both hands in one world frame (millimetres, offset to the
 workspace corner).
 
-![trajectory reconstruction](media/trajectory_reconstruction.gif)
+![trajectory reconstruction](media/trajectory_reconstruction_large.gif)
 
 ### From human motion to robot motion
 
