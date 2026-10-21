@@ -10,46 +10,16 @@ policy is trained on it.
 > in `scripts/` were written for this repository and are generic re-implementations of ideas described below, not the
 > project's production code.
 
-![Data flow](docs/architecture.png)
-
-*Data flow. A person demonstrates with two hand-worn grippers; wrist fisheye cameras, wrist IMUs and a fixed RGB-D
-camera record on one clock. Gripper poses are reconstructed from fiducial markers plus depth directly in one world frame
-(the robot base), completed by gap filling, and paired with a jaw state from the wrist video. The robot-frame trajectory
-is robotized, planned with joint-limit-aware IK and safety checks, and replayed open loop; human, command and robot are
-compared. Policy learning on relative SE(3) labels is future work.*
-
-## The real system
-
 **Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.
 
 ![human vs robot replay](media/human_vs_robot_replay.gif)
 
-**Reconstructed jaw-tip trajectories** of the same demonstration. Left: the paths projected into the fixed camera, coloured
-by the source of each frame: AprilTag markers + depth (green), MASt3R-SLAM gap filler (blue), IMU rotation +
-interpolation where markers are hidden (orange). Right: both hands in one world frame (millimetres, offset to the
-workspace corner).
-
-![trajectory reconstruction](media/trajectory_reconstruction.gif)
-
-| The hand-worn grippers (left / right), each with three fiducial markers | One world frame: start markers on the table, measured once in robot coordinates; every take starts there |
-|---|---|
-| ![UMI hands](media/umi_hands.jpg) | ![start markers](media/world_frame_start_markers.jpg) |
-
-**Contents:** [Motivation](#motivation) · [Research questions](#research-questions) ·
-[Research directions](#research-directions) · [System overview](#system-overview) ·
-[Demonstration interface](#demonstration-interface-and-attribution) ·
-[Coordinate representation](#coordinate-representation) · [Visual observations](#visual-observations) ·
-[Pose reconstruction](#pose-reconstruction-and-geometric-validation) ·
-[Human to robot motion](#from-human-motion-to-robot-motion) · [Results](#results-so-far) ·
-[Lessons](#what-was-hard-and-what-i-changed) · [Limitations](#limitations) ·
-[Open questions](#current-research-questions) · [Status](#current-status-and-planned-experiments) ·
-[Previous work](#related-previous-work) · [Related work](#related-work-and-attribution) ·
-[Repository](#repository-structure) · [Quick start](#quick-start) · [Author](#author)
+**Contents:** [1. Motivation and research question](#1-motivation-and-research-question) · [2. System overview](#2-system-overview) · [3. Hardware and demonstration interface](#3-hardware-and-demonstration-interface) · [4. One world frame for human and robot](#4-one-world-frame-for-human-and-robot) · [5. From recording to robot motion](#5-from-recording-to-robot-motion) · [6. Results](#6-results) · [7. What was hard, and what I changed](#7-what-was-hard-and-what-i-changed) · [8. Limitations](#8-limitations) · [9. Research directions and next steps](#9-research-directions-and-next-steps) · [10. Previous and related work](#10-previous-and-related-work) · [11. Repository and quick start](#11-repository-and-quick-start) · [12. Author](#12-author) · [13. Disclaimer](#13-disclaimer)
 
 ---
 
-## Motivation
+## 1. Motivation and research question
 
 Folding a T-shirt is long-horizon, bimanual and contact-rich, and the cloth state changes with every grasp. Teleoperated
 robot data for such tasks is slow and expensive to collect. Hand-held and hand-worn grippers in the style of UMI let a
@@ -60,7 +30,7 @@ The difficulty moves into the conversion. Every error in calibration, pose recov
 kinematic feasibility ends up in the training labels, and a policy trained on those labels inherits it. Policy success
 rates are a late and indirect signal for such errors.
 
-## Research questions
+### Research question
 
 **Main question.** *If a robot simply replays the converted human motion, open loop, does it do what the human did?*
 
@@ -75,20 +45,15 @@ Subsidiary questions: Where does the pose come from when the hand hides the mark
 human path have to be changed to become feasible for the robot, and how should that be recorded? Which errors are
 invisible to model-based checks?
 
-## Research directions
+## 2. System overview
 
-1. **Egocentric capture.** Wearable demonstration hardware and a recording protocol that yields synchronized wrist
-   video, inertial data and an external view of a full garment task.
-2. **Metric wrist-pose recovery in a consistent world frame.** Recovering the 6-DoF jaw-tip pose of both hands, with
-   metric scale, in the robot's own base frame, including through contact phases where markers or visual tracking are
-   lost.
-3. **Cross-embodiment trajectory representation and feasibility.** Turning human hand motion into robot end-effector
-   targets: what to keep absolute, what to make relative, how to warp an infeasible path without destroying its intent,
-   and how to grade each frame.
-4. **Long-horizon garment policy learning.** Comparing an end-to-end policy with a stage-conditioned one (grasp, lift,
-   fold, release) trained on the converted labels. *This project has not started policy training yet.*
+![Data flow](docs/architecture.png)
 
-## System overview
+*Data flow. A person demonstrates with two hand-worn grippers; wrist fisheye cameras, wrist IMUs and a fixed RGB-D
+camera record on one clock. Gripper poses are reconstructed from fiducial markers plus depth directly in one world frame
+(the robot base), completed by gap filling, and paired with a jaw state from the wrist video. The robot-frame trajectory
+is robotized, planned with joint-limit-aware IK and safety checks, and replayed open loop; human, command and robot are
+compared. Policy learning on relative SE(3) labels is future work.*
 
 | component | role |
 |---|---|
@@ -107,7 +72,11 @@ Two principles run through the system:
   human, command and robot can be compared sample by sample and filmed side by side by the same camera without
   synchronization hardware.
 
-## Demonstration interface and attribution
+## 3. Hardware and demonstration interface
+
+![UMI hands](media/umi_hands.jpg)
+
+*The two hand-worn grippers (left / right), each with three fiducial markers.*
 
 The hand-worn gripper is **HandUMI**, designed and published by **BrikHMP18** (murobotics-ai) under Apache-2.0:
 <https://github.com/murobotics-ai/handumi-hw>. **It is not our design.** We printed and assembled the upstream parts and
@@ -116,32 +85,27 @@ least one tends to face the external camera), and removal of the jaw servo (jaw 
 video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
-## Coordinate representation
-
-* **Storage: absolute poses in the world frame.** Each frame stores the jaw-tip pose `T_B(t) ∈ SE(3)` of each hand in
-  the robot base frame `B` (+x forward, +y left, +z up), the jaw state, and flags for whether the pose was measured or
-  filled. The jaw-tip TCP is defined the same way for the human gripper and the robot gripper (midpoint between the jaw
-  tips), so no tool offset has to be guessed later.
-* **Learning contract: relative SE(3).** Learning targets are expressed relative to a reference pose `T_0` (e.g. the
-  pose at the start of an action chunk):
-
-  `T_rel(t) = T_0^{-1} T(t)`
-
-  so the target does not depend on where in the workspace the motion happens, and the same contract applies to human
-  data and to robot data. Absolute storage keeps the option of re-deriving any relative form, and is what the replay
-  uses. A reference implementation of the conversion and its round trip is in
-  [`scripts/relative_se3.py`](scripts/relative_se3.py).
-* **Per-frame quality.** Robotization stores, for every frame, how far the robot target was moved from the human path,
-  and a coarse quality class derived from it; filled frames are flagged separately. These are intended as label weights.
-
-## Visual observations
+### Visual observations
 
 | view | what it provides |
 |---|---|
 | **Wrist fisheye** (one per hand) | the jaws themselves (open / closed), contact, and a close-up of the local cloth; also the input of the optional SLAM filler. This is the view a robot with wrist cameras would have. |
 | **Fixed external RGB-D** | global scene context (where the garment lies, both hands at once), the fiducial markers on both grippers, and metric depth. It is also the camera that films the robot replay, so human and robot appear in the same image. |
 
-## Pose reconstruction and geometric validation
+## 4. One world frame for human and robot
+
+![start markers](media/world_frame_start_markers.jpg)
+
+*(a) Start markers on the table, measured once in robot coordinates. (b) Every take starts with the grippers there.*
+
+1. **Camera → robot.** The robot moves a marker on its wrist through many poses in front of the fixed camera; this gives the camera pose in the robot base frame. From then on, anything the camera measures is in robot coordinates.
+2. **Start markers.** Two AprilTags on the table are measured once with the calibrated camera.
+3. **Gripper markers → jaw tip.** A one-time rig calibration relates each gripper's markers to its jaw tip, so the camera gives the jaw-tip pose directly in robot coordinates.
+4. **Every take starts at the start markers**, so every demonstration begins at known robot coordinates. No per-take alignment (SLAM map, point-cloud registration) is needed.
+
+## 5. From recording to robot motion
+
+### Pose reconstruction and validation
 
 1. **Markers → gripper pose.** In each RGB-D frame the AprilTags are detected and solved individually (planar PnP), and
    the marker distance, the least accurate PnP coordinate at about 1 m, is corrected along the viewing ray by the
@@ -159,7 +123,14 @@ video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et
 leave-one-out and an independent pivot test for the jaw-tip rig, a tape measure for the absolute robot jaw position,
 and finally the robot itself, filmed by the same camera as the human.
 
-## From human motion to robot motion
+**Reconstructed jaw-tip trajectories** of the same demonstration. Left: the paths projected into the fixed camera, coloured
+by the source of each frame: AprilTag markers + depth (green), MASt3R-SLAM gap filler (blue), IMU rotation +
+interpolation where markers are hidden (orange). Right: both hands in one world frame (millimetres, offset to the
+workspace corner).
+
+![trajectory reconstruction](media/trajectory_reconstruction.gif)
+
+### From human motion to robot motion
 
 1. **Record** both hands from a fixed start pose on the start markers, with a spoken protocol marking demo windows.
 2. **Reconstruct** the jaw-tip trajectory of each hand in the robot base frame from markers + depth.
@@ -178,7 +149,25 @@ and finally the robot itself, filmed by the same camera as the human.
    encoders), plus a side-by-side video from the same camera
    ([`scripts/parity_metrics.py`](scripts/parity_metrics.py) shows the metric definitions).
 
-## Results so far
+### Coordinate representation
+
+* **Storage: absolute poses in the world frame.** Each frame stores the jaw-tip pose `T_B(t) ∈ SE(3)` of each hand in
+  the robot base frame `B` (+x forward, +y left, +z up), the jaw state, and flags for whether the pose was measured or
+  filled. The jaw-tip TCP is defined the same way for the human gripper and the robot gripper (midpoint between the jaw
+  tips), so no tool offset has to be guessed later.
+* **Learning contract: relative SE(3).** Learning targets are expressed relative to a reference pose `T_0` (e.g. the
+  pose at the start of an action chunk):
+
+  `T_rel(t) = T_0^{-1} T(t)`
+
+  so the target does not depend on where in the workspace the motion happens, and the same contract applies to human
+  data and to robot data. Absolute storage keeps the option of re-deriving any relative form, and is what the replay
+  uses. A reference implementation of the conversion and its round trip is in
+  [`scripts/relative_se3.py`](scripts/relative_se3.py).
+* **Per-frame quality.** Robotization stores, for every frame, how far the robot target was moved from the human path,
+  and a coarse quality class derived from it; filled frames are flagged separately. These are intended as label weights.
+
+## 6. Results
 
 Measured in October 2026 on one setup with one demonstrator. Full tables and metric definitions:
 [docs/results.md](docs/results.md).
@@ -193,7 +182,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 | Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
 | Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
 
-## What was hard, and what I changed
+## 7. What was hard, and what I changed
 
 | problem | decision | why |
 |---|---|---|
@@ -205,7 +194,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 | Aligning camera, IMU, robot and video | **One host clock** for everything | Enables per-sample comparison and side-by-side video without sync hardware |
 | Arm lag during moving segments did not respond to the proportional gain | **Model the controller**: with an integral-only feed-forward and no gravity model, the moving error scales with the rate of gravity-torque change over the integral gain | Tuning the integral gain reduced stroke RMSE from 25–37 mm to 12–14 mm |
 
-## Limitations
+## 8. Limitations
 
 * **No success rate.** Replays were judged by measurement and video; no trials were counted.
 * **One demonstration** of one take was replayed in full on both arms. The ≈1 mm repeatability shows determinism, not
@@ -218,7 +207,22 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
   grasps is not measured.
 * **Jaw labels** have no held-out accuracy number on demonstration takes.
 
-## Current research questions
+## 9. Research directions and next steps
+
+### Research directions
+
+1. **Egocentric capture.** Wearable demonstration hardware and a recording protocol that yields synchronized wrist
+   video, inertial data and an external view of a full garment task.
+2. **Metric wrist-pose recovery in a consistent world frame.** Recovering the 6-DoF jaw-tip pose of both hands, with
+   metric scale, in the robot's own base frame, including through contact phases where markers or visual tracking are
+   lost.
+3. **Cross-embodiment trajectory representation and feasibility.** Turning human hand motion into robot end-effector
+   targets: what to keep absolute, what to make relative, how to warp an infeasible path without destroying its intent,
+   and how to grade each frame.
+4. **Long-horizon garment policy learning.** Comparing an end-to-end policy with a stage-conditioned one (grasp, lift,
+   fold, release) trained on the converted labels. *This project has not started policy training yet.*
+
+### Open questions
 
 1. Is the remaining 17–30 mm grasp-point error a constant bias (calibration) or varying (needs visual correction at the
    grasp)? A per-grasp error table from the video will tell.
@@ -228,7 +232,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 4. End-to-end vs. stage-conditioned policies for long-horizon garment tasks, trained on relative SE(3) labels from
    human data.
 
-## Current status and planned experiments
+### Status and next steps
 
 * **Status:** the pipeline from recording to two-arm replay runs end to end; replays are deterministic; grasp height
   matches the human; folding does not yet succeed.
@@ -236,13 +240,15 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
   tag-hidden phases; then the first policy training on relative labels weighted by per-frame quality, evaluated with
   counted trials.
 
-## Related previous work
+## 10. Previous and related work
+
+### Previous work
 
 An earlier project, [egocentric-human-demos-rebot](https://github.com/physical-ai-vla/egocentric-human-demos-rebot),
 collected 349 bimanual human demonstrations, converted them across embodiments into robot trajectories with relative
 Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, and deployed on a dual-arm robot.
 
-## Related work and attribution
+### Related work and attribution
 
 * **UMI** (Chi et al., RSS 2024): hand-held gripper with wrist fisheye; pose from ORB-SLAM3-based monocular-inertial
   SLAM. We keep the UMI-style gripper but take pose from fixed-camera fiducials + depth, and test data by replay.
@@ -256,7 +262,9 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 Full references are in the [technical note](report/technical_note.pdf); licences and credits in
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
-## Repository structure
+## 11. Repository and quick start
+
+### Repository structure
 
 ```
 README.md            this overview
@@ -277,7 +285,7 @@ report/              short technical note (LaTeX source + PDF)
 media/               short clip and photos of the real setup (see media/README.md)
 ```
 
-## Quick start
+### Quick start
 
 ```bash
 python -m pip install -r requirements.txt
@@ -296,7 +304,7 @@ is the robotization displacement, the analogue of the "command vs. human" term i
 
 ![Synthetic example](docs/example_synthetic.png)
 
-## Author
+## 12. Author
 
 **Jeong Hwan Lee** — Robotics Engineer, Physical AI / Robot Learning
 
@@ -306,7 +314,7 @@ calibration and evaluation methodology for robot-learning data.
 
 GitHub: <https://github.com/physical-ai-vla>
 
-## Disclaimer
+## 13. Disclaimer
 
 This is a research overview of work in progress, not a product. Numbers are from one setup, one demonstrator and a
 small number of runs, and are reported as measured, including failures. Code in this repository is released under the
