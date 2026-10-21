@@ -244,7 +244,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 
 ### Previous work
 
-An earlier project, [egocentric-human-demos-rebot](https://github.com/physical-ai-vla/egocentric-human-demos-rebot),
+An earlier project, [egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking),
 collected 349 bimanual human demonstrations, converted them across embodiments into robot trajectories with relative
 Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, and deployed on a dual-arm robot.
 
