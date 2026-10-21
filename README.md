@@ -25,6 +25,13 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.
 
 ![human vs robot replay](media/human_vs_robot_replay.gif)
 
+**Reconstructed jaw-tip trajectories** of the same demonstration. Left: the paths projected into the fixed camera, coloured
+by the source of each frame: AprilTag markers + depth (green), MASt3R-SLAM gap filler (blue), IMU rotation +
+interpolation where markers are hidden (orange). Right: both hands in one world frame (millimetres, offset to the
+workspace corner).
+
+![trajectory reconstruction](media/trajectory_reconstruction.gif)
+
 | The hand-worn grippers (left / right), each with three fiducial markers | One world frame: start markers on the table, measured once in robot coordinates; every take starts there |
 |---|---|
 | ![UMI hands](media/umi_hands.jpg) | ![start markers](media/world_frame_start_markers.jpg) |
