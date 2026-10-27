@@ -4,6 +4,12 @@ Human garment-manipulation demonstrations, recorded with hand-worn parallel-jaw 
 robot-feasible end-effector trajectories and replayed on a two-arm robot, as an end-to-end test of the data before any
 policy is trained on it.
 
+> **Update, 27 October 2026.** The replay stage is finished and the project has moved on to **policy training data**:
+> 300 successful T-shirt flattening demonstrations, a new pose source (fixed-camera point tracking anchored by the
+> markers), quality grades and Cartesian labels taken *before* inverse kinematics. See
+> [§6 From replay to policy training data](#6-from-replay-to-policy-training-data-october-2627). Parts of the original
+> pipeline that are no longer used are marked ~~struck through~~. No policy result is reported yet.
+
 > **Note.** This repository contains a sanitized research overview and selected reproducible components of an ongoing
 > bimanual garment-manipulation project. Proprietary code, internal datasets, calibration parameters, robot-specific
 > configurations, raw logs and model checkpoints are not included. All data in `examples/` is synthetic. The utilities
@@ -15,7 +21,7 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.
 
 ![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
-**Contents:** [1. Motivation and research question](#1-motivation-and-research-question) · [2. System overview](#2-system-overview) · [3. Hardware and demonstration interface](#3-hardware-and-demonstration-interface) · [4. One world frame for human and robot](#4-one-world-frame-for-human-and-robot) · [5. From recording to robot motion](#5-from-recording-to-robot-motion) · [6. Results](#6-results) · [7. What was hard, and what I changed](#7-what-was-hard-and-what-i-changed) · [8. Limitations](#8-limitations) · [9. Research directions and next steps](#9-research-directions-and-next-steps) · [10. Previous and related work](#10-previous-and-related-work) · [11. Repository and quick start](#11-repository-and-quick-start) · [12. Author](#12-author) · [13. Disclaimer](#13-disclaimer)
+**Contents:** [1. Motivation and research question](#1-motivation-and-research-question) · [2. System overview](#2-system-overview) · [3. Hardware and demonstration interface](#3-hardware-and-demonstration-interface) · [4. One world frame for human and robot](#4-one-world-frame-for-human-and-robot) · [5. From recording to robot motion](#5-from-recording-to-robot-motion) · [6. From replay to policy training data](#6-from-replay-to-policy-training-data-october-2627) · [7. Results](#7-results) · [8. What was hard, and what I changed](#8-what-was-hard-and-what-i-changed) · [9. Limitations](#9-limitations) · [10. Research directions and next steps](#10-research-directions-and-next-steps) · [11. Previous and related work](#11-previous-and-related-work) · [12. Repository and quick start](#12-repository-and-quick-start) · [13. Author](#13-author) · [14. Disclaimer](#14-disclaimer)
 
 ---
 
@@ -76,12 +82,14 @@ Two principles run through the system:
 
 ![UMI hands](media/umi_hands.jpg)
 
-*The two hand-worn grippers (left / right), each with three fiducial markers.*
+*The two hand-worn grippers (left / right), each with three fiducial markers (photo from before 23 October; since then
+a fourth, smaller marker sits on the back of each wrist camera).*
 
 The hand-worn gripper is **HandUMI**, designed and published by **BrikHMP18** (murobotics-ai) under Apache-2.0:
 <https://github.com/murobotics-ai/handumi-hw>. **It is not our design.** We printed and assembled the upstream parts and
 made small changes for our use: a wrist IMU instead of VR tracking, several AprilTags per hand on different faces (so at
-least one tends to face the external camera), and removal of the jaw servo (jaw state is now inferred from the wrist
+least one tends to face the external camera; a fourth, smaller one on the back of the wrist camera since 23 October,
+whose single-tag planar pose flip is resolved with the IMU), and removal of the jaw servo (jaw state is now inferred from the wrist
 video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
@@ -114,10 +122,12 @@ video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et
 2. **Gripper → jaw tip in the robot frame.** A one-time rig calibration maps the gripper's markers to its jaw tip; the
    camera-to-robot calibration maps the result into the robot base frame.
 3. **Gaps.** Markers disappear exactly when the hand grasps (palm down). Short gaps get the gyro rotation and an
-   interpolated position and are flagged as not measured. Wrist-camera SLAM is an *optional* filler, accepted only for
-   segments that stay close to the marker path on held-out validation frames.
+   interpolated position and are flagged as not measured. ~~Wrist-camera SLAM is an *optional* filler, accepted only for
+   segments that stay close to the marker path on held-out validation frames.~~ Replaced on 24 October by fixed-camera
+   point tracking (§6).
 4. **Jaw state.** An ImageNet-pretrained ResNet-18 per hand classifies a crop of the wrist fisheye that shows the jaws,
-   with hysteresis on its output.
+   with hysteresis on its output. Since 22 October a keypoint model finds the two jaw tips and their distance gives a
+   continuous aperture (100 % / 98 % agreement with hand labels on a re-angled take).
 
 **Validation is geometric and physical**, not only internal: held-out reprojection for the camera-to-robot calibration,
 leave-one-out and an independent pivot test for the jaw-tip rig, a tape measure for the absolute robot jaw position,
@@ -167,7 +177,41 @@ workspace corner).
 * **Per-frame quality.** Robotization stores, for every frame, how far the robot target was moved from the human path,
   and a coarse quality class derived from it; filled frames are flagged separately. These are intended as label weights.
 
-## 6. Results
+## 6. From replay to policy training data (October 26–27)
+
+Open-loop replay showed that the conversion is geometrically sound, but it also showed what a training label must not
+contain. The pipeline was rebuilt for learning, on the same calibration, recorder and robot tools.
+
+**What changed**
+
+| part | now | ~~before~~ |
+|---|---|---|
+| pose source | point tracking (CoTracker3) on the fixed RGB-D camera, lifted by depth, fitted to a rigid gripper model, anchored by the markers; IMU acceleration only inside gaps | markers + IMU interpolation; ~~wrist-camera SLAM filler~~ |
+| camera ↔ robot | re-solved after every camera move from two fixed table markers plus the table plane; camera raised so both hands stay in view | one robot-held-marker calibration |
+| arm assignment | by the gripper's side of the table | by marker label (the labels were found swapped) |
+| episode window | still start and end cut (both hands below 10 cm/s), short one-hand tracking gaps at the edges cut | operator-marked windows |
+| label | **Cartesian jaw-tip pose before inverse kinematics**, smoothed and kept above the table | robotized path after IK → FK |
+| execution | receding horizon: forward kinematics gives the current pose, the predicted relative motion is composed onto it, then limiter → IK → safety checks, a few steps committed per plan | whole-demo open-loop replay |
+
+**Data.** 318 flattening demonstrations of a crumpled T-shirt in four colours, **300 successful** (judged on a frame
+just before each demo ends). Each demo is graded GOLD / SILVER / REJECT from tracking coverage, gap length, the
+fraction of large hidden-marker errors and gaps at grasps; fine-tuning uses GOLD only.
+
+**Why the label is taken before IK.** IK → FK labels contained execution decisions (wrist-roll relaxation, a tool
+flip near joint limits, pushes that keep the arms apart) and moved the target most exactly where it matters: at grasps
+the IK → FK label differs from the Cartesian one by p95 ≈ 58 mm. Only about 1 % of frames are truly out of reach
+(hands lifted far above the table). The IK result and its per-frame diagnostics are kept for QA; IK becomes a checker
+offline and the executor online. Labels are stored absolute; the policy learns relative motion inv(T_t)·T_{t+k}.
+
+**Planned training.** (1) A diffusion-transformer policy pretrained on a public robot cloth-folding dataset, then
+fine-tuned on the GOLD demos. (2) A VLA base model pretrained on an equal mix of that dataset and two public UMI-style
+garment datasets (one domain prompt per source), then fine-tuned the same way. Both are evaluated on the robot with
+counted trials.
+
+**Safety lesson.** A bridge restart without the jaw-opening limit let one jaw open to the end of its travel and break
+its holder. Deployment now refuses to send commands unless the bridge reports the jaw limits.
+
+## 7. Results
 
 Measured in October 2026 on one setup with one demonstrator. Full tables and metric definitions:
 [docs/results.md](docs/results.md).
@@ -181,8 +225,12 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 | Jaw height at grasp | after allowing finger contact, jaws close 14–16 mm (right) / 5–19 mm (left) above the table (human ≈10 mm), within 2–8 mm of the commanded position |
 | Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
 | Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
+| Point tracking + markers + IMU (Oct 24–25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
+| Flattening dataset (Oct 26–27) | 300 successful of 318 demonstrations; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
+| Labels before vs after IK | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1 % of frames truly unreachable |
+| Policy | **not yet trained on our data**; a pretrained-only diffusion policy ran on the robot in dry runs without safety violations |
 
-## 7. What was hard, and what I changed
+## 8. What was hard, and what I changed
 
 | problem | decision | why |
 |---|---|---|
@@ -194,7 +242,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 | Aligning camera, IMU, robot and video | **One host clock** for everything | Enables per-sample comparison and side-by-side video without sync hardware |
 | Arm lag during moving segments did not respond to the proportional gain | **Model the controller**: with an integral-only feed-forward and no gravity model, the moving error scales with the rate of gravity-torque change over the integral gain | Tuning the integral gain reduced stroke RMSE from 25–37 mm to 12–14 mm |
 
-## 8. Limitations
+## 9. Limitations
 
 * **No success rate.** Replays were judged by measurement and video; no trials were counted.
 * **One demonstration** of one take was replayed in full on both arms. The ≈1 mm repeatability shows determinism, not
@@ -203,11 +251,13 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
   on the empty table.
 * **Relative parity metrics hide offsets.** They are computed relative to the start of a window with lag removed;
   absolute placement was checked only by tape and video.
-* **Tag-hidden phases** are interpolated (about a fifth of the right-hand frames of the full demo); their error at the
-  grasps is not measured.
+* ~~**Tag-hidden phases** are interpolated (about a fifth of the right-hand frames of the full demo); their error at the
+  grasps is not measured.~~ Addressed by point tracking (§6); hidden-marker error is now measured on held-out takes.
+* **About a fifth of label frames need a large IK correction** (wrist roll, tool flip, one joint at its limit); they
+  are reported by cause and not masked yet.
 * **Jaw labels** have no held-out accuracy number on demonstration takes.
 
-## 9. Research directions and next steps
+## 10. Research directions and next steps
 
 ### Research directions
 
@@ -226,21 +276,21 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 
 1. Is the remaining ≈2–3 cm trajectory error (not yet measured at the grasp points themselves) a constant bias (calibration) or varying (needs visual correction at the
    grasp)? A per-grasp error table from the video will tell.
-2. Can tag-hidden contact phases be recovered well enough by an offline smoother (markers, IMU, depth, gated SLAM) with
-   confidence-weighted labels?
+2. ~~Can tag-hidden contact phases be recovered well enough by an offline smoother (markers, IMU, depth, gated SLAM) with
+   confidence-weighted labels?~~ Largely yes, with fixed-camera point tracking anchored by markers (§6).
 3. Does weighting labels by robotization quality matter for policy learning, and in which phases?
 4. End-to-end vs. stage-conditioned policies for long-horizon garment tasks, trained on relative SE(3) labels from
    human data.
 
 ### Status and next steps
 
-* **Status:** the pipeline from recording to two-arm replay runs end to end; replays are deterministic; grasp height
-  matches the human; folding does not yet succeed.
-* **Next:** per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
-  tag-hidden phases; then the first policy training on relative labels weighted by per-frame quality, evaluated with
-  counted trials.
+* **Status (Oct 27):** replay runs end to end and is deterministic; grasp height matches the human; folding by replay
+  does not succeed. 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels.
+* **Next:** fine-tune the two pretrained policies (§6) on the GOLD demos and evaluate them on the robot with counted
+  trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
+  tag-hidden phases~~ — replay-track items, parked.
 
-## 10. Previous and related work
+## 11. Previous and related work
 
 ### Previous work
 
@@ -262,7 +312,7 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 Full references are in the [technical note](report/technical_note.pdf); licences and credits in
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
-## 11. Repository and quick start
+## 12. Repository and quick start
 
 ### Repository structure
 
@@ -304,7 +354,7 @@ is the robotization displacement, the analogue of the "command vs. human" term i
 
 ![Synthetic example](docs/example_synthetic.png)
 
-## 12. Author
+## 13. Author
 
 **Jeong Hwan Lee** — Robotics Engineer, Physical AI / Robot Learning
 
@@ -314,7 +364,7 @@ calibration and evaluation methodology for robot-learning data.
 
 GitHub: <https://github.com/physical-ai-vla>
 
-## 13. Disclaimer
+## 14. Disclaimer
 
 This is a research overview of work in progress, not a product. Numbers are from one setup, one demonstrator and a
 small number of runs, and are reported as measured, including failures. Code in this repository is released under the

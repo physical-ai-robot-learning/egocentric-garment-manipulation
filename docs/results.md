@@ -117,7 +117,27 @@ An earlier label pipeline (SLAM + external body tracking + IMU) passed all of it
 the jaw position seen by the external camera, because of three calibration/anchoring errors that internal residuals
 could not see. This motivated the marker rig with 1–4 mm error.
 
-## 7. Synthetic example (this repository)
+## 7. Training-data pipeline (October 24–27)
+
+**Pose from point tracking + markers + IMU.** Accuracy is measured by hiding markers that were actually visible and
+comparing the estimate with them, on takes not used for tuning.
+
+| source | hidden-marker error, median |
+|---|---|
+| markers + IMU interpolation | ≈ 42 mm |
+| point tracking + marker anchors + IMU in gaps | 16 mm (left) / 19 mm (right) |
+
+**Dataset.** 318 flattening demonstrations, 300 successful. Grades for the first 139: 133 GOLD / 5 SILVER / 1 REJECT
+(GOLD: ≥ 95 % tracked, no gap over 1 s, ≤ 5 % of frames with hidden-marker error above 10 cm, no long error burst,
+no gap at a grasp).
+
+**Labels before vs. after IK** (first 139 demos, ≈ 123 k arm-frames). IK → FK moves the target by p95 ≈ 53 mm overall
+and ≈ 58 mm at grasps. About 20 % of frames need a large IK correction; by cause: wrist-roll relaxation (mostly left),
+tool flip (mostly right), one joint at its limit, and ≈ 1 % truly out of reach.
+
+**Policy.** Not yet trained on these labels.
+
+## 8. Synthetic example (this repository)
 
 On the synthetic data in [`../examples/`](../examples), the tools in `scripts/` give (seed 0):
 
