@@ -193,6 +193,13 @@ contain. The pipeline was rebuilt for learning, on the same calibration, recorde
 | label | **Cartesian jaw-tip pose before inverse kinematics**, smoothed and kept above the table | robotized path after IK → FK |
 | execution | receding horizon: forward kinematics gives the current pose, the predicted relative motion is composed onto it, then limiter → IK → safety checks, a few steps committed per plan | whole-demo open-loop replay |
 
+![GOLD demo, jaw-tip paths by source](media/flatten_gold_trajectory_sources.gif)
+
+*One GOLD flattening demonstration: fused jaw-tip paths coloured by the source of each frame — a gripper marker visible
+(green), point tracking only while the markers are hidden (blue), IMU inside a tracking gap (orange). Left: projected
+into the fixed camera; right: both hands in the robot base frame. Compare the replay-era figure in §5, where the blue
+segments came from wrist-camera SLAM.*
+
 **Data.** 318 flattening demonstrations of a crumpled T-shirt in four colours, **300 successful** (judged on a frame
 just before each demo ends). Each demo is graded GOLD / SILVER / REJECT from tracking coverage, gap length, the
 fraction of large hidden-marker errors and gaps at grasps; fine-tuning uses GOLD only.

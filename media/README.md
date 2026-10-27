@@ -10,3 +10,5 @@ Short clip and photos of the real setup, cut from the project's own recordings b
 | `world_frame_start_markers.jpg` | the start markers that tie every take to the robot's coordinate frame |
 
 No calibration values, raw recordings or internal identifiers are included.
+
+* `flatten_gold_trajectory_sources.gif` — one GOLD flattening demonstration (Oct 26), jaw-tip paths coloured by pose source.
