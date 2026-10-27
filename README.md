@@ -55,25 +55,27 @@ invisible to model-based checks?
 
 ![Data flow](docs/architecture.png)
 
-*Data flow. A person demonstrates with two hand-worn grippers; wrist fisheye cameras, wrist IMUs and a fixed RGB-D
-camera record on one clock. Gripper poses are reconstructed from fiducial markers plus depth directly in one world frame
-(the robot base), completed by gap filling, and paired with a jaw state from the wrist video. The robot-frame trajectory
-is robotized, planned with joint-limit-aware IK and safety checks, and replayed open loop; human, command and robot are
-compared. Policy learning on relative SE(3) labels is future work.*
+*Data flow, as of 27 October. A person demonstrates with two hand-worn grippers; wrist fisheye cameras, wrist IMUs and
+a fixed RGB-D camera record on one clock. Points on each gripper are tracked in the fixed-camera video, lifted by depth
+and fused with the fiducial markers (anchors) and the IMU (only inside tracking gaps) into the jaw-tip pose in one world
+frame, the robot base. Each episode is trimmed and graded; the training label is the Cartesian pose before inverse
+kinematics. A policy pretrained on public cloth data is fine-tuned on the best-graded demonstrations and runs on the
+robot in a receding-horizon loop with online IK and safety checks. The grey box lists parts of the earlier replay
+pipeline that are no longer used.*
 
 | component | role |
 |---|---|
-| 2 × hand-worn gripper (HandUMI) | demonstration tool; each carries several fiducial markers (AprilTags), a wrist fisheye camera and an IMU; no jaw motor |
-| Fixed RGB-D camera (Orbbec Gemini 336) | above the table; sees the markers on both grippers and the scene; colour + aligned depth |
-| 2 × low-cost 6-DoF arm with parallel jaw (reBot B601-DM) | replay target |
-| Host computer | records all streams on one monotonic clock; planning and robot control |
-| GPU (optional) | only for the optional visual-SLAM gap filler |
+| 2 × hand-worn gripper (HandUMI) | demonstration tool; each carries four fiducial markers (AprilTags; the fourth, on the back of the wrist camera, since Oct 23), a wrist fisheye camera and an IMU; no jaw motor |
+| Fixed RGB-D camera (Orbbec Gemini 336) | above the table, raised to 113 cm so both hands stay in view; sees the markers and the grippers for point tracking; colour + aligned depth |
+| 2 × low-cost 6-DoF arm with parallel jaw (reBot B601-DM) | executes the policy (earlier: open-loop replay target); jaw-opening limit enforced by the robot bridge |
+| Host computer | records all streams on one monotonic clock; robot control and online IK |
+| Rented GPUs | point tracking, the jaw model and policy training; ~~only for the optional visual-SLAM gap filler~~ |
 
 Two principles run through the system:
 
 * **One world frame.** Every pose, human or robot, is expressed in the robot base frame. The fixed camera is calibrated
-  to the robot once, and every recording starts with the grippers placed on start markers whose positions in the robot
-  frame were measured once. No per-recording alignment (no SLAM map, no point-cloud registration) is needed.
+  to the robot (again after every camera move, from two fixed table markers and the table plane), and every recording starts with the grippers placed on start markers whose positions in the robot
+  frame were measured once. No per-recording alignment (~~no SLAM map~~, no point-cloud registration) is needed.
 * **One clock.** Camera frames, IMU samples, the robot's commanded and measured joints all carry host timestamps, so
   human, command and robot can be compared sample by sample and filmed side by side by the same camera without
   synchronization hardware.
@@ -97,8 +99,8 @@ video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et
 
 | view | what it provides |
 |---|---|
-| **Wrist fisheye** (one per hand) | the jaws themselves (open / closed), contact, and a close-up of the local cloth; also the input of the optional SLAM filler. This is the view a robot with wrist cameras would have. |
-| **Fixed external RGB-D** | global scene context (where the garment lies, both hands at once), the fiducial markers on both grippers, and metric depth. It is also the camera that films the robot replay, so human and robot appear in the same image. |
+| **Wrist fisheye** (one per hand) | the jaws themselves (open / closed, continuous aperture from jaw-tip keypoints), contact, and a close-up of the local cloth; ~~also the input of the optional SLAM filler~~. This is the view a robot with wrist cameras would have, and a policy input. |
+| **Fixed external RGB-D** | the pose source: point tracking on the grippers + the fiducial markers + metric depth; global scene context (where the garment lies, both hands at once) and a policy input. It is also the camera that films the robot, so human and robot appear in the same image. |
 
 ## 4. One world frame for human and robot
 
