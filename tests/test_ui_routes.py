@@ -102,3 +102,25 @@ def test_state_dir_override(tmp_path):
     ed = str(REPO / "src/garment_pipeline/eval_deploy")
     assert got["here_ui"] == ed and got["here_dep"] == ed          # module folders unchanged
     assert not got["out"].startswith(str(tmp_path))                 # run outputs are not state
+
+
+def test_height_calib_path(tmp_path):
+    """--height-calib (11-01): start_cmd shifts the start TCP by -xy_B_minus_robot per arm; run_session adds dz_at(row xy), ramped
+    over the first 16 rows, to every committed row's z and leaves xy alone (tests/ui/height_calib_probe.py, robot-free, dry)"""
+    probe = REPO / "tests/ui/height_calib_probe.py"
+    chk = "import flask, cv2, numpy, scipy, pinocchio, pink, ego_teleop; from egogarment import paths as p; assert (p.HANDUMI_SW_ROOT / 'assets/rebot_b601/rebot_b601_bimanual.urdf').exists()"
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join([str(REPO / "src")] + [x for x in [os.environ.get("PYTHONPATH")] if x]))
+    if subprocess.run([PY, "-c", chk], capture_output=True, timeout=300, env=env).returncode != 0:
+        pytest.skip(f"{PY}: needs flask, cv2, scipy, pinocchio, pink, the egocentric package and the reBot URDF")
+    out = tmp_path / "hc.json"
+    r = subprocess.run([PY, str(probe), str(REPO), str(out)], capture_output=True, text=True, timeout=600, env=env)
+    assert r.returncode == 0, r.stderr[-3000:]
+    R = json.loads(out.read_text())
+    assert all(f.startswith(R["state_files"][0].rsplit("/", 1)[0]) for f in R["state_files"])    # both in TAGRIG_STATE_DIR
+    xy = {"left": [0.006, -0.004], "right": [-0.003, 0.008]}
+    for s, v in xy.items():
+        assert R["start_shift"][s] == pytest.approx([-v[0], -v[1]], abs=1e-12)
+    assert R["run_hc_stop"] == R["run_nohc_stop"] == "test end"
+    assert R["run_dz_err"] < 1e-12 and R["run_xy_equal"]
+    assert abs(R["run_dz_mm_row8"]["left"]) > 1 and abs(R["run_dz_mm_row8"]["right"]) > 1        # the correction is really applied
+    assert any(f.startswith("INFO:z_offset_") for f in R["run_hc_flags"][0]) and not any(f.startswith("INFO:z_offset_") for f in R["run_nohc_flags"][0])
