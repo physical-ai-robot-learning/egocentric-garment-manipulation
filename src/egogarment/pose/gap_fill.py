@@ -19,19 +19,18 @@ sensor-free baseline.
 
 Usage:
     python scripts/gap_fill.py examples/synthetic_bimanual_demo.csv out/filled.csv --max-gap 1.0
+    python -m egogarment.pose.gap_fill examples/synthetic_bimanual_demo.csv out/filled.csv --max-gap 1.0
 """
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
 from scipy.interpolate import PchipInterpolator
 from scipy.spatial.transform import Rotation, Slerp
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import trajio  # noqa: E402
+from egogarment.io import trajio
 
 
 def runs(mask: np.ndarray) -> list[tuple[int, int]]:

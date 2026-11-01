@@ -27,17 +27,16 @@ All numeric defaults here are illustrative, not tuned for any specific robot.
 
 Usage:
     python scripts/robotize.py out/filled.csv out/robotized.csv --sep 0.05
+    python -m egogarment.retarget.robotize out/filled.csv out/robotized.csv --sep 0.05
 """
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import trajio  # noqa: E402
+from egogarment.io import trajio
 
 
 def softfloor(z: np.ndarray, f: float, w: float) -> np.ndarray:

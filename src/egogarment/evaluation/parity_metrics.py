@@ -19,19 +19,18 @@ external camera or a tape measure).
 
 Usage:
     python scripts/parity_metrics.py REF.csv TEST.csv [--t0 S --t1 S] [--max-lag 1.5] [--json out.json]
+    python -m egogarment.evaluation.parity_metrics REF.csv TEST.csv [--t0 S --t1 S] [--max-lag 1.5] [--json out.json]
 """
 from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import trajio  # noqa: E402
+from egogarment.io import trajio
 
 
 def resample(t_src: np.ndarray, x: np.ndarray, t_dst: np.ndarray) -> np.ndarray:

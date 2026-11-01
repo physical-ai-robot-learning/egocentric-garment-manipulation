@@ -2,11 +2,11 @@
 
 Usage:
     python scripts/plot_example.py out/robotized.csv out/example.png [--robot examples/synthetic_robot_replay.csv]
+    python -m egogarment.viz.plot_example out/robotized.csv out/example.png [--robot examples/synthetic_robot_replay.csv]
 """
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -15,8 +15,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import trajio  # noqa: E402
+from egogarment.io import trajio  # noqa: E402
 
 COL = {"R": "#c0392b", "L": "#1f5fa8"}
 NAME = {"R": "right", "L": "left"}

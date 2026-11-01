@@ -13,7 +13,7 @@ half fold), release and retreat. To exercise the tools, the generator adds
 * ~1.5 mm position noise and ~1 deg orientation noise on measured frames.
 
 It also writes a simulated "robot replay": the noise-free motion is passed
-through scripts/robotize.py (default settings), then delayed by 0.25 s,
+through egogarment.retarget.robotize (scripts/robotize.py, default settings), then delayed by 0.25 s,
 scaled by 0.97 about its start and given tracking noise, so that the parity
 tool has something to compare against.
 
@@ -28,9 +28,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / "scripts"))
-import trajio  # noqa: E402
-from robotize import robotize  # noqa: E402
+sys.path.insert(0, str(HERE.parent / "src"))  # works with or without `pip install -e .`
+from egogarment.io import trajio  # noqa: E402
+from egogarment.retarget.robotize import robotize  # noqa: E402
 
 FPS = 30.0
 DURATION = 30.0

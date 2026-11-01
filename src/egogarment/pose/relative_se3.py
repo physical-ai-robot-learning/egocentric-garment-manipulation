@@ -12,18 +12,16 @@ This module converts between the two and verifies the round trip on a CSV.
 
 Usage:
     python scripts/relative_se3.py examples/synthetic_bimanual_demo.csv --chunk 1.0
+    python -m egogarment.pose.relative_se3 examples/synthetic_bimanual_demo.csv --chunk 1.0
 """
 from __future__ import annotations
 
 import argparse
-import sys
-from pathlib import Path
 
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import trajio  # noqa: E402
+from egogarment.io import trajio
 
 
 def to_matrix(p: np.ndarray, q: np.ndarray) -> np.ndarray:
