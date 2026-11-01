@@ -16,8 +16,10 @@
 > [재생에서 정책 학습 데이터로](#재생에서-정책-학습-데이터로-10-2627) 참고. open-loop 재생 트랙(10-08 → 10-22)은 새 파이프라인의
 > 바탕으로 남겨 두었습니다. 더 이상 쓰지 않는 부분은 ~~취소선~~으로 표시했고, 그 코드는 [`legacy/`](legacy/README.md)에 있습니다.
 >
-> **2026-11-01 업데이트.** 이 시연으로 파인튜닝한 첫 정책을 로봇에서 돌렸습니다. 팔이 천 쪽으로 가지만 닿기 전에 멈추고 집게를
-> 일찍 닫습니다. 원인 네 가지를 데이터에서 찾았습니다(라벨 clamp, 시연 속도, 집게 라벨, 손목 카메라 위치).
+> **2026-11-01 업데이트.** 이 시연으로 파인튜닝한 첫 정책을 로봇에서 돌렸습니다(시행 횟수는 세지 않았습니다). 팔이 천 쪽으로
+> 가지만 닿기 전에 멈추고 집게를 일찍 닫았습니다. 기록된 원인은 두 가지입니다(정책이 관측 입력의 집게 상태를 그대로 따라 함,
+> 로봇 손목 카메라 위치가 손에 끼는 집게와 다름). 그 뒤 라벨을 점검해 데이터 문제 세 가지를 더 찾았습니다(라벨 clamp, 시연 속도,
+> 영상 집게 라벨).
 > [로봇에서 돌린 첫 정책](#로봇에서-돌린-첫-정책과-데이터에서-드러난-것-10-28--11-01) 참고. 성공률은 아직 보고하지 않습니다.
 
 > **이 저장소에 있는 것.** 실제로 돌린 프로젝트 코드 전체입니다. 녹화기와 로봇 쪽 패키지([`src/visual_teleop/`](src/visual_teleop/README.md)),
@@ -52,15 +54,16 @@
   마커에 집게를 두고 시작하므로 테이크마다 따로 맞출 필요가 없습니다. 모든 스트림에 호스트 시각이 붙습니다.
 * **위치는 손목 SLAM이 아니라 고정 카메라로:** 점 추적 + AprilTag + 깊이 + IMU. 손목 카메라 SLAM은 집는 순간에 추적을
   놓쳤습니다(MASt3R는 19–48 % 프레임만 사용 가능, ORB-SLAM3는 스케일 발산).
-* **라벨은 IK 이전 Cartesian 목표이고,** 로봇이 움직이기 전에 IK와 안전 검사를 실시간으로 거칩니다. IK → FK 라벨은 집는 순간
-  목표를 p95 약 58 mm 옮겼습니다.
+* **라벨은 IK 이전 Cartesian 목표이고,** 로봇이 움직이기 전에 IK와 안전 검사를 실시간으로 거칩니다. IK는 라벨을 바꾸지도
+  mask하지도 않습니다. IK → FK 라벨은 집는 순간 목표를 p95 약 58 mm 옮겼습니다(앞 139개 시연).
 * **재생 결과.** 33초 데모 하나의 양팔 재생은 결정적이고(실행 사이 약 1 mm), 집게가 사람과 같은 높이·시점에 닫힙니다. 천을 집어
   끌지만 재생으로 접기는 **성공하지 못합니다**.
 * **학습 데이터.** 펴기 성공 시연 300개를 등급을 매긴 IK 이전 Cartesian 학습 라벨로 바꿨고, Soft-Fold로 pretrain한 DiT가 로봇
   dry run에서 안전하게 돕니다.
-* **로봇에서 돌린 첫 정책.** 파인튜닝한 DiT·X-VLA 정책(10-28 →)은 천 쪽으로 가지만 닿기 전에 멈춥니다. 원인은 데이터에
-  있었습니다(라벨 clamp, 시연 속도, 집게 라벨, 손목 카메라 위치). 앞의 세 가지는 바꿨고 카메라 재장착이 다음입니다.
-  **정책 성공률은 아직 없습니다.**
+* **로봇에서 돌린 첫 정책.** 파인튜닝한 DiT·X-VLA 정책(10-28 →)을 시행 횟수를 세지 않은 로봇 시도에서 관찰했습니다. 천 쪽으로
+  가지만 닿기 전에 멈추고 집게를 일찍 닫습니다. 기록된 원인: 정책이 관측 입력의 집게 상태를 따라 함(이제 학습·deploy에서 가림),
+  로봇 손목 카메라 위치가 다름(재장착이 다음). 라벨 점검에서 라벨 clamp, 너무 빠른 시연, 서보와 어긋나는 영상 집게 라벨을 찾아
+  모두 바꿨습니다. **정책 성공률은 아직 없습니다.**
 
 긴 설명(데이터, 학습 계획, deploy 루프, 결정 기록, 재생 트랙, 남은 문제): [docs/details_ko.md](docs/details_ko.md).
 지표 정의와 전체 결과 표: [docs/results.md](docs/results.md)(영어).
@@ -112,12 +115,12 @@ flowchart LR
 
 | 장치 | 역할 |
 |---|---|
-| **HandUMI 2개** (손에 끼는 집게) | 시연 도구인 평행 집게입니다. 각각 **AprilTag 마커 4장**(카메라가 3D 위치·방향을 잴 수 있는 인쇄된 사각 코드): 48 mm 태그 3장 + 10-23부터 손목 카메라 뒷면의 30 mm 태그 1장(ID 220 / 221, 리그 `umi_tag_rig_v002`, 30 mm 태그 하나만 보일 때는 자세 뒤집힘을 IMU로 확인한 경우에만 사용), 손목 어안 카메라(30 Hz), 작은 IMU(움직임 센서), **집게 서보**(Feetech STS3215, 토크를 끄고 집게 엔코더로만 읽음, 호스트 시계 기준 약 100 Hz)가 달려 있습니다. 서보는 10-29에 다시 달았습니다(~~집게 모터 없음~~ 10-13 → 10-28). |
-| **Orbbec Gemini 336** (고정 RGB-D 카메라) | 테이블 위에 고정한 컬러 + 정렬된 깊이 카메라(15 Hz)입니다. 양손이 화면 안에 있도록 113 cm로 올렸고(10-25), **위치 추정의 주 소스**(점 추적 + 마커 + 깊이)입니다. 양손 집게, 테이블의 **시작점 마커** 2장, 카메라를 옮긴 뒤 다시 캘리브레이션할 때 쓰는 테이블 고정 태그 2장을 봅니다(~~로봇 손목 캘리브레이션 마커~~는 첫 캘리브레이션에만 사용). |
+| **HandUMI 2개** (손에 끼는 집게) | 시연 도구인 평행 집게입니다. 각각 **AprilTag 마커 4장**(카메라가 3D 위치·방향을 잴 수 있는 인쇄된 사각 코드): 48 mm 태그 3장 + 10-23부터 손목 카메라 뒷면의 30 mm 태그 1장(ID 220 / 221, 리그 `umi_tag_rig_v002`, 30 mm 태그 하나만 보일 때는 자세 뒤집힘을 IMU로 확인한 경우에만 사용), 손목 어안 카메라(30 Hz), IMU(움직임 센서, Seeed XIAO nRF52840 Sense), **집게 서보**(Feetech STS3215, 토크를 끄고 집게 엔코더로만 읽음, 호스트 시계 기준 약 100 Hz)가 달려 있습니다. 서보는 10-29에 다시 달았습니다(~~집게 모터 없음~~ 10-13 → 10-28). |
+| **Orbbec Gemini 336** (고정 RGB-D 카메라) | 테이블 위에 고정한 컬러 + 정렬된 깊이 카메라(녹화 스트림 약 15 Hz)입니다. 양손이 화면 안에 있도록 113 cm로 올렸고(10-25, 11-01 재조준은 각도만 맞췄고 높이는 다시 재지 않음), **위치 추정의 주 소스**(점 추적 + 마커 + 깊이)입니다. 양손 집게, 테이블의 **시작점 마커** 2장, 카메라를 옮긴 뒤 다시 캘리브레이션할 때 쓰는 테이블 고정 태그 2장을 봅니다(~~로봇 손목 캘리브레이션 마커~~는 첫 캘리브레이션에만 사용). |
 | **reBot B601-DM 2대** | 평행 집게가 달린 저가 6축 팔입니다. 우리 MIT 브리지로 구동합니다(100 Hz, 모터 자동 재활성화, USB 재연결, 집게 열림 제한). 학습한 정책을 실행합니다(이전에는 open-loop 재생 대상). |
 | **로봇 보정** | 로봇 CAD 모델 값을 믿지 않고 줄자와 카메라로 직접 쟀습니다. 집게 끝 위치(모델이 89 mm 어긋남), 왼팔 설치 위치(70 mm, 3° 어긋남), 왼팔 2번 관절 영점(−8.4°)을 보정했습니다. |
 | **호스트 컴퓨터** | 모든 스트림을 하나의 단조 시계로 녹화, 로봇 제어와 실시간 IK |
-| **임대 GPU** | RTX 5090 pod: 점 추적, 집게 모델, 3D 계산, 정책 학습. ~~선택적 시각 SLAM 끊김 보완용으로만~~ |
+| **GPU** | 임대 RTX 5090 pod(RunPod): 점 추적, 집게 모델, 3D 계산, 일부 정책 학습. 임대 H100에서 한 번 학습. 회사 RTX 4090(Ray 경유): DiT 파인튜닝(펴기, 핀칭). ~~선택적 시각 SLAM 끊김 보완용으로만~~ |
 
 시스템 전체에 두 원칙이 있습니다.
 
@@ -279,11 +282,12 @@ python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.episode_quality <qual
 ```bash
 python -m garment_pipeline.labels_dataset.robotize_ik <raw take> <derived take> --demos 0,1,... --workers 8   # 라벨 A + B + IK 진단
 python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label rob --mask-mode stitched --out <dataset> --takes <take> ...
-# 10-29부터: 라벨 F (측정한 집게 끝, clamp·들어올림 없음), 필요하면 0.3배속으로 늘린 복사본
+# 10-29부터: 라벨 F (reBot 집게 축의 fusion 집게 끝, 0.25초 smoothing, clamp·들어올림 없음), 필요하면 0.3배속으로 늘린 복사본
 python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
 ```
 
-**6단계 · 학습** — DiT 학습기(집게 BCE head, mask, 에피소드별 가중치, gradient clipping 끔)와 설정은
+**6단계 · 학습** — DiT 학습기(mask, 에피소드별 가중치, 선택 사항인 집게 BCE head `GRIP_BCE=1`, 집게 상태 가림
+`GRIP_STATE_MASK=1`, gradient clipping은 기본 norm 10이고 `GRAD_CLIP=0`이면 끔. 핀칭 학습은 BCE와 clipping 끔을 씀)와 설정은
 `src/garment_pipeline/training/`에 있습니다(11-01 추가). X-VLA 파인튜닝 코드는 이 저장소에 없습니다. 계획(GOLD로 DiT, X-VLA
 파인튜닝)은 [docs/details_ko.md 3.2절](docs/details_ko.md#32-학습-계획)에 있습니다.
 
@@ -301,7 +305,7 @@ python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed
 python scripts/evaluation/replay_parity.py <take> <run>/right                                         # 사람·명령·로봇 비교
 ```
 
-전체 명령, 옵션, 안전 규칙은 [테크니컬 리포트 v0.1](report/archive/report_v0.1_en.pdf)(보관본) 부록 A에 있습니다.
+전체 명령, 옵션, 안전 규칙은 [테크니컬 리포트 v0.1](report/archive/report_v0.1_en.pdf)(보관본) 부록 A에 있습니다(리팩터링 이전 경로, [경로 표](report/README.md) 참고).
 
 ### 재현 가능한 명령 (합성 데이터)
 
@@ -393,9 +397,9 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 | 월드 좌표 | reBot 베이스 좌표 B. 카메라 → 베이스 `T_B_C`는 `configs/calibration/robot_cam_v00N.json` (take 날짜로 고름) | `src/garment_pipeline/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
 | take별 집게 끝 궤적 | `umi_traj_{right,left}.npz`: 집게 끝 TCP `p_B`, 리그 회전 `R_B_tcp`, `ntags` | `scripts/pose/umi_tcp_traj.py` |
 | 집게 상태 | `umi_jaw.npz`: `g_cont` 0 = 닫힘 … 1 = 열림, `valid`, `ev_t`. 이진 `state`는 1 = 열림, 0 = 닫힘. 서보에서 만든 파일은 `motor_pos`를 함께 두고 `model = feetech_sts3215_motor` | 영상: `src/visual_teleop/tools/umi_jaw.py`, `scripts/pose/jaw_aperture.py`, 서보(Feetech STS3215, 토크 끈 엔코더, 10-29 →): `scripts/pose/jaw_from_motor.py` |
-| 학습 라벨 | **F**(10-29 →) = IK 이전, 측정한 사람 집게 끝 포즈 그대로, clamp·들어올림 없음(`--label fused`). ~~**A** = IK 이전, reBot 집게 축의 Cartesian 집게 끝 포즈(0.25초 smoothing + 테이블 clearance)~~. **B** = IK → FK(QA용) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`tag_rig_unsplit.py`의 `--label rob` / `ikfk` / `fused`) |
-| 데이터셋 | LeRobot v3, 20 Hz, 카메라 3대, `observation.state` 30차원, `action` 20차원 absolute = 팔마다 xyz + rot6d + 집게, 차원별 `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
-| chunk | relative 동작 `inv(T_t)·T_{t+k}`, k = 1…32, 20 Hz, 학습 loader에서 만듦. deploy는 앞 4 step만 실행하고 다시 계획 | [docs/details_ko.md 3.2–3.3절](docs/details_ko.md#33-학습한-정책을-로봇에서-실행하기) |
+| 학습 라벨 | **F**(10-29 →, `--label fused`) = reBot 집게 축(`R_B_tcp·R_U_E`)으로 나타낸 fusion 사람 집게 끝 포즈, 0.25초 smoothing, IK 이전. 테이블 들어올림·clamp 없음, IK는 값도 바꾸지 않고 mask도 하지 않음. ~~**A**(`--label rob`) = F + 테이블 여유(수직 쪽으로 ≤ 30° 기울인 뒤 corner lift)~~. **B**(`--label ikfk`) = IK → FK (QA용) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`tag_rig_unsplit.py`의 `--label rob` / `ikfk` / `fused`) |
+| 데이터셋 | LeRobot v3, 20 Hz, 카메라 3대. `observation.state` 30차원 = 팔마다 에피소드 시작 기준 상대 포즈(pose9), g_L, g_R, 좌우 상대 pose9 + 유효 플래그(`GRIP_STATE_MASK=1`이면 집게 값은 0). `action` 20차원 absolute `[L xyz, L rot6d, R xyz, R rot6d, g_L, g_R]`(rot6d = R의 앞 두 행, 집게 목표 = 0.1초 ramp를 둔 이진 집게 상태, 연속 열림 정도는 `gripper_cont`로 따로 저장), 차원별 `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py`, `src/contracts/` |
+| chunk | relative 동작 `inv(T_t)·T_{t+k}`, k = 1…32, 20 Hz, 학습 loader에서 만듦. deploy는 계획마다 앞의 몇 step만 실행하고 다시 계획(DiT 기본 4, ACT 1, X-VLA 8, UI에서 선택, 속도 > 1이면 DiT 실행 step은 32/속도로 제한) | [docs/details_ko.md 3.2–3.3절](docs/details_ko.md#33-학습한-정책을-로봇에서-실행하기) |
 | 로봇 모델 보정 | TCP 오프셋, 팔별 관절 영점 오프셋, 왼팔 베이스 자세: `configs/robot/{tcp_override,joint_offset,base_override}_v001.json` | `src/visual_teleop/robot/ik_pink.py`에서 적용 |
 | 단위 | 코드는 미터와 초로 저장(예: 태그 크기 0.048 m). README와 리포트는 mm로 적음 | — |
 
@@ -458,12 +462,12 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 | 손목 카메라 SLAM을 위치 소스로 | **기각.** MASt3R-SLAM은 19–48 % 프레임만 유지(집는 순간 주변 0–38 %), ORB-SLAM3 mono-inertial은 스케일 발산 |
 | CoTracker 점 추적 + 마커 + IMU (10-24/25) | held-out take에서 가린 마커 오차 중앙값 16 mm(왼) / 19 mm(오른), 마커만 쓰면 약 42 mm |
 | 펴기 데이터셋 (10-26/27) | 성공 300 / 녹화 318, 앞 139개 등급 GOLD 133 / SILVER 5 / REJECT 1 |
-| IK 이전 vs 이후 라벨 (10-26) | 집는 순간 IK → FK가 목표를 p95 약 58 mm(전체 53 mm) 옮김. 정말 도달 불가능한 프레임은 약 1–2 %(10-27 정리에서는 약 1 %) |
-| 라벨의 테이블 여유 (10-29) | 라벨 프레임 44 %를 중앙값 27 mm(최대 65) 들어 올림 → 제거, 이제 라벨은 측정한 사람 집게 끝 그대로 |
+| IK 이전 vs 이후 라벨 (10-26) | 앞 139개 시연(팔-프레임 약 123k): 집는 순간 IK → FK가 목표를 p95 약 58 mm(전체 53 mm) 옮김. IK 보정이 큰 프레임 20.3 %, 도달 불가능 0.8 % |
+| 라벨의 테이블 여유 (10-29) | 라벨 프레임 44 %를 중앙값 27 mm(최대 65) 들어 올림 → 제거, 라벨 F = fusion 사람 집게 끝(집게 축, 0.25초 smoothing), 들어올림·clamp 없음 |
 | 시연 속도 (10-29) | 사람 집게 끝 p95 0.93 m/s, 127 °/s — 로봇에 너무 빠름 → 0.3배속으로 늘린 데이터셋 |
 | 손목 카메라 위치 (10-29) | 로봇 손목 카메라가 UMI보다 공구 축 쪽으로 11–13° 덜 기울고 25–44 mm 더 가까움 (테이블 태그 PnP) |
 | 정책, 10-27 기준 | 아직 우리 데이터로 학습하지 않음. pretrain만 한 diffusion 정책(Soft-Fold pretrain DiT)이 로봇 dry run에서 안전 위반 없이 돎 |
-| 로봇에서 돌린 정책 (10-28 →) | GOLD 데모 281개로 파인튜닝한 DiT·X-VLA가 천 쪽으로 가다가 닿기 전에 멈추고 일찍 닫음 — **성공률 아직 없음** |
+| 로봇에서 돌린 정책 (10-28 →) | GOLD 데모 281개로 파인튜닝한 DiT·X-VLA를 시행 횟수를 세지 않은 로봇 시도에서 관찰: 천 쪽으로 가다가 닿기 전에 멈추고 일찍 닫음 — **성공률 없음** |
 
 ### 확인 방법 (이 저장소)
 
@@ -475,7 +479,7 @@ python -m pytest -q                                      # 합성 예제에 대�
                                                          # 합성 자체 시험 (OpenCV가 없으면 robot_cam_solve는 건너뜀)
 python scripts/evaluation/replay_parity.py --synthetic   # 비교 채점기 자체 시험, 마지막 줄 "합성 시험 PASS"
 python scripts/pose/robot_cam_solve.py --synthetic       # 시뮬레이션 데이터로 카메라 ↔ 로봇 풀이 (OpenCV < 5 필요), 마지막 줄 "합성 시험 PASS"
-python analysis/verify_claims.py                         # 테크니컬 리포트의 모든 숫자를 출처 파일과 대조, "N claims checked, 0 failed"
+python analysis/verify_claims.py                         # 리포트의 모든 숫자가 그것을 옮겨 온 저장소 안 문서에 있는지 확인(기록과의 일관성, 데이터에서 다시 계산하는 것은 아님), "N claims checked, 0 failed"
 ```
 
 `python -m pytest -q tests`는 모든 `egogarment` 모듈을 패키지로 묶기 전에 기록한 출력([`tests/expected_synthetic.json`](tests/expected_synthetic.json))과
@@ -504,11 +508,12 @@ python analysis/verify_claims.py                         # 테크니컬 리포�
 * **상대 비교 지표는 오프셋을 숨깁니다.** 지연을 뺀 뒤 구간 시작 기준으로 계산하므로, 절대 위치는 줄자와 영상으로만 확인했습니다.
 * ~~**태그가 가려진 구간**은 보간합니다(전체 데모 오른손 프레임의 약 5분의 1). 집는 순간의 오차는 측정하지 않았습니다.~~
   점 추적으로 해결(8절). 가린 마커 오차를 이제 held-out take에서 잽니다.
-* **라벨 프레임의 약 5분의 1은 IK 보정이 큽니다**(손목 roll, 공구 뒤집힘, 관절 하나가 한계). 원인별로 보고하지만 아직 mask하지
-  않습니다.
+* **라벨 프레임의 약 5분의 1은 IK 보정이 큽니다**(손목 roll, 공구 뒤집힘, 관절 하나가 한계. 앞 139개 시연에서 20.3 %). 라벨 F와
+  A에서는 IK 결과가 어떤 프레임도 mask하거나 바꾸지 않으며 QA 통계로만 남습니다. IK를 아예 돌릴 수 없는 시연만 빠집니다.
 * **집게 라벨**: 손목 영상 라벨은 예전 시연에서 held-out 정확도 숫자가 없습니다. 서보도 있는 녹화에서는 영상 분류기가 서보와 약
-  70–80 % 프레임에서만 일치합니다. 예전 시연을 다시 라벨링하려고 손목 영상으로 서보 값을 재현하도록 학습한 모델은 평가 중이며
-  적용하지 않았습니다.
+  70–80 % 프레임에서만 일치합니다(프레임 단위, `scripts/pose/jaw_motorlike.py`에 기록). 예전 시연을 다시 라벨링하려고 손목 영상으로
+  서보 값을 재현하도록 학습한 모델은 평가했고, 10-31에 그것으로 후보 데이터셋 하나를 만들었지만(`flat300_S03_gold187nb_mj`, 검은 천을
+  뺀 GOLD 시연 187개) 보고한 어떤 모델에도 쓰지 않았습니다.
 
 ## 8. 지금 쓰는 것과 안 쓰는 것
 
@@ -520,10 +525,10 @@ python analysis/verify_claims.py                         # 테크니컬 리포�
 | 카메라 ↔ 로봇 | 카메라를 옮길 때마다 테이블 고정 태그 2장 + 테이블 평면으로 다시 풂 (`robot_cam_v002…v005`) | 손목 마커 32자세 풀이 (`v001`, 예전 카메라 위치에서는 유효) |
 | 집게 상태 | 10-29 이후 시연: UMI의 Feetech 서보 값 (`scripts/pose/jaw_from_motor.py`), 그 전 시연(GOLD-281 포함): ResNet18 분류기 v003 → YOLO-pose 집게 끝 → 열림 정도 g. 두 출처는 한 비교 안에서 섞지 않음 | ~~빨간 테이프 집게 검출~~ (10-20 테이프 제거) |
 | 팔 배정 | 집게가 테이블의 어느 쪽에 있는지로 | ~~리그 라벨로~~ (10-22부터 라벨이 바뀌어 있음) |
-| 라벨 | **F** = IK 이전, 측정한 사람 집게 끝 포즈 그대로(clamp·들어올림 없음, `tag_rig_unsplit.py --label fused`, 10-29), relative는 loader에서 만듦 | ~~**A** = 같은 것 + 테이블 여유~~ (프레임 44 % 들어 올림) · **B** = IK → FK (QA용으로만 보관) |
+| 라벨 | **F** = IK 이전, reBot 집게 축의 fusion 사람 집게 끝 포즈(0.25초 smoothing), clamp·들어올림 없음, IK는 바꾸지도 mask하지도 않음(`tag_rig_unsplit.py --label fused`, 10-29), relative는 loader에서 만듦 | ~~**A** = F + 테이블 여유~~ (프레임 44 % 들어 올림) · **B** = IK → FK (QA용으로만 보관) |
 | 데이터 속도 | 0.3배속으로 늘린 복사본(`--speed 0.3`): 포즈·집게 이벤트·카메라 프레임을 하나의 느린 시간축에 | 사람 속도 (p95 0.93 m/s) |
-| 실행 | receding-horizon deploy: FK → 합성 → 제한 → IK → 안전, 계획마다 4 step | 데모 전체 open-loop 재생 (`umi_replay_bi`, 재생 트랙) |
-| 연산 | 임대 RTX 5090 pod (점 추적, 집게 분류기, 3D 계산), 모든 결과는 SSD에 보관 | 회사 4090 (다른 사람이 사용 중) |
+| 실행 | receding-horizon deploy: FK → 합성 → 제한 → IK → 안전, DiT는 계획마다 4 step(기본값, ACT 1, X-VLA 8) | 데모 전체 open-loop 재생 (`umi_replay_bi`, 재생 트랙) |
+| 연산 | 임대 RTX 5090 pod (점 추적, 집게 분류기, 3D 계산), DiT 파인튜닝은 회사 RTX 4090(Ray 경유), 임대 H100에서 한 번 학습, 모든 결과는 SSD에 보관 | — |
 
 ### 재생에서 정책 학습 데이터로 (10-26/27)
 
@@ -552,13 +557,14 @@ open-loop 재생은 변환이 기하적으로 맞다는 것을 보여 줬지만,
 
 **라벨을 IK 이전에서 가져오는 이유.** IK → FK 라벨에는 실행 결정(손목 roll 완화, 관절 한계 근처 공구 뒤집기, 두 팔을 떨어뜨리는
 밀기)이 들어 있고, 하필 중요한 곳에서 목표를 가장 많이 옮겼습니다. 집는 순간 IK → FK 라벨은 Cartesian 라벨과 p95 약 58 mm
-다릅니다. 정말 도달할 수 없는 프레임은 약 1–2 %뿐입니다(손을 테이블 위로 높이 든 경우, 10-27 정리에서는 약 1 %). IK 결과와 프레임별
+다릅니다(전체 53 mm, 앞 139개 시연, 팔-프레임 약 123k). 같은 시연에서 정말 도달할 수 없는 프레임은 0.8 %입니다(손을 테이블 위로 높이 든 경우). IK 결과와 프레임별
 진단은 QA용으로 남기고, IK는 오프라인에서는 검사기, 온라인에서는 실행기가 됩니다. 라벨은 absolute로 저장하고, 정책은 relative 동작
 inv(T_t)·T_{t+k}를 배웁니다.
 
 **학습 계획.** (1) 공개 로봇 천 접기 데이터셋(Soft-Fold)으로 pretrain한 diffusion transformer 정책(DiT)을 GOLD 시연으로 파인튜닝.
 (2) 그 데이터셋과 공개 UMI 방식 옷 데이터셋 두 개(iPhUMI, PrimeBot UMI)를 같은 비율로 섞어(소스마다 domain prompt 하나)
-pretrain한 VLA 기반 모델(X-VLA)을 같은 방식으로 파인튜닝. 둘 다 시행 횟수를 세며 로봇에서 평가합니다. 자세한 내용:
+pretrain한 VLA 기반 모델(X-VLA)을 같은 방식으로 파인튜닝. 계획은 둘 다 시행 횟수를 세며 로봇에서 평가하는 것이었습니다. 실제로
+DiT 파인튜닝은 Soft-Fold·iPhUMI·PrimeBot UMI를 1 : 1 : 1로 섞어 100k step pretrain한 DiT에서 시작했습니다. 자세한 내용:
 [docs/details_ko.md 3.2절](docs/details_ko.md#32-학습-계획).
 
 **안전 교훈.** 집게 열림 제한 없이 브리지를 다시 시작했다가 집게 하나가 끝까지 열려 홀더가 부러졌습니다. 이제 deploy는 브리지가
@@ -566,20 +572,25 @@ pretrain한 VLA 기반 모델(X-VLA)을 같은 방식으로 파인튜닝. 둘 �
 
 ### 로봇에서 돌린 첫 정책과 데이터에서 드러난 것 (10-28 → 11-01)
 
-GOLD 데모 281개로 파인튜닝한 DiT(Soft-Fold pretrain)와 X-VLA 정책을 receding-horizon deploy로 로봇에서 돌렸습니다. 성공률은 아직
-보고하지 않습니다. 팔이 천 쪽으로 가지만 닿기 전에 멈추고 집게를 일찍 닫습니다. 원인은 모델이 아니라 데이터에 있었습니다.
+GOLD 데모 281개로 파인튜닝한 DiT(Soft-Fold / iPhUMI / PrimeBot UMI 혼합 pretrain)와 X-VLA 정책을 receding-horizon deploy로
+로봇에서 돌렸습니다. 이 실행에서 알려진 것은 정성적인 관찰뿐입니다. 팔이 천 쪽으로 가지만 닿기 전에 멈추고 집게를 일찍 닫았습니다.
+시행 횟수는 세지 않았고, 10-28 → 10-31 실행의 checkpoint·라벨 종류·속도는 기록되지 않았으며(11-01 실행은 아래 핀칭 절 참고),
+성공률은 보고하지 않습니다. 로봇 실행에서
+기록된 원인은 두 가지(첫 행과 마지막 행)이고, 나머지 세 가지 데이터 문제는 그 뒤 라벨을 점검해 찾았습니다(2–4행).
 
 | 찾은 것 | 바꾼 것 | 코드 |
 |---|---|---|
-| "테이블 위로 유지" 단계(라벨 A의 테이블 여유)가 라벨 프레임 44 %를 중앙값 27 mm 들어 올림 — 정책이 천까지 내려가는 법을 배우지 못함 | 라벨 F: 측정한 사람 집게 끝 그대로, clamp·들어올림·도달성 수정 없음. 제한은 학습 라벨이 아니라 deploy에서만 | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
+| 집게가 일찍 닫히고 다시 열리지 않음: 정책이 관측 입력의 집게 상태를 그대로 따라 함 | 학습과 deploy에서 관측의 집게 상태를 0으로 가림(`GRIP_STATE_MASK=1`), 집게 타이밍은 영상에서 나와야 함 | `src/garment_pipeline/training/tagrig_common.py` |
+| "테이블 위로 유지" 단계(라벨 A의 테이블 여유)가 라벨 프레임 44 %를 중앙값 27 mm 들어 올림 — 정책이 천까지 내려가는 법을 배울 수 없었음 | 라벨 F: fusion 사람 집게 끝(reBot 집게 축, 0.25초 smoothing), clamp·들어올림·도달성 수정 없음. 제한은 학습 라벨이 아니라 deploy에서만 | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
 | 사람 시연이 로봇이 따라가기에 너무 빠름 (p95 약 0.93 m/s, 127 °/s) | 0.3배속으로 늘린 데이터셋 복사본: 포즈, 집게 이벤트, 모든 카메라 프레임을 하나의 느린 시간축에 다시 샘플링, 행은 20 Hz 유지 | `tag_rig_unsplit.py --speed 0.3` |
-| 집게 라벨이 손목 영상에서 집게를 읽는 모델에서 나왔고, 실제 집게 열림과 달랐음 | 10-29부터 손에 끼는 집게에 서보가 있고, 새 시연의 집게 라벨 = 엔코더 값(take마다 재중심). 두 출처의 라벨은 따로 두고 한 비교 안에서 섞지 않음 | `scripts/pose/jaw_from_motor.py`, 예전 시연 재라벨 시도 `scripts/pose/jaw_motorlike.py` (적용 안 함) |
+| 집게 라벨이 손목 영상에서 집게를 읽는 모델에서 나왔고, 실제 집게 열림과 달랐음 | 10-29부터 손에 끼는 집게에 서보가 있고, 새 시연의 집게 라벨 = 엔코더 값(take마다 재중심). 두 출처의 라벨은 따로 두고 한 비교 안에서 섞지 않음 | `scripts/pose/jaw_from_motor.py`, 예전 시연 재라벨 시도 `scripts/pose/jaw_motorlike.py` (보고한 모델에는 쓰지 않음) |
 | 로봇 손목 카메라가 손에 끼는 집게와 다른 위치에서 집게를 봄 | 테이블 마커로 측정: 로봇 카메라가 공구 축 쪽으로 11–13° 덜 기울고 25–44 mm 더 가까움. 다음은 손에 끼는 집게 형상에 맞춰 재장착 | — |
 
 함께 추가(진행 중, **로봇에서 아직 검증 안 됨**): 테이블 태그를 집게로 찍어 팔별 높이 평면을 맞추는 캘리브레이션
-(`src/garment_pipeline/eval_deploy/height_calib.py`), 계획 사이 real-time chunking blend(`act_tagrig_core.py`, 오프라인 시험만),
-X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `src/garment_pipeline/training/` (집게 BCE head, mask, 에피소드별 가중치가 있는 DiT
-학습기, gradient clipping 끔).
+(`src/garment_pipeline/eval_deploy/height_calib.py`, UI 옵션을 켜면 실행하는 모든 명령에 더함), 계획 사이 real-time chunking
+blend(`act_tagrig_core.py`, 10-29부터 UI 기본값이지만 각 로봇 실행에서 켜져 있었는지는 기록되지 않음), X-VLA 정책 서버(`xvla_server.py`).
+학습 코드: `src/garment_pipeline/training/` (mask, 에피소드별 가중치가 있는 DiT 학습기. 집게 BCE head와 gradient clipping 끔은 선택
+사항이고 핀칭 학습에서만 씀. 기본값은 MSE 집게 목표, gradient clipping norm 10).
 
 ### 진행 중 (10-30 → 11-01): 핀칭 — 이 파이프라인이 집기 하나를 가르칠 수 있는가?
 
@@ -594,11 +605,16 @@ X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `src/garment_pipeline/trai
 
 | | |
 |---|---|
-| 라벨 | 전부 **Cg**(CoTracker + 마커 기준점 + 상수 bias, IMU는 추적이 끊긴 구간 안에서만), 집게는 서보 엔코더, 로봇용 0.5배속. 이전 라벨 변형은 데모 시작에 빈 구간을 남겨서 모든 세트를 Cg로 다시 만들었고, 둘은 섞지 않습니다. |
-| 학습 데이터 | 10-30: 74개 중 53개 · 11-01: 60개 중 56, 35개 중 33, 10개 중 10, 50개 중 48 (147개 남김, 모두 사용), **모두 합쳐 200개**. 남김 = 품질 등급 GOLD 또는 SILVER. |
-| 테스트 세트 (학습에 쓰지 않음) | 학습에서 뺀 take 두 개(10-30, 11-01)의 시연 19개로 팔 + 집게 평가. 11-01에 reject된 시연은 모두 집게 타이밍 평가에만 씀(집게 라벨은 유효, 팔 라벨은 아님). |
-| 모델 | 10-30 세트로 파인튜닝한 diffusion-transformer 정책이 출발점이자 테스트 19개의 기준선입니다. 200개 시연으로 학습 중 이미지 augmentation을 더해 파인튜닝을 11월 1일 시작합니다. |
-| 상태 | **로봇 결과는 아직 없습니다.** 로봇 시도는 성공이든 실패든 시도 횟수와 성공 횟수를 함께 여기에 적습니다. |
+| 위치 소스 / 라벨 | 궤적 소스는 전부 **Cg**(CoTracker + 마커 기준점 + 상수 bias, IMU는 추적이 끊긴 구간 안에서만), 라벨 종류는 F, 집게는 서보 엔코더, 로봇용 0.5배속. 이전 궤적 소스 A′(시연·팔마다 첫 2초 태그 프레임에서 구한 xyz bias 하나)는 일부 11-01 시연 안쪽에 NaN 구간이 있어(그중 4개 시연은 IK 실패) 모든 세트를 Cg로 다시 만들었고, 두 소스는 섞지 않습니다. |
+| 학습 데이터 | 10-30: 74개 중 53개 · 11-01: 품질 gate 통과 60개 중 56, 35개 중 33, 10개 중 10, 50개 중 48 (147개). 이 중 3개는 데이터셋 변환에서 빠져(trim 후 구간 5초 미만) **모두 197개**(53 + 144, 62,160 프레임). 남김 = 품질 등급 GOLD 또는 SILVER. |
+| 테스트 세트 (학습에 쓰지 않음) | P20: 10-30 테스트 take의 시연 10개 전부(gate로 거르지 않음) + 11-01 테스트 take의 10개 중 9개(19개)로 팔 + 집게 평가. 11-01에 reject된 시연은 모두 집게 타이밍 평가에만 씀(집게 라벨은 유효, 팔 라벨은 아님). |
+| 모델 | 10-30 세트(소스 A′)로 파인튜닝한 diffusion-transformer 정책이 출발점이자 P20 기준선입니다(`val_score_mm` 19.89 mm: k = 16, 32에서 좌우 팔 이동 편차의 평균). 197개 시연으로 학습 중 이미지 augmentation을 더한 파인튜닝은 11월 1일 시작했습니다(약 4.7일 예정). 결과는 아직 없습니다. |
+| 상태 | **로봇 결과는 아직 없습니다.** 11월 1일 기준선을 세지 않고 짧게 한 번 로봇에서 돌린 것(아래)이 유일합니다. 로봇 시도는 성공이든 실패든 시도 횟수와 성공 횟수를 함께 여기에 적습니다. |
+
+**11월 1일 로봇 실행 (정성 관찰, 시행 횟수 세지 않음).** DiT checkpoint 두 개를 commit 32, 속도 1(나중에 1.5)로 돌렸습니다.
+GOLD-281 + 서보 라벨 시연 48개로 파인튜닝한 펴기 정책(라벨 F, 0.3배속, 약 70초 실행 두 번)과 핀칭 기준선(짧은 실행 한 번)입니다.
+둘 다 왼쪽 집게는 대부분 열림 명령이었고 오른쪽 집게는 닫힌 채였습니다. 첫 실행에서 왼쪽 손목 모터 오류가 한 번, 왼팔 명령과
+측정의 차이가 20°를 넘은 적이 한 번 있었습니다. 성공·실패는 매기지 않았습니다([상태 노트](docs/status_2026-11-01.md)).
 
 이 시험을 위해 로봇 쪽에서 바꾼 것: 테이블 태그를 집게 끝으로 찍어 팔별 테이블 높이를 맞추는 캘리브레이션, 고정 카메라를 예전 시점으로
 다시 맞춤, E-STOP을 걸지 않고 부드럽게 멈추는 정지.
@@ -610,8 +626,8 @@ X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `src/garment_pipeline/trai
    미터 스케일로 로봇 자신의 베이스 좌표에서 복원하기.
 3. **embodiment를 넘는 궤적 표현과 도달성.** 사람 손 동작을 로봇 엔드이펙터 목표로 바꾸기: 무엇을 absolute로 두고 무엇을 relative로
    만들지, 도달할 수 없는 궤적을 의도를 해치지 않고 어떻게 변형할지, 프레임마다 어떻게 등급을 매길지.
-4. **긴 옷 작업의 정책 학습.** 변환한 라벨로 학습한 end-to-end 정책과 단계 조건 정책(집기, 들기, 접기, 놓기) 비교. *정책 학습은
-   10-28에 시작했고(end-to-end DiT와 X-VLA, 위 참고), 성공률은 아직 없으며 단계 조건 비교는 시작하지 않았습니다.*
+4. **긴 옷 작업의 정책 학습.** 변환한 라벨로 학습한 end-to-end 정책과 단계 조건 정책(집기, 들기, 접기, 놓기) 비교. *end-to-end
+   DiT와 X-VLA 정책은 10월 말부터 변환한 라벨로 파인튜닝했고(위 참고), 성공률은 아직 없으며 단계 조건 비교는 시작하지 않았습니다.*
 
 ### 남은 질문
 
@@ -626,10 +642,12 @@ X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `src/garment_pipeline/trai
 
 * **상태 (10-27):** 재생이 끝까지 돌고 결정적입니다. 집는 높이가 사람과 맞습니다. 재생으로 접기는 성공하지 못합니다. 펴기 시연
   300개를 등급을 매긴 IK 이전 Cartesian 학습 라벨로 바꿨습니다.
-* **상태 (11-01):** 두 정책 모두 GOLD 데모로 파인튜닝해 로봇에서 돌립니다. 천에 닿기 전에 멈추고 일찍 닫습니다. 원인 네 가지를
-  데이터에서 찾았고, 세 가지는 바꿨으며 손목 카메라 재장착이 다음입니다(8절). 성공률은 아직 없습니다.
-* **진행 중 (11-01):** Cg 라벨 시연 200개로 왼손 소매 하나 집기 시험(8절, 핀칭). 로봇 결과는 아직 없습니다.
-* **다음:** 로봇 손목 카메라를 재장착하고, 고친 라벨과 서보 라벨 시연으로 다시 학습한 뒤, 시행 횟수를 세며 로봇에서 평가합니다.
+* **상태 (11-01):** 두 정책 모두 GOLD 데모로 파인튜닝해 로봇에서 돌렸습니다(시행 횟수는 세지 않음). 천에 닿기 전에 멈추고 일찍
+  닫습니다. 기록된 원인은 집게 상태 따라 하기(이제 가림)와 손목 카메라 위치(재장착이 다음)이고, 라벨 점검에서 데이터 문제 세 가지를
+  더 찾아 모두 바꿨습니다(8절). 성공률은 아직 없습니다.
+* **진행 중 (11-01):** Cg 소스 시연 197개로 왼손 소매 하나 집기 시험(8절, 핀칭). 로봇 결과는 아직 없습니다.
+* **다음:** 로봇 손목 카메라를 재장착하고, 고친 라벨과 서보 라벨 시연으로 학습한 정책을 시행 횟수를 세며 로봇에서 평가합니다
+  (그런 펴기 파인튜닝 하나를 11-01에 시행 횟수 없이 로봇에서 돌렸습니다. 8절, 핀칭).
   ~~집기별 오차 분석, 재생 전 천 위치 기준, 태그가 가려진 구간용 오프라인 smoother~~ — 재생 트랙 항목, 보류.
 
 ## 9. 하드웨어와 출처

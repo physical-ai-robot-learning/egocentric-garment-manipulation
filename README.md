@@ -19,9 +19,11 @@ Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the 
 > (10-08 → 10-22) is kept as the base the new pipeline builds on. Parts of the original pipeline that are no longer used
 > are marked ~~struck through~~; their code is in [`legacy/`](legacy/README.md).
 >
-> **Update, 1 November 2026.** First policies fine-tuned on these demos run on the robot but stop short of the cloth
-> and close the jaws early. Four causes were traced to the data (a label clamp, demonstration speed, jaw labels,
-> wrist-camera placement); see
+> **Update, 1 November 2026.** First policies fine-tuned on these demos were run on the robot (the trials were not
+> counted): they approached the cloth, stopped short of it and closed the jaws early. Two causes were recorded (the
+> policy copied the jaw state from its observation input; the robot wrist cameras sit differently from the hand-worn
+> ones), and checking the labels afterwards found three more data problems (a label clamp, demonstration speed, video
+> jaw labels); see
 > [First policies on the robot](#first-policies-on-the-robot-and-what-they-exposed-in-the-data-october-28--november-1).
 > No success rate is reported yet.
 
@@ -61,15 +63,17 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.
   every stream carries host timestamps.
 * **Pose from the fixed camera, not wrist SLAM.** Point tracking + AprilTags + depth + IMU. Wrist-camera SLAM lost
   tracking exactly at grasps (MASt3R kept 19–48 % of frames; ORB-SLAM3 scale diverged).
-* **Labels are Cartesian targets before IK;** IK and safety checks run online before anything moves. IK → FK labels had
-  moved the target by p95 ≈ 58 mm at grasps.
+* **Labels are Cartesian targets before IK;** IK and safety checks run online before anything moves; IK never edits or
+  masks the label. IK → FK labels had moved the target by p95 ≈ 58 mm at grasps (first 139 demos).
 * **Replay result.** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and the jaws close at the
   human's height and time; the robot grasps and drags the cloth, but folding by replay does **not** succeed.
 * **Training data.** 300 successful flattening demonstrations are converted into graded, Cartesian-before-IK training
   labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs.
-* **First policies on the robot.** Fine-tuned DiT and X-VLA policies (10-28 →) reach toward the cloth but stop short;
-  the causes were traced to the data (a label clamp, demonstration speed, jaw labels, wrist-camera placement); the
-  first three are changed, the camera re-mount is next. **No policy success rate yet.**
+* **First policies on the robot.** Fine-tuned DiT and X-VLA policies (10-28 →), observed in robot trials that were not
+  counted, approach the cloth but stop short and close the jaws early. Recorded causes: the policy copied the jaw state
+  from its observation input (now masked in training and deploy) and the robot wrist cameras sit differently (re-mount
+  next); checking the labels found a label clamp, too-fast demonstrations and video jaw labels that disagree with the
+  servo (all changed). **No policy success rate yet.**
 
 Long-form write-up (data, training plan, deploy loop, decision log, replay track, open problems):
 [docs/details.md](docs/details.md). Metric definitions and full result tables: [docs/results.md](docs/results.md).
@@ -125,12 +129,12 @@ flowchart LR
 
 | unit | role |
 |---|---|
-| **2× HandUMI** (hand-worn gripper) | demonstration tool; parallel jaws with **four AprilTag markers** (printed square codes whose 3D pose a camera can measure): three 48 mm tags plus, since 10-23, a 30 mm tag on the back of the wrist camera (IDs 220 / 221, rig `umi_tag_rig_v002`; a lone 30 mm tag is accepted only with an IMU check against its pose flip); a wrist fisheye camera (30 Hz), a small IMU (motion sensor) and a **jaw servo** (Feetech STS3215) read with torque off as a passive jaw encoder at ≈100 Hz on the host clock (back since 10-29; ~~no jaw motor~~ 10-13 → 10-28) |
-| **Orbbec Gemini 336** (fixed RGB-D camera) | colour + aligned depth, fixed above the table (15 Hz), raised to 113 cm (10-25) so both hands stay in view; the **pose source** (point tracking + markers + depth); sees both grippers, the two **start markers** and two fixed table tags used to re-calibrate after a camera move (~~the wrist calibration marker~~, first calibration only) |
+| **2× HandUMI** (hand-worn gripper) | demonstration tool; parallel jaws with **four AprilTag markers** (printed square codes whose 3D pose a camera can measure): three 48 mm tags plus, since 10-23, a 30 mm tag on the back of the wrist camera (IDs 220 / 221, rig `umi_tag_rig_v002`; a lone 30 mm tag is accepted only with an IMU check against its pose flip); a wrist fisheye camera (30 Hz), an IMU (motion sensor; Seeed XIAO nRF52840 Sense) and a **jaw servo** (Feetech STS3215) read with torque off as a passive jaw encoder at ≈100 Hz on the host clock (back since 10-29; ~~no jaw motor~~ 10-13 → 10-28) |
+| **Orbbec Gemini 336** (fixed RGB-D camera) | colour + aligned depth, fixed above the table (recorded at about 15 Hz), raised to 113 cm (10-25) so both hands stay in view (the 11-01 re-aim changed only the angle; the height was not re-measured); the **pose source** (point tracking + markers + depth); sees both grippers, the two **start markers** and two fixed table tags used to re-calibrate after a camera move (~~the wrist calibration marker~~, first calibration only) |
 | **2× reBot B601-DM** | low-cost 6-DoF arms with parallel jaws, driven by our MIT-mode bridge (100 Hz, auto re-enable, USB reconnect, jaw-opening limit enforced); run the policy (earlier: open-loop replay target) |
 | **Robot corrections** | measured with tape and camera instead of trusting the robot's CAD model: gripper-tip position (model was 89 mm off), left-arm mounting position (70 mm and 3° off), left arm's 2nd joint zero (−8.4°) |
 | **Host computer** | records all streams on one monotonic clock; robot control and online IK |
-| **Rented GPUs** | RTX 5090 pods: point tracking, the jaw model, 3-D solve and policy training; ~~only for the optional visual-SLAM gap filler~~ |
+| **GPUs** | rented RTX 5090 pods (RunPod): point tracking, the jaw model, 3-D solve, some policy training; one run on a rented H100; company RTX 4090 via Ray: the DiT fine-tunes (flattening, pinching); ~~only for the optional visual-SLAM gap filler~~ |
 
 Two principles run through the system:
 
@@ -305,12 +309,13 @@ python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.episode_quality <qual
 ```bash
 python -m garment_pipeline.labels_dataset.robotize_ik <raw take> <derived take> --demos 0,1,... --workers 8   # labels A + B + IK diagnostics
 python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label rob --mask-mode stitched --out <dataset> --takes <take> ...
-# since 10-29: label F (measured jaw tip, no clamp/lift), optionally on the 0.3× time-stretched copy
+# since 10-29: label F (fused jaw tip in reBot gripper axes, 0.25 s smoothing, no clamp/lift), optionally on the 0.3× time-stretched copy
 python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
 ```
 
-**Stage 6 · train** — the DiT trainer (jaw BCE head, masks, per-episode weights, gradient clipping off) and its configs
-are in `src/garment_pipeline/training/` (added 11-01); the X-VLA fine-tuning code is not in this repository. The plan
+**Stage 6 · train** — the DiT trainer (masks, per-episode weights, optional jaw BCE head `GRIP_BCE=1`, jaw-state
+masking `GRIP_STATE_MASK=1`, gradient clipping at norm 10 by default, `GRAD_CLIP=0` turns it off; the pinching runs use
+BCE and no clipping) and its configs are in `src/garment_pipeline/training/` (added 11-01); the X-VLA fine-tuning code is not in this repository. The plan
 (DiT and X-VLA fine-tuned on GOLD) is in [docs/details.md §3.2](docs/details.md#32-training-plan).
 
 **Stage 7 · deploy + evaluate**
@@ -327,7 +332,7 @@ python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed
 python scripts/evaluation/replay_parity.py <take> <run>/right                                         # compare human / command / robot
 ```
 
-Full command list, options and safety rules: [Technical Report v0.1](report/archive/report_v0.1_en.pdf) (archived), Appendix A.
+Full command list, options and safety rules: [Technical Report v0.1](report/archive/report_v0.1_en.pdf) (archived), Appendix A (pre-refactor paths; see the [path map](report/README.md)).
 
 ### Reproducible commands (synthetic data)
 
@@ -431,9 +436,9 @@ From the code that defines them:
 | world frame | reBot base frame B; camera → base `T_B_C` from `configs/calibration/robot_cam_v00N.json` (per take by date) | `src/garment_pipeline/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
 | jaw-tip path per take | `umi_traj_{right,left}.npz`: jaw-tip TCP `p_B`, rig rotation `R_B_tcp`, `ntags` | `scripts/pose/umi_tcp_traj.py` |
 | jaw state | `umi_jaw.npz`: `g_cont` 0 = closed … 1 = open, `valid`, `ev_t`; binary `state` 1 = open, 0 = closed; servo-derived files also keep `motor_pos` and set `model = feetech_sts3215_motor` | video: `src/visual_teleop/tools/umi_jaw.py`, `scripts/pose/jaw_aperture.py`; servo (Feetech STS3215, torque-off encoder, 10-29 →): `scripts/pose/jaw_from_motor.py` |
-| training label | **F** (10-29 →) = measured human jaw-tip pose before IK, no clamp or lift (`--label fused`); ~~**A** = Cartesian jaw-tip pose in reBot gripper axes before IK (0.25 s smoothing + table clearance)~~; **B** = IK → FK (QA) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`--label rob` / `ikfk` / `fused` in `tag_rig_unsplit.py`) |
-| dataset | LeRobot v3, 20 Hz, 3 cameras, `observation.state` 30-D, `action` 20-D absolute = per arm xyz + rot6d + gripper, with a per-dim `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
-| chunk | relative motion `inv(T_t)·T_{t+k}`, k = 1…32 at 20 Hz, built in the training loader; deploy commits the first 4 steps, then re-plans | [docs/details.md §3.2–3.3](docs/details.md#33-running-a-trained-policy-on-the-robot) |
+| training label | **F** (10-29 →, `--label fused`) = fused human jaw-tip pose in reBot gripper axes (`R_B_tcp·R_U_E`), 0.25 s smoothing, before IK; no table lift, no clamp; IK changes no value and masks no frame. ~~**A** (`--label rob`) = F + table clearance (tilt toward vertical ≤ 30°, then corner lift)~~. **B** (`--label ikfk`) = IK → FK (QA only) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`--label rob` / `ikfk` / `fused` in `tag_rig_unsplit.py`) |
+| dataset | LeRobot v3, 20 Hz, 3 cameras; `observation.state` 30-D = per-arm pose relative to the episode start (pose9 each), g_L, g_R, left-right relative pose9 + valid flag (jaw entries zeroed when `GRIP_STATE_MASK=1`); `action` 20-D absolute `[L xyz, L rot6d, R xyz, R rot6d, g_L, g_R]` (rot6d = first two rows of R; gripper target = binary jaw state with a 0.1 s ramp, continuous aperture stored separately as `gripper_cont`), with a per-dim `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py`, `src/contracts/` |
+| chunk | relative motion `inv(T_t)·T_{t+k}`, k = 1…32 at 20 Hz, built in the training loader; deploy commits the first steps of each plan, then re-plans (DiT 4 by default, ACT 1, X-VLA 8; selectable in the UI; at speed > 1 the DiT commit is capped at 32/speed) | [docs/details.md §3.2–3.3](docs/details.md#33-running-a-trained-policy-on-the-robot) |
 | robot model corrections | TCP offset, per-arm joint zero offsets, left base pose: `configs/robot/{tcp_override,joint_offset,base_override}_v001.json` | applied in `src/visual_teleop/robot/ik_pink.py` |
 | units | code stores metres and seconds (e.g. tag size 0.048 m); README / report quote mm | — |
 
@@ -500,12 +505,12 @@ camera, aligned on one clock (33 s demo replayed in 94 s; shown at robot speed).
 | Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
 | Point tracking (CoTracker) + markers + IMU (10-24/25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
 | Flattening dataset (10-26/27) | 300 successful demos of 318; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
-| Labels before vs after IK (10-26) | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1–2 % of frames are truly unreachable (≈ 1 % in the 10-27 write-up) |
-| Label table clearance (10-29) | lifted 44 % of label frames, median 27 mm (max 65) — removed; labels are now the measured human jaw tip |
+| Labels before vs after IK (10-26) | first 139 demos (≈123k arm-frames): IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); 20.3 % of frames need a large IK correction, 0.8 % are out of reach |
+| Label table clearance (10-29) | lifted 44 % of label frames, median 27 mm (max 65) — removed; label F = fused human jaw tip (gripper axes, 0.25 s smoothing), no lift or clamp |
 | Demonstration speed (10-29) | human jaw tip p95 0.93 m/s, 127 °/s — too fast for the arms → 0.3× time-stretched data set |
 | Wrist-camera placement (10-29) | robot wrist cameras tilt 11–13° less toward the tool axis and sit 25–44 mm closer than the UMI ones (table-tag PnP) |
 | Policy, as of 10-27 | not yet trained on our data; a pretrained-only diffusion policy (Soft-Fold-pretrained DiT) ran on the robot in dry runs without safety violations |
-| Policies on the robot (10-28 →) | DiT and X-VLA fine-tuned on the 281 GOLD demos reach toward the cloth, stop short, close early — **no success rate yet** |
+| Policies on the robot (10-28 →) | DiT and X-VLA fine-tuned on the 281 GOLD demos, observed in robot trials that were not counted: approach the cloth, stop short, close the jaws early — **no success rate** |
 
 ### How to verify (this repository)
 
@@ -517,7 +522,7 @@ python -m pytest -q                                      # egogarment regression
                                                          # synthetic self-tests (robot_cam_solve skipped without OpenCV)
 python scripts/evaluation/replay_parity.py --synthetic   # parity scorer self-test; ends with "합성 시험 PASS"
 python scripts/pose/robot_cam_solve.py --synthetic       # camera ↔ robot solver on simulated data (needs OpenCV < 5); ends with "합성 시험 PASS"
-python analysis/verify_claims.py                         # every number in the technical report vs. the repo file it comes from; "N claims checked, 0 failed"
+python analysis/verify_claims.py                         # every number in the report appears in the in-repo document it was taken from (consistency with the records, not a re-computation from data); "N claims checked, 0 failed"
 ```
 
 `python -m pytest -q tests` checks every `egogarment` module against outputs recorded before the code was packaged
@@ -548,11 +553,14 @@ committed example files; the synthetic numbers are listed in
   absolute placement was checked only by tape and video.
 * ~~**Tag-hidden phases** are interpolated (about a fifth of the right-hand frames of the full demo); their error at the
   grasps is not measured.~~ Addressed by point tracking (§8); hidden-marker error is now measured on held-out takes.
-* **About a fifth of label frames need a large IK correction** (wrist roll, tool flip, one joint at its limit); they
-  are reported by cause and not masked yet.
+* **About a fifth of label frames need a large IK correction** (wrist roll, tool flip, one joint at its limit; 20.3 % on
+  the first 139 demos). With labels F and A the IK result does not mask or change any frame; it is a QA statistic, and a
+  demo is dropped only if IK cannot be run on it at all.
 * **Jaw labels** from the wrist video have no held-out accuracy number on the older demonstrations; on recordings that
-  also have the servo, the video classifier agrees with it on only about 70–80 % of frames. A model trained to
-  reproduce the servo from the wrist video, for relabelling older demonstrations, is under evaluation and not applied.
+  also have the servo, the video classifier agrees with it on only about 70–80 % of frames (per frame, recorded in
+  `scripts/pose/jaw_motorlike.py`). A model trained to reproduce the servo from the wrist video, for relabelling older
+  demonstrations, was evaluated; one candidate dataset was built with it on 10-31 (`flat300_S03_gold187nb_mj`, 187 GOLD
+  demos without the black cloth), not used for any reported model.
 
 ## 8. Current vs. superseded
 
@@ -565,10 +573,10 @@ was dropped: [legacy/README.md](legacy/README.md).
 | camera ↔ robot | re-solved after every camera move from two fixed table tags + the table plane (`robot_cam_v002…v005`) | wrist-marker 32-pose solve (`v001`, still valid for the old camera position) |
 | jaw state | demos from 10-29: Feetech servo reading on the UMI (`scripts/pose/jaw_from_motor.py`); earlier demos (incl. GOLD-281): ResNet18 classifier v003 → YOLO-pose jaw tips → aperture g. The two sources are never mixed in one comparison | ~~red-tape jaw detector~~ (tape removed 10-20) |
 | arm assignment | by the gripper's side of the table | ~~by rig label~~ (labels swapped since 10-22) |
-| label | **F** = measured human jaw-tip pose before IK, no clamp or lift (`tag_rig_unsplit.py --label fused`, 10-29); relative motion built in the loader | ~~**A** = same + table clearance~~ (lifted 44 % of frames) · **B** = IK → FK (kept for QA only) |
+| label | **F** = fused human jaw-tip pose in reBot gripper axes, 0.25 s smoothing, before IK; no clamp or lift; IK does not change or mask it (`tag_rig_unsplit.py --label fused`, 10-29); relative motion built in the loader | ~~**A** = F + table clearance~~ (lifted 44 % of frames) · **B** = IK → FK (kept for QA only) |
 | data speed | 0.3× time-stretched copy (`--speed 0.3`): pose, jaw events and camera frames on one slower timeline | human speed (p95 0.93 m/s) |
-| execution | receding-horizon deploy: FK → compose → limiter → IK → safety, 4 steps per plan | open-loop whole-demo replay (`umi_replay_bi`, replay track) |
-| compute | rented RTX 5090 pods (point tracking, jaw classifier, 3-D solve); everything archived to the SSD | company 4090s (busy) |
+| execution | receding-horizon deploy: FK → compose → limiter → IK → safety, 4 steps per plan for the DiT (default; ACT 1, X-VLA 8) | open-loop whole-demo replay (`umi_replay_bi`, replay track) |
+| compute | rented RTX 5090 pods (point tracking, jaw classifier, 3-D solve); company RTX 4090 via Ray for the DiT fine-tunes; one run on a rented H100; everything archived to the SSD | — |
 
 ### From replay to policy training data (October 26–27)
 
@@ -599,15 +607,16 @@ fraction of large hidden-marker errors and gaps at grasps; fine-tuning uses GOLD
 
 **Why the label is taken before IK.** IK → FK labels contained execution decisions (wrist-roll relaxation, a tool
 flip near joint limits, pushes that keep the arms apart) and moved the target most exactly where it matters: at grasps
-the IK → FK label differs from the Cartesian one by p95 ≈ 58 mm. Only about 1–2 % of frames are truly out of reach
-(hands lifted far above the table; ≈ 1 % in the 10-27 write-up). The IK result and its per-frame diagnostics are kept
-for QA; IK becomes a checker offline and the executor online. Labels are stored absolute; the policy learns relative
+the IK → FK label differs from the Cartesian one by p95 ≈ 58 mm (53 mm overall; first 139 demos, ≈123k arm-frames). On
+the same demos 0.8 % of frames are truly out of reach (hands lifted far above the table). The IK result and its
+per-frame diagnostics are kept for QA; IK becomes a checker offline and the executor online. Labels are stored absolute; the policy learns relative
 motion inv(T_t)·T_{t+k}.
 
 **Planned training.** (1) A diffusion-transformer policy (DiT) pretrained on a public robot cloth-folding dataset
 (Soft-Fold), then fine-tuned on the GOLD demos. (2) A VLA base model (X-VLA) pretrained on an equal mix of that
 dataset and two public UMI-style garment datasets (iPhUMI, PrimeBot UMI; one domain prompt per source), then
-fine-tuned the same way. Both are evaluated on the robot with counted trials. Details:
+fine-tuned the same way. The plan was to evaluate both on the robot with counted trials. As run, the DiT fine-tunes
+start from a DiT pretrained for 100k steps on a 1 : 1 : 1 mix of Soft-Fold, iPhUMI and PrimeBot UMI. Details:
 [docs/details.md §3.2](docs/details.md#32-training-plan).
 
 **Safety lesson.** A bridge restart without the jaw-opening limit let one jaw open to the end of its travel and break
@@ -615,21 +624,28 @@ its holder. Deployment now refuses to send commands unless the bridge reports th
 
 ### First policies on the robot, and what they exposed in the data (October 28 – November 1)
 
-The DiT (Soft-Fold-pretrained) and X-VLA policies were fine-tuned on the 281 GOLD demos and run on the robot with the
-receding-horizon deploy. No success rate is reported yet. The arms reach toward the cloth but stop short of it and
-close the jaws early. Tracing this back pointed at the data rather than the models:
+The DiT (pretrained on a Soft-Fold / iPhUMI / PrimeBot UMI mix) and X-VLA policies were fine-tuned on the 281 GOLD
+demos and run on the robot with the receding-horizon deploy. What is known from these runs is qualitative: the arms
+approach the cloth but stop short of it and close the jaws early. The trials were not counted, and for the runs of
+10-28 → 10-31 the checkpoints, label kinds and speeds were not recorded (the runs of 11-01 are described under
+Pinching below); no success rate is reported. Two causes were
+recorded from the robot runs (first and last row); three more data problems were found by checking the labels
+afterwards (rows 2–4):
 
 | finding | change | code |
 |---|---|---|
-| The "kept above the table" step (table clearance in label A) lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Label F: the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
+| The jaw closed early and never re-opened: the policy copied the jaw state from its observation input. | The jaw state in the observation is masked to 0 (`GRIP_STATE_MASK=1`) in training and deploy, so jaw timing must come from vision. | `src/garment_pipeline/training/tagrig_common.py` |
+| The "kept above the table" step (table clearance in label A) lifted 44 % of label frames, by 27 mm at the median, so a policy could not learn to go down to the cloth. | Label F: the fused human jaw-tip pose (reBot gripper axes, 0.25 s smoothing) with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
 | Human demonstrations are faster than the robot can follow (p95 ≈ 0.93 m/s, 127 °/s). | A time-stretched copy of the data set (0.3× speed): pose, jaw events and every camera frame are resampled on one common slower timeline; rows stay 20 Hz. | `tag_rig_unsplit.py --speed 0.3` |
-| The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading, re-centred per take. Labels from the two sources are kept apart and never mixed in one comparison. | `scripts/pose/jaw_from_motor.py`; relabel attempt for older demos `scripts/pose/jaw_motorlike.py` (not applied) |
+| The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading, re-centred per take. Labels from the two sources are kept apart and never mixed in one comparison. | `scripts/pose/jaw_from_motor.py`; relabel attempt for older demos `scripts/pose/jaw_motorlike.py` (not used for any reported model) |
 | The robot's wrist cameras look at the jaws from a different place than the hand-worn ones. | Measured with the table markers: the robot cameras are tilted 11–13° less toward the tool axis and sit 25–44 mm closer to it. Next: re-mount them to the hand-worn geometry. | — |
 
 Also added (in progress, **not yet validated on the robot**): per-arm table-height calibration by touching the table
-tags (`src/garment_pipeline/eval_deploy/height_calib.py`), real-time chunking blend between plans (`act_tagrig_core.py`,
-offline test only), X-VLA policy server (`xvla_server.py`). Training code: `src/garment_pipeline/training/`
-(DiT trainer with jaw BCE head, masks and per-episode weights; gradient clipping off).
+tags (`src/garment_pipeline/eval_deploy/height_calib.py`; added to every committed command when the UI option is on),
+real-time chunking blend between plans (`act_tagrig_core.py`; the UI default since 10-29, but whether it was on in a
+given robot run was not recorded), X-VLA policy server (`xvla_server.py`). Training code:
+`src/garment_pipeline/training/` (DiT trainer with masks and per-episode weights; jaw BCE head and no gradient clipping
+are options, used only in the pinching runs; defaults: MSE jaw target, gradient clipping at norm 10).
 
 ### In progress (10-30 → 11-01): pinching — can the pipeline teach one grasp?
 
@@ -646,11 +662,17 @@ the robot base frame. The left hand does the pinch; the right hand rests on its 
 
 | | |
 |---|---|
-| labels | **Cg** everywhere (CoTracker + marker anchors + constant bias; IMU only inside tracking gaps); jaw from the servo encoder; 0.5× time-stretched for the robot. An earlier label variant left gaps at demo starts, so all sets were rebuilt with Cg; the two are never mixed. |
-| training data | 10-30: 53 kept of 74 demonstrations · 11-01: 56 of 60, 33 of 35, 10 of 10 and 48 of 50 (147 kept, all used), **200 in total**. Kept = quality grade GOLD or SILVER. |
-| test sets (never trained on) | 19 demonstrations from two held-out takes (10-30 and 11-01) for arm + gripper; every rejected 11-01 demonstration is kept for gripper timing only (its jaw label is valid, its arm label is not). |
-| model | the diffusion-transformer policy fine-tuned on the 10-30 set is the starting point and the baseline on the 19 test demonstrations; fine-tuning on the 200 demonstrations (with train-time image augmentation) starts on 1 November. |
-| status | **no robot result yet.** Robot trials will be reported here with the number of trials and successes, whether the outcome is success or failure. |
+| pose source / label | trajectory source **Cg** everywhere (CoTracker + marker anchors + constant bias; IMU only inside tracking gaps); label kind F; jaw from the servo encoder; 0.5× time-stretched for the robot. An earlier trajectory source (A′: one xyz bias per demo and arm from the tag frames of the first 2 s) had NaN spans inside some 11-01 demos (IK failed on 4 of them), so all sets were rebuilt from Cg; the two sources are never mixed. |
+| training data | 10-30: 53 kept of 74 demonstrations · 11-01: 56 of 60, 33 of 35, 10 of 10 and 48 of 50 kept by the quality gate (147); 3 of them were dropped by the dataset converter (trimmed window shorter than 5 s), so **197 in total** (53 + 144; 62,160 frames). Kept = quality grade GOLD or SILVER. |
+| test sets (never trained on) | P20: all 10 demonstrations of the 10-30 test take (not gate-filtered) + 9 of the 10 of the 11-01 test take (19) for arm + gripper; every rejected 11-01 demonstration is kept for gripper timing only (its jaw label is valid, its arm label is not). |
+| model | the diffusion-transformer policy fine-tuned on the 10-30 set (source A′) is the starting point and the baseline on P20 (`val_score_mm` 19.89 mm: mean left/right translation deviation over k = 16 and 32); fine-tuning on the 197 demonstrations (with train-time image augmentation) started on 1 November (about 4.7 days planned); no results yet. |
+| status | **no robot result yet.** One short, uncounted robot run of the baseline on 1 November (below) is the only robot contact. Robot trials will be reported here with the number of trials and successes, whether the outcome is success or failure. |
+
+**Robot runs of 1 November (qualitative, not counted).** Two DiT checkpoints were run with commit 32 and speed 1
+(later 1.5): the flattening fine-tune on GOLD-281 + 48 servo-labelled demos (label F, 0.3×; two runs of about 70 s) and
+the pinching baseline (one short run). In both the left jaw was mostly commanded open and the right jaw stayed closed;
+in the first run the left wrist had one motor fault and the left arm once lagged its command by more than 20°. No
+success or failure was scored ([status note](docs/status_2026-11-01.md)).
 
 Robot-side changes made for this test: per-arm table-height calibration from jaw-tip touches on the table tags, the fixed
 camera re-aimed to its earlier view, and a soft stop that brakes without latching an emergency stop.
@@ -666,8 +688,9 @@ camera re-aimed to its earlier view, and a soft stop that brakes without latchin
    targets: what to keep absolute, what to make relative, how to warp an infeasible path without destroying its intent,
    and how to grade each frame.
 4. **Long-horizon garment policy learning.** Comparing an end-to-end policy with a stage-conditioned one (grasp, lift,
-   fold, release) trained on the converted labels. *Policy training started on 28 October (end-to-end DiT and X-VLA,
-   above); no success rate yet, and the stage-conditioned comparison has not started.*
+   fold, release) trained on the converted labels. *End-to-end DiT and X-VLA policies were fine-tuned on the
+   converted labels from late October (above); no success rate yet, and the stage-conditioned comparison has not
+   started.*
 
 ### Open questions
 
@@ -683,13 +706,14 @@ camera re-aimed to its earlier view, and a soft stop that brakes without latchin
 
 * **Status (Oct 27):** replay runs end to end and is deterministic; grasp height matches the human; folding by replay
   does not succeed. 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels.
-* **Status (Nov 1):** both policies are fine-tuned on the GOLD demos and run on the robot; they stop short of the cloth
-  and close early. Four causes were traced to the data; three are changed and the wrist-camera re-mount is next (§8);
-  no success rate yet.
-* **In progress (Nov 1):** a one-sleeve left-hand pinching test with 200 Cg-labelled demonstrations (§8, Pinching); no robot
-  result yet.
-* **Next:** re-mount the robot wrist cameras, retrain on the corrected labels and the servo-labelled demos, and evaluate
-  on the robot with counted trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
+* **Status (Nov 1):** both policies were fine-tuned on the GOLD demos and run on the robot (trials not counted); they
+  stop short of the cloth and close early. Recorded causes: jaw-state copying (now masked) and the wrist-camera
+  placement (re-mount next); label checks found three more data problems, all changed (§8); no success rate yet.
+* **In progress (Nov 1):** a one-sleeve left-hand pinching test with 197 Cg-sourced demonstrations (§8, Pinching); no
+  robot result yet.
+* **Next:** re-mount the robot wrist cameras and evaluate on the robot, with counted trials, policies trained on the
+  corrected labels and the servo-labelled demos (one such flattening fine-tune was run on the robot on 11-01 without
+  counted trials; §8, Pinching). ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
   tag-hidden phases~~ — replay-track items, parked.
 
 ## 9. Hardware and attribution
