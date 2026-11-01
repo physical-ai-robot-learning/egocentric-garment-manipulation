@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below."
+title: "Egocentric Human Demonstrations for Bimanual Garment Manipulation"
+type: software
+authors:
+  - family-names: "Lee"
+    given-names: "Jeong Hwan"
+repository-code: "https://github.com/physical-ai-vla/egocentric-garment-manipulation"
+license: MIT

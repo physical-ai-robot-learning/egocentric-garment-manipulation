@@ -4,28 +4,48 @@ Human garment-manipulation demonstrations, recorded with hand-worn parallel-jaw 
 robot-feasible end-effector trajectories and replayed on a two-arm robot, as an end-to-end test of the data before any
 policy is trained on it.
 
+[![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+· **[Technical note (PDF)](report/technical_note.pdf)** · [Detailed results](docs/results.md) ·
+[Attribution](ATTRIBUTION.md)
+
 > **Update, 27 October 2026.** The replay stage is finished and the project has moved on to **policy training data**:
 > 300 successful T-shirt flattening demonstrations, a new pose source (fixed-camera point tracking anchored by the
 > markers), quality grades and Cartesian labels taken *before* inverse kinematics. See
-> [§6 From replay to policy training data](#6-from-replay-to-policy-training-data-october-2627). Parts of the original
+> [From replay to policy training data](#from-replay-to-policy-training-data-october-2627). Parts of the original
 > pipeline that are no longer used are marked ~~struck through~~. No policy result is reported yet.
 
 > **Note.** This repository contains a sanitized research overview and selected reproducible components of an ongoing
 > bimanual garment-manipulation project. Proprietary code, internal datasets, calibration parameters, robot-specific
 > configurations, raw logs and model checkpoints are not included. All data in `examples/` is synthetic. The utilities
-> in `scripts/` were written for this repository and are generic re-implementations of ideas described below, not the
-> project's production code.
+> in `src/egogarment/` (command wrappers in `scripts/`) were written for this repository and are generic
+> re-implementations of ideas described below, not the project's production code.
 
 **Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.
 
 ![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
-**Contents:** [1. Motivation and research question](#1-motivation-and-research-question) · [2. System overview](#2-system-overview) · [3. Hardware and demonstration interface](#3-hardware-and-demonstration-interface) · [4. One world frame for human and robot](#4-one-world-frame-for-human-and-robot) · [5. From recording to robot motion](#5-from-recording-to-robot-motion) · [6. From replay to policy training data](#6-from-replay-to-policy-training-data-october-2627) · [7. Results](#7-results) · [8. What was hard, and what I changed](#8-what-was-hard-and-what-i-changed) · [9. Limitations](#9-limitations) · [10. Research directions and next steps](#10-research-directions-and-next-steps) · [11. Previous and related work](#11-previous-and-related-work) · [12. Repository and quick start](#12-repository-and-quick-start) · [13. Author](#13-author) · [14. Disclaimer](#14-disclaimer)
+**Contents:** [1. Overview](#1-overview) · [2. System at a glance](#2-system-at-a-glance) ·
+[3. Components](#3-components) · [4. Installation](#4-installation) · [5. Pipeline](#5-pipeline) ·
+[6. Codebase guide](#6-codebase-guide) · [7. Results](#7-results) ·
+[8. Current vs. superseded](#8-current-vs-superseded) · [9. Hardware and attribution](#9-hardware-and-attribution) ·
+[10. License, acknowledgements, citation](#10-license-acknowledgements-citation)
 
 ---
 
-## 1. Motivation and research question
+## 1. Overview
+
+* **Replay as an end-to-end test of the data.** Converted human motion is replayed open loop on the robot, on one clock
+  and in one frame, so errors can be attributed to a stage (conversion vs. planning vs. tracking).
+* **One world frame, one clock.** Every pose, human or robot, is expressed in the robot base frame, and every stream
+  carries host timestamps; no per-recording alignment is needed.
+* **Replay result.** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and grasp height matches the
+  human; folding by replay does **not** succeed.
+* **Training data.** 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels,
+  with a fixed-camera point-tracking pose source that replaced wrist-camera SLAM. No policy has been trained on them yet.
+
+### Motivation and research question
 
 Folding a T-shirt is long-horizon, bimanual and contact-rich, and the cloth state changes with every grasp. Teleoperated
 robot data for such tasks is slow and expensive to collect. Hand-held and hand-worn grippers in the style of UMI let a
@@ -35,8 +55,6 @@ scales with people rather than robots.
 The difficulty moves into the conversion. Every error in calibration, pose recovery, jaw labelling, timing or
 kinematic feasibility ends up in the training labels, and a policy trained on those labels inherits it. Policy success
 rates are a late and indirect signal for such errors.
-
-### Research question
 
 **Main question.** *If a robot simply replays the converted human motion, open loop, does it do what the human did?*
 
@@ -51,7 +69,7 @@ Subsidiary questions: Where does the pose come from when the hand hides the mark
 human path have to be changed to become feasible for the robot, and how should that be recorded? Which errors are
 invisible to model-based checks?
 
-## 2. System overview
+## 2. System at a glance
 
 ![Data flow](docs/architecture.png)
 
@@ -61,7 +79,7 @@ and fused with the fiducial markers (anchors) and the IMU (only inside tracking 
 frame, the robot base. Each episode is trimmed and graded; the training label is the Cartesian pose before inverse
 kinematics. A policy pretrained on public cloth data is fine-tuned on the best-graded demonstrations and runs on the
 robot in a receding-horizon loop with online IK and safety checks. The grey box lists parts of the earlier replay
-pipeline that are no longer used.*
+pipeline that are no longer used.* (Figure generated by [`docs/make_architecture.py`](docs/make_architecture.py).)
 
 | component | role |
 |---|---|
@@ -80,29 +98,43 @@ Two principles run through the system:
   human, command and robot can be compared sample by sample and filmed side by side by the same camera without
   synchronization hardware.
 
-## 3. Hardware and demonstration interface
+## 3. Components
 
-![UMI hands](media/umi_hands.jpg)
+What is in this repository, by pipeline stage (see [§5](#5-pipeline)). Hardware, recorder, real pose fusion, IK, robot
+bridge and training code are not included (see the note above).
 
-*The two hand-worn grippers (left / right), each with three fiducial markers (photo from before 23 October; since then
-a fourth, smaller marker sits on the back of each wrist camera).*
+| Component | Path | Stage | Status | Description |
+|---|---|---|---|---|
+| io | [`src/egogarment/io/`](src/egogarment/io/) | all | current | trajectory CSV format helpers (`trajio`) |
+| pose | [`src/egogarment/pose/`](src/egogarment/pose/) | 3; learning contract | current (generic baseline) | gap filling with per-frame flags (`gap_fill`); relative SE(3) contract and round trip (`relative_se3`) |
+| retarget | [`src/egogarment/retarget/`](src/egogarment/retarget/) | 5 | current (illustrative defaults) | continuous warps + per-frame displacement / quality (`robotize`) |
+| evaluation | [`src/egogarment/evaluation/`](src/egogarment/evaluation/) | 9 | current | RMSE / p95 / rotation error between two trajectories with lag search (`parity_metrics`) |
+| viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | current | figure of a processed trajectory (`plot_example`) |
+| scripts | [`scripts/`](scripts/) | – | current | thin wrappers: `python scripts/<module>.py` works without installing |
+| examples | [`examples/`](examples/) | – | current | SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator |
+| tests | [`tests/`](tests/) | – | current | pytest checks on the synthetic example (run in CI) |
+| docs | [`docs/`](docs/) | – | current | data-flow figure and its generator, [results and metric definitions](docs/results.md), synthetic example figure |
+| report | [`report/`](report/) | – | current | short technical note (LaTeX source + PDF) |
+| media | [`media/`](media/) | – | current | short clips and photos of the real setup ([media/README.md](media/README.md)) |
 
-The hand-worn gripper is **HandUMI**, designed and published by **BrikHMP18** (murobotics-ai) under Apache-2.0:
-<https://github.com/murobotics-ai/handumi-hw>. **It is not our design.** We printed and assembled the upstream parts and
-made small changes for our use: a wrist IMU instead of VR tracking, several AprilTags per hand on different faces (so at
-least one tends to face the external camera; a fourth, smaller one on the back of the wrist camera since 23 October,
-whose single-tag planar pose flip is resolved with the IMU), and removal of the jaw servo (jaw state is now inferred from the wrist
-video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See
-[ATTRIBUTION.md](ATTRIBUTION.md).
+Per-module inputs, outputs and entry points: [`src/egogarment/README.md`](src/egogarment/README.md).
 
-### Visual observations
+## 4. Installation
 
-| view | what it provides |
-|---|---|
-| **Wrist fisheye** (one per hand) | the jaws themselves (open / closed, continuous aperture from jaw-tip keypoints), contact, and a close-up of the local cloth; ~~also the input of the optional SLAM filler~~. This is the view a robot with wrist cameras would have, and a policy input. |
-| **Fixed external RGB-D** | the pose source: point tracking on the grippers + the fiducial markers + metric depth; global scene context (where the garment lies, both hands at once) and a policy input. It is also the camera that films the robot, so human and robot appear in the same image. |
+```bash
+python -m pip install -e ".[test]"     # package + console commands (Python >= 3.10)
+# or, without installing the package:
+python -m pip install -r requirements.txt
+```
 
-## 4. One world frame for human and robot
+The only dependencies are numpy, scipy and matplotlib (pytest for the tests).
+
+## 5. Pipeline
+
+The real pipeline as stages, with the reproducible re-implementation in this repository where one exists. The commands
+run on the synthetic example; real-data stages that are not in this repository have no command.
+
+### Stage 0 — One world frame for human and robot
 
 ![start markers](media/world_frame_start_markers.jpg)
 
@@ -113,9 +145,58 @@ video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et
 3. **Gripper markers → jaw tip.** A one-time rig calibration relates each gripper's markers to its jaw tip, so the camera gives the jaw-tip pose directly in robot coordinates.
 4. **Every take starts at the start markers**, so every demonstration begins at known robot coordinates. No per-take alignment (SLAM map, point-cloud registration) is needed.
 
-## 5. From recording to robot motion
+### Stages 1–9 — From human motion to robot motion
 
-### Pose reconstruction and validation
+1. **Record** both hands from a fixed start pose on the start markers, with a spoken protocol marking demo windows.
+2. **Reconstruct** the jaw-tip trajectory of each hand in the robot base frame from markers + depth.
+3. **Fill gaps** (gyro rotation + interpolation; optional gated SLAM) and flag every filled frame.
+4. **Label the jaw** from the wrist video.
+5. **Robotize** with continuous warps only, never clipping: lateral compression toward each arm's own side with a
+   softplus ceiling at the midline, and a softplus floor above the table. Store displacement and quality per frame
+   ([`src/egogarment/retarget/robotize.py`](src/egogarment/retarget/robotize.py) shows the idea).
+6. **Plan** with joint-limit-aware differential IK (position prioritised over orientation, bounded joint change per
+   frame, wrist-roll relaxation about the tool axis, use of the jaw's 180° symmetry, finger-corner clearance), and issue
+   jaw commands early by the measured jaw actuation latency.
+7. **Check** before anything moves: IK error, joint limits and speed, TCP and link heights above the table, and the
+   minimum distance between the two arms. Plans are always computed offline first.
+8. **Replay** open loop and log commanded and measured joints on the host clock.
+9. **Compare** three levels: A = human (markers), B = robot command (FK of commanded joints), C = robot (FK of
+   encoders), plus a side-by-side video from the same camera
+   ([`src/egogarment/evaluation/parity_metrics.py`](src/egogarment/evaluation/parity_metrics.py) shows the metric definitions).
+
+Since 26–27 October the stages after pose reconstruction produce **policy training data** instead of a replay (see
+[§8](#from-replay-to-policy-training-data-october-2627)).
+
+### Reproducible commands (synthetic data)
+
+| stage | command (wrapper; same as `python -m egogarment.…` or the `egogarment-…` console command) |
+|---|---|
+| – | `python examples/make_synthetic.py` — regenerate the synthetic data (seed 0) |
+| 3 fill gaps | `python scripts/gap_fill.py examples/synthetic_bimanual_demo.csv out/filled.csv --max-gap 1.0` |
+| 5 robotize | `python scripts/robotize.py out/filled.csv out/robotized.csv --sep 0.05` |
+| 9 compare | `python scripts/parity_metrics.py out/robotized.csv examples/synthetic_robot_replay.csv` |
+| learning contract | `python scripts/relative_se3.py out/filled.csv --chunk 1.0` |
+| 9 plot | `python scripts/plot_example.py out/robotized.csv out/example.png --robot examples/synthetic_robot_replay.csv` |
+| tests | `python -m pytest -q tests` |
+
+```bash
+python -m pip install -r requirements.txt
+python examples/make_synthetic.py                                     # regenerate the synthetic data (seed 0)
+python scripts/gap_fill.py examples/synthetic_bimanual_demo.csv out/filled.csv --max-gap 1.0
+python scripts/robotize.py out/filled.csv out/robotized.csv --sep 0.05
+python scripts/parity_metrics.py out/robotized.csv examples/synthetic_robot_replay.csv
+python scripts/relative_se3.py out/filled.csv --chunk 1.0
+python scripts/plot_example.py out/robotized.csv out/example.png --robot examples/synthetic_robot_replay.csv
+python -m pytest -q tests
+```
+
+Expected parity output on the synthetic data: recovered lag ≈0.2–0.26 s (the generator uses 0.25 s), position RMSE
+≈6 mm. Comparing the *unrobotized* human path with the replay instead gives ≈17 mm for the right hand: the difference
+is the robotization displacement, the analogue of the "command vs. human" term in the real analysis.
+
+![Synthetic example](docs/example_synthetic.png)
+
+### Pose reconstruction and validation (stages 2–4)
 
 1. **Markers → gripper pose.** In each RGB-D frame the AprilTags are detected and solved individually (planar PnP), and
    the marker distance, the least accurate PnP coordinate at about 1 m, is corrected along the viewing ray by the
@@ -126,7 +207,7 @@ video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et
 3. **Gaps.** Markers disappear exactly when the hand grasps (palm down). Short gaps get the gyro rotation and an
    interpolated position and are flagged as not measured. ~~Wrist-camera SLAM is an *optional* filler, accepted only for
    segments that stay close to the marker path on held-out validation frames.~~ Replaced on 24 October by fixed-camera
-   point tracking (§6).
+   point tracking (§8).
 4. **Jaw state.** An ImageNet-pretrained ResNet-18 per hand classifies a crop of the wrist fisheye that shows the jaws,
    with hysteresis on its output. Since 22 October a keypoint model finds the two jaw tips and their distance gives a
    continuous aperture (100 % / 98 % agreement with hand labels on a re-angled take).
@@ -142,24 +223,38 @@ workspace corner).
 
 ![trajectory reconstruction](media/trajectory_reconstruction_large.gif)
 
-### From human motion to robot motion
+## 6. Codebase guide
 
-1. **Record** both hands from a fixed start pose on the start markers, with a spoken protocol marking demo windows.
-2. **Reconstruct** the jaw-tip trajectory of each hand in the robot base frame from markers + depth.
-3. **Fill gaps** (gyro rotation + interpolation; optional gated SLAM) and flag every filled frame.
-4. **Label the jaw** from the wrist video.
-5. **Robotize** with continuous warps only, never clipping: lateral compression toward each arm's own side with a
-   softplus ceiling at the midline, and a softplus floor above the table. Store displacement and quality per frame
-   ([`scripts/robotize.py`](scripts/robotize.py) shows the idea).
-6. **Plan** with joint-limit-aware differential IK (position prioritised over orientation, bounded joint change per
-   frame, wrist-roll relaxation about the tool axis, use of the jaw's 180° symmetry, finger-corner clearance), and issue
-   jaw commands early by the measured jaw actuation latency.
-7. **Check** before anything moves: IK error, joint limits and speed, TCP and link heights above the table, and the
-   minimum distance between the two arms. Plans are always computed offline first.
-8. **Replay** open loop and log commanded and measured joints on the host clock.
-9. **Compare** three levels: A = human (markers), B = robot command (FK of commanded joints), C = robot (FK of
-   encoders), plus a side-by-side video from the same camera
-   ([`scripts/parity_metrics.py`](scripts/parity_metrics.py) shows the metric definitions).
+### The split
+
+* **`src/egogarment/`** — one subpackage per pipeline component: `io` (format), `pose` (gap filling, relative SE(3)),
+  `retarget` (robotization), `evaluation` (parity metrics), `viz` (plots). Every tool is a module with a library API
+  plus a `main()` command; details in [`src/egogarment/README.md`](src/egogarment/README.md).
+* **`scripts/`** — one thin wrapper per module, so the commands above work from a plain checkout.
+* **`examples/`** — the synthetic data and its deterministic generator; **`tests/`** — checks on that data.
+* **`docs/`, `report/`, `media/`** — results, technical note, figures and clips of the real setup.
+
+### The interface: trajectory CSV
+
+All tools exchange one wide CSV, defined in [`src/egogarment/io/trajio.py`](src/egogarment/io/trajio.py) and documented
+with the example data in [`examples/README.md`](examples/README.md). One row per frame, `t` in seconds, then per hand
+(`R_` right, `L_` left):
+
+| column | unit | meaning |
+|---|---|---|
+| `x, y, z` | m | jaw-tip position in the world (robot base) frame: +x forward, +y left, +z up; table plane z = 0 |
+| `qx, qy, qz, qw` | – | jaw-tip orientation, unit quaternion |
+| `jaw` | – | 1 = open, 0 = closed |
+| `visible` | – | 1 = pose measured (markers seen), 0 = not measured (pose is NaN) |
+
+Columns appended by the tools and carried along unchanged by later ones:
+
+| column | written by | meaning |
+|---|---|---|
+| `filled` | `pose.gap_fill` | 0 measured / 1 interpolated / 2 unfilled (too long or open-ended) |
+| `human_x/y/z` | `retarget.robotize` | the path before robotization |
+| `disp_mm` | `retarget.robotize` | per-frame robotization displacement, mm |
+| `quality` | `retarget.robotize` | 0 / 1 / 2 (default boundaries 20 / 50 mm) |
 
 ### Coordinate representation
 
@@ -175,11 +270,69 @@ workspace corner).
   so the target does not depend on where in the workspace the motion happens, and the same contract applies to human
   data and to robot data. Absolute storage keeps the option of re-deriving any relative form, and is what the replay
   uses. A reference implementation of the conversion and its round trip is in
-  [`scripts/relative_se3.py`](scripts/relative_se3.py).
+  [`src/egogarment/pose/relative_se3.py`](src/egogarment/pose/relative_se3.py) (chunk horizon `--chunk`, default 1.0 s).
 * **Per-frame quality.** Robotization stores, for every frame, how far the robot target was moved from the human path,
   and a coarse quality class derived from it; filled frames are flagged separately. These are intended as label weights.
 
-## 6. From replay to policy training data (October 26–27)
+## 7. Results
+
+Measured in October 2026 on one setup with one demonstrator. Full tables and metric definitions:
+[docs/results.md](docs/results.md).
+
+| milestone | result |
+|---|---|
+| Calibration | camera ↔ robot: 0.98 px held-out reprojection (≈1.3 mm lateral); marker rig → jaw tip: 1–4 mm static (leave-one-out 1.8–4.8 mm) |
+| Single-arm replay parity | 16/18 translation strokes pass; median per-axis RMSE 5.5–11.6 mm; rotation strokes 0.3–1.6° median error; command vs. human ≤ 3.4 mm, so the residual was robot tracking |
+| First cloth grasp from human data | one arm replayed a grasp window of a demonstration and picked up and lifted the T-shirt |
+| Full two-arm replay of one 33 s demo | four runs with one unchanged plan repeat within ≈1 mm; whole-demo position RMSE ≈17 mm (right) / ≈30 mm (left) against the robotized path, ≈22 / 32–34 mm against the raw human path |
+| Jaw height at grasp | after allowing finger contact, jaws close 14–16 mm (right) / 5–19 mm (left) above the table (human ≈10 mm), within 2–8 mm of the commanded position |
+| Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
+| Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
+| Point tracking + markers + IMU (Oct 24–25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
+| Flattening dataset (Oct 26–27) | 300 successful of 318 demonstrations; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
+| Labels before vs after IK | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1 % of frames truly unreachable |
+| Policy | **not yet trained on our data**; a pretrained-only diffusion policy ran on the robot in dry runs without safety violations |
+
+### How to verify (this repository)
+
+The real-system numbers above come from data that is not published. What can be re-run here is the synthetic example:
+`python -m pytest -q tests` checks every module against outputs recorded before the code was packaged
+([`tests/expected_synthetic.json`](tests/expected_synthetic.json)) and that `examples/make_synthetic.py` reproduces the
+committed example files; the synthetic numbers are listed in
+[docs/results.md §8](docs/results.md#8-synthetic-example-this-repository).
+
+### What was hard, and what I changed
+
+| problem | decision | why |
+|---|---|---|
+| Wrist-camera SLAM loses tracking at the moment of grasp (close range, white cloth, fast motion) | **Absolute markers + depth from a fixed camera** as the pose source; SLAM only as a gated filler | SLAM was accurate where it tracked (a few mm) but missing exactly where labels matter. Mono-inertial scale diverged because hand accelerations were below the accelerometer bias |
+| Earlier label pipeline (SLAM + body tracking + IMU) passed its own quality checks but was 4–6 cm off | **Measure in the world, not in the model** | A stale camera–IMU rotation, a mis-converged lever arm and a wrong anchor were invisible to internal residuals; they were found against the external camera |
+| Robot model errors (tool-centre-point and arm mounting) invisible to FK-vs-FK parity | **Tape, camera and cloth as ground truth**; model corrections applied inside the IK model | Relative parity metrics cancel constant offsets; the robot reached the right shape in the wrong place |
+| Jaws closed several cm above the cloth | **Fix the conversion, don't add heuristics**: allow the finger corner to touch the table plane, as human fingers do | Heuristics (tilt the tool, close at the lowest nearby point) were tried and rejected; tilting made the IK fail |
+| Hands crossing the midline, targets below the table | **Continuous warps + per-frame quality**, never clipping | Clipping creates jumps and hides how much a label was changed |
+| Aligning camera, IMU, robot and video | **One host clock** for everything | Enables per-sample comparison and side-by-side video without sync hardware |
+| Arm lag during moving segments did not respond to the proportional gain | **Model the controller**: with an integral-only feed-forward and no gravity model, the moving error scales with the rate of gravity-torque change over the integral gain | Tuning the integral gain reduced stroke RMSE from 25–37 mm to 12–14 mm |
+
+### Limitations
+
+* **No success rate.** Replays were judged by measurement and video; no trials were counted.
+* **One demonstration** of one take was replayed in full on both arms. The ≈1 mm repeatability shows determinism, not
+  generality across demonstrations, demonstrators or garments.
+* **Open loop.** The cloth must start where the human's did; in two runs the shirt lay 15–20 cm away and the jaws closed
+  on the empty table.
+* **Relative parity metrics hide offsets.** They are computed relative to the start of a window with lag removed;
+  absolute placement was checked only by tape and video.
+* ~~**Tag-hidden phases** are interpolated (about a fifth of the right-hand frames of the full demo); their error at the
+  grasps is not measured.~~ Addressed by point tracking (§8); hidden-marker error is now measured on held-out takes.
+* **About a fifth of label frames need a large IK correction** (wrist roll, tool flip, one joint at its limit); they
+  are reported by cause and not masked yet.
+* **Jaw labels** have no held-out accuracy number on demonstration takes.
+
+## 8. Current vs. superseded
+
+Superseded parts are kept in the text and marked ~~struck through~~ rather than deleted.
+
+### From replay to policy training data (October 26–27)
 
 Open-loop replay showed that the conversion is geometrically sound, but it also showed what a training label must not
 contain. The pipeline was rebuilt for learning, on the same calibration, recorder and robot tools.
@@ -220,54 +373,6 @@ counted trials.
 **Safety lesson.** A bridge restart without the jaw-opening limit let one jaw open to the end of its travel and break
 its holder. Deployment now refuses to send commands unless the bridge reports the jaw limits.
 
-## 7. Results
-
-Measured in October 2026 on one setup with one demonstrator. Full tables and metric definitions:
-[docs/results.md](docs/results.md).
-
-| milestone | result |
-|---|---|
-| Calibration | camera ↔ robot: 0.98 px held-out reprojection (≈1.3 mm lateral); marker rig → jaw tip: 1–4 mm static (leave-one-out 1.8–4.8 mm) |
-| Single-arm replay parity | 16/18 translation strokes pass; median per-axis RMSE 5.5–11.6 mm; rotation strokes 0.3–1.6° median error; command vs. human ≤ 3.4 mm, so the residual was robot tracking |
-| First cloth grasp from human data | one arm replayed a grasp window of a demonstration and picked up and lifted the T-shirt |
-| Full two-arm replay of one 33 s demo | four runs with one unchanged plan repeat within ≈1 mm; whole-demo position RMSE ≈17 mm (right) / ≈30 mm (left) against the robotized path, ≈22 / 32–34 mm against the raw human path |
-| Jaw height at grasp | after allowing finger contact, jaws close 14–16 mm (right) / 5–19 mm (left) above the table (human ≈10 mm), within 2–8 mm of the commanded position |
-| Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
-| Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
-| Point tracking + markers + IMU (Oct 24–25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
-| Flattening dataset (Oct 26–27) | 300 successful of 318 demonstrations; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
-| Labels before vs after IK | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1 % of frames truly unreachable |
-| Policy | **not yet trained on our data**; a pretrained-only diffusion policy ran on the robot in dry runs without safety violations |
-
-## 8. What was hard, and what I changed
-
-| problem | decision | why |
-|---|---|---|
-| Wrist-camera SLAM loses tracking at the moment of grasp (close range, white cloth, fast motion) | **Absolute markers + depth from a fixed camera** as the pose source; SLAM only as a gated filler | SLAM was accurate where it tracked (a few mm) but missing exactly where labels matter. Mono-inertial scale diverged because hand accelerations were below the accelerometer bias |
-| Earlier label pipeline (SLAM + body tracking + IMU) passed its own quality checks but was 4–6 cm off | **Measure in the world, not in the model** | A stale camera–IMU rotation, a mis-converged lever arm and a wrong anchor were invisible to internal residuals; they were found against the external camera |
-| Robot model errors (tool-centre-point and arm mounting) invisible to FK-vs-FK parity | **Tape, camera and cloth as ground truth**; model corrections applied inside the IK model | Relative parity metrics cancel constant offsets; the robot reached the right shape in the wrong place |
-| Jaws closed several cm above the cloth | **Fix the conversion, don't add heuristics**: allow the finger corner to touch the table plane, as human fingers do | Heuristics (tilt the tool, close at the lowest nearby point) were tried and rejected; tilting made the IK fail |
-| Hands crossing the midline, targets below the table | **Continuous warps + per-frame quality**, never clipping | Clipping creates jumps and hides how much a label was changed |
-| Aligning camera, IMU, robot and video | **One host clock** for everything | Enables per-sample comparison and side-by-side video without sync hardware |
-| Arm lag during moving segments did not respond to the proportional gain | **Model the controller**: with an integral-only feed-forward and no gravity model, the moving error scales with the rate of gravity-torque change over the integral gain | Tuning the integral gain reduced stroke RMSE from 25–37 mm to 12–14 mm |
-
-## 9. Limitations
-
-* **No success rate.** Replays were judged by measurement and video; no trials were counted.
-* **One demonstration** of one take was replayed in full on both arms. The ≈1 mm repeatability shows determinism, not
-  generality across demonstrations, demonstrators or garments.
-* **Open loop.** The cloth must start where the human's did; in two runs the shirt lay 15–20 cm away and the jaws closed
-  on the empty table.
-* **Relative parity metrics hide offsets.** They are computed relative to the start of a window with lag removed;
-  absolute placement was checked only by tape and video.
-* ~~**Tag-hidden phases** are interpolated (about a fifth of the right-hand frames of the full demo); their error at the
-  grasps is not measured.~~ Addressed by point tracking (§6); hidden-marker error is now measured on held-out takes.
-* **About a fifth of label frames need a large IK correction** (wrist roll, tool flip, one joint at its limit); they
-  are reported by cause and not masked yet.
-* **Jaw labels** have no held-out accuracy number on demonstration takes.
-
-## 10. Research directions and next steps
-
 ### Research directions
 
 1. **Egocentric capture.** Wearable demonstration hardware and a recording protocol that yields synchronized wrist
@@ -286,7 +391,7 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 1. Is the remaining ≈2–3 cm trajectory error (not yet measured at the grasp points themselves) a constant bias (calibration) or varying (needs visual correction at the
    grasp)? A per-grasp error table from the video will tell.
 2. ~~Can tag-hidden contact phases be recovered well enough by an offline smoother (markers, IMU, depth, gated SLAM) with
-   confidence-weighted labels?~~ Largely yes, with fixed-camera point tracking anchored by markers (§6).
+   confidence-weighted labels?~~ Largely yes, with fixed-camera point tracking anchored by markers (§8).
 3. Does weighting labels by robotization quality matter for policy learning, and in which phases?
 4. End-to-end vs. stage-conditioned policies for long-horizon garment tasks, trained on relative SE(3) labels from
    human data.
@@ -295,11 +400,31 @@ Measured in October 2026 on one setup with one demonstrator. Full tables and met
 
 * **Status (Oct 27):** replay runs end to end and is deterministic; grasp height matches the human; folding by replay
   does not succeed. 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels.
-* **Next:** fine-tune the two pretrained policies (§6) on the GOLD demos and evaluate them on the robot with counted
+* **Next:** fine-tune the two pretrained policies (§8) on the GOLD demos and evaluate them on the robot with counted
   trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
   tag-hidden phases~~ — replay-track items, parked.
 
-## 11. Previous and related work
+## 9. Hardware and attribution
+
+![UMI hands](media/umi_hands.jpg)
+
+*The two hand-worn grippers (left / right), each with three fiducial markers (photo from before 23 October; since then
+a fourth, smaller marker sits on the back of each wrist camera).*
+
+The hand-worn gripper is **HandUMI**, designed and published by **BrikHMP18** (murobotics-ai) under Apache-2.0:
+<https://github.com/murobotics-ai/handumi-hw>. **It is not our design.** We printed and assembled the upstream parts and
+made small changes for our use: a wrist IMU instead of VR tracking, several AprilTags per hand on different faces (so at
+least one tends to face the external camera; a fourth, smaller one on the back of the wrist camera since 23 October,
+whose single-tag planar pose flip is resolved with the IMU), and removal of the jaw servo (jaw state is now inferred from the wrist
+video). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See
+[ATTRIBUTION.md](ATTRIBUTION.md).
+
+### Visual observations
+
+| view | what it provides |
+|---|---|
+| **Wrist fisheye** (one per hand) | the jaws themselves (open / closed, continuous aperture from jaw-tip keypoints), contact, and a close-up of the local cloth; ~~also the input of the optional SLAM filler~~. This is the view a robot with wrist cameras would have, and a policy input. |
+| **Fixed external RGB-D** | the pose source: point tracking on the grippers + the fiducial markers + metric depth; global scene context (where the garment lies, both hands at once) and a policy input. It is also the camera that films the robot, so human and robot appear in the same image. |
 
 ### Previous work
 
@@ -321,61 +446,30 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 Full references are in the [technical note](report/technical_note.pdf); licences and credits in
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
-## 12. Repository and quick start
+## 10. License, acknowledgements, citation
 
-### Repository structure
+**License.** This is a research overview of work in progress, not a product. Numbers are from one setup, one
+demonstrator and a small number of runs, and are reported as measured, including failures. Code in this repository is
+released under the MIT licence ([LICENSE](LICENSE)); third-party designs and methods remain under their own licences
+([ATTRIBUTION.md](ATTRIBUTION.md)).
 
-```
-README.md            this overview
-docs/
-  architecture.png   data-flow figure (generated by docs/make_architecture.py)
-  results.md         quantitative and qualitative results, metric definitions
-  example_synthetic.png  output of the tools on the synthetic example
-examples/            SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator
-scripts/             small self-contained utilities (numpy / scipy / matplotlib)
-  trajio.py          CSV format helpers
-  gap_fill.py        fill short marker gaps (lerp + slerp) and flag them
-  robotize.py        continuous warps + per-frame displacement / quality
-  relative_se3.py    T_rel = T_0^{-1} T(t) conversion and round-trip check
-  parity_metrics.py  RMSE / p95 / rotation error between two trajectories with lag search
-  plot_example.py    figure of a processed trajectory
-tests/               pytest checks on the synthetic example
-report/              short technical note (LaTeX source + PDF)
-media/               short clip and photos of the real setup (see media/README.md)
+**Acknowledgements.** The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI
+(Chi et al., RSS 2024); see [§9](#9-hardware-and-attribution) and [ATTRIBUTION.md](ATTRIBUTION.md).
+
+**Citation.** See [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").
+
+```bibtex
+@misc{lee_egocentric_garment_manipulation,
+  author       = {Lee, Jeong Hwan},
+  title        = {Egocentric Human Demonstrations for Bimanual Garment Manipulation},
+  howpublished = {\url{https://github.com/physical-ai-vla/egocentric-garment-manipulation}}
+}
 ```
 
-### Quick start
-
-```bash
-python -m pip install -r requirements.txt
-python examples/make_synthetic.py                                     # regenerate the synthetic data (seed 0)
-python scripts/gap_fill.py examples/synthetic_bimanual_demo.csv out/filled.csv --max-gap 1.0
-python scripts/robotize.py out/filled.csv out/robotized.csv --sep 0.05
-python scripts/parity_metrics.py out/robotized.csv examples/synthetic_robot_replay.csv
-python scripts/relative_se3.py out/filled.csv --chunk 1.0
-python scripts/plot_example.py out/robotized.csv out/example.png --robot examples/synthetic_robot_replay.csv
-python -m pytest -q tests
-```
-
-Expected parity output on the synthetic data: recovered lag ≈0.2–0.26 s (the generator uses 0.25 s), position RMSE
-≈6 mm. Comparing the *unrobotized* human path with the replay instead gives ≈17 mm for the right hand: the difference
-is the robotization displacement, the analogue of the "command vs. human" term in the real analysis.
-
-![Synthetic example](docs/example_synthetic.png)
-
-## 13. Author
-
-**Jeong Hwan Lee** — Robotics Engineer, Physical AI / Robot Learning
+**Author.** **Jeong Hwan Lee** — Robotics Engineer, Physical AI / Robot Learning
 
 Interests: learning robot manipulation from human demonstrations; egocentric and wearable data capture;
 cross-embodiment action representations; bimanual and deformable-object manipulation; vision-language-action models;
 calibration and evaluation methodology for robot-learning data.
 
 GitHub: <https://github.com/physical-ai-vla>
-
-## 14. Disclaimer
-
-This is a research overview of work in progress, not a product. Numbers are from one setup, one demonstrator and a
-small number of runs, and are reported as measured, including failures. Code in this repository is released under the
-MIT licence ([LICENSE](LICENSE)); third-party designs and methods remain under their own licences
-([ATTRIBUTION.md](ATTRIBUTION.md)).
