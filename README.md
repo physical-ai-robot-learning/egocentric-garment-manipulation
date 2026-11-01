@@ -631,6 +631,23 @@ tags (`src/garment_pipeline/eval_deploy/height_calib.py`), real-time chunking bl
 offline test only), X-VLA policy server (`xvla_server.py`). Training code: `src/garment_pipeline/training/`
 (DiT trainer with jaw BCE head, masks and per-episode weights; gradient clipping off).
 
+### In progress (10-30 → 11-01): pinching — can the pipeline teach one grasp?
+
+The flattening policies stop short of the cloth. To separate "the pipeline cannot teach a grasp" from "flattening is too
+hard for this amount of data", the first robot feasibility test was reduced to one sub-skill: **pinch one sleeve with
+the left hand** (right arm idle in all data; deployed with the left arm only).
+
+| | |
+|---|---|
+| labels | **Cg** everywhere (CoTracker + marker anchors + constant bias; IMU only inside tracking gaps); jaw from the servo encoder; 0.5× time-stretched for the robot. An earlier label variant left gaps at demo starts, so all sets were rebuilt with Cg; the two are never mixed. |
+| training data | 10-30: 53 kept of 74 demonstrations · 11-01: 56 of 60, 33 of 35, 10 of 10, plus a 50-demo take still being converted (≈200 in total). Kept = quality grade GOLD or SILVER. |
+| test sets (never trained on) | 19 demonstrations from two held-out takes (10-30 and 11-01) for arm + gripper; every rejected 11-01 demonstration is kept for gripper timing only (its jaw label is valid, its arm label is not). |
+| model | the diffusion-transformer policy fine-tuned on the 10-30 set is the starting point and the baseline on the 19 test demonstrations; fine-tuning on the ≈200 demonstrations (with train-time image augmentation) starts on 1 November. |
+| status | **no robot result yet.** Robot trials will be reported here with the number of trials and successes, whether the outcome is success or failure. |
+
+Robot-side changes made for this test: per-arm table-height calibration from jaw-tip touches on the table tags, the fixed
+camera re-aimed to its earlier view, and a soft stop that brakes without latching an emergency stop.
+
 ### Research directions
 
 1. **Egocentric capture.** Wearable demonstration hardware and a recording protocol that yields synchronized wrist
@@ -662,6 +679,8 @@ offline test only), X-VLA policy server (`xvla_server.py`). Training code: `src/
 * **Status (Nov 1):** both policies are fine-tuned on the GOLD demos and run on the robot; they stop short of the cloth
   and close early. Four causes were traced to the data; three are changed and the wrist-camera re-mount is next (§8);
   no success rate yet.
+* **In progress (Nov 1):** a one-sleeve left-hand pinching test with ≈200 Cg-labelled demonstrations (§8, Pinching); no robot
+  result yet.
 * **Next:** re-mount the robot wrist cameras, retrain on the corrected labels and the servo-labelled demos, and evaluate
   on the robot with counted trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
   tag-hidden phases~~ — replay-track items, parked.

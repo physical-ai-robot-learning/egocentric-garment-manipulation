@@ -59,3 +59,7 @@ minimal stand-in for UMI's pose helper (same function names and conventions); UM
 
 Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot UMI (CC BY-SA 4.0); not redistributed
 here.
+
+* **ORB-SLAM3** (UZ-SLAMLab, GPL v3): `legacy/orbslam3/patch*.py` modify ORB-SLAM3's source and are therefore
+  distributed under the GPL v3, not under this repository's licence; see
+  [legacy/orbslam3/LICENSE_NOTICE.md](legacy/orbslam3/LICENSE_NOTICE.md). ORB-SLAM3 itself is not included.
