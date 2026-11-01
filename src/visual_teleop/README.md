@@ -17,7 +17,7 @@ python -m visual_teleop.tools.umi_jaw infer <take>/wrist               # jaw sta
 python -m visual_teleop.tools.bridge_start --sides left,right --go     # reBot MIT bridge
 python -m visual_teleop.tools.umi_replay_bi <take> ... --offline|--go  # plan + check / replay
 ```
-Most tools also import `ego_teleop` (not in this repo), e.g. `umi_replay_bi` and the live-teleop pipeline.
+Most tools also import `ego_teleop` (from the shared [`egocentric`](https://github.com/physical-ai-vla/egocentric) package), e.g. `umi_replay_bi` and the live-teleop pipeline.
 `config/` stays inside the package: `config.py` reads `config/*.yaml` next to itself and `tools/calib_right.py` writes
 `config/calibration.yaml`. Files outside the package (`configs/`, `datasets/`, `.venv`) are found from the repo root,
 `Path(__file__).parents[3]`.
@@ -30,8 +30,8 @@ Most tools also import `ego_teleop` (not in this repo), e.g. `umi_replay_bi` and
 
 ## Provenance
 Moved from top-level `visual_teleop/` to `src/visual_teleop/` in the 11-01 layout refactor; root lookups changed from
-`parents[2]` to `parents[3]`. Imports `ego_teleop` / `ego_collector` / `handumi_collector` in places — those packages are
-not in this repository.
+`parents[2]` to `parents[3]`. Imports `ego_teleop` / `ego_collector` / `handumi_collector` in places — those packages come from the shared
+[`egocentric`](https://github.com/physical-ai-vla/egocentric) package (a dependency in `pyproject.toml`).
 
 ## Details (original package README)
 
