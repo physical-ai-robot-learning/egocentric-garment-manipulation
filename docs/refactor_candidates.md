@@ -1,4 +1,4 @@
-# Refactor candidates (not done)
+# Refactor candidates
 
 Refactor v3 (2026-11-01) was behaviour-preserving: it moved the training-data pipeline into the package
 `src/garment_pipeline/`, replaced `sys.path` edits with package imports and home / SSD literals with
@@ -6,19 +6,40 @@ Refactor v3 (2026-11-01) was behaviour-preserving: it moved the training-data pi
 ([provenance.md](provenance.md)). Splitting large files or restructuring scripts would change code paths that can only be
 checked on the recorded data and the robot, so it was not done. These are the candidates, with a proposed split.
 
-## Large modules
+## Done: the deploy UI split (2026-11-01, branch `ui-split`)
+
+The three deploy modules were split into packages next to them; the old files stay as entry points and import names (every
+old name is re-exported), so `python -m garment_pipeline.eval_deploy.act_tagrig_{deploy,ui} ...`, `run_n_steps.py`,
+`act_tagrig_domain_gap.py` and `import ... act_tagrig_core as core` are unchanged. Working files (`act_tagrig_cams.json`,
+`start_pose.json`, `act_tagrig_ui_settings.json`) stay in `eval_deploy/`: the new modules resolve `HERE` to that folder.
+Checks: every moved statement is AST-identical to the original (except `HERE`, which now goes one folder up to the same path,
+and the UI `main`, whose routes moved verbatim into `create_app`); `--help` of every entry is byte-identical; and
+[`tests/test_ui_routes.py`](../tests/test_ui_routes.py) compares the routes, the page, settings persistence, CLI defaults and
+helpers with a golden record taken before the split.
+
+| was | lines | now |
+|---|---|---|
+| `eval_deploy/act_tagrig_deploy.py` | 1209 → 16 | `tagrig_deploy/`: `paths` (working files, `say`), `cameras` (UVC mapping, ring buffer, wrist / Orbbec capture, `cams`, `wave`), `bridge` (grip guard, poller, 30 Hz streamer, READY), `keys`, `preview`, `rig`, `session` (`run_session`, 365 lines, kept whole: one loop whose locals carry the state between the stages), `start_pose`, `report`, `cli` (parser + description = `--help`) |
+| `eval_deploy/act_tagrig_ui.py` | 528 → 20 | `tagrig_ui/`: `settings` (persisted settings, checkpoint folders), `control` (`UICtl`, `App`, `move_ready`, `dep_parser`), `server` (`create_app` + `main`), `page.py` + `page.html` (byte-identical) |
+| `eval_deploy/act_tagrig_core.py` | 437 → 28 | `tagrig_core/`: `policy` (inputs, decode, RTC weights, ACT / DiT / X-VLA / label runners), `geometry` (arms, FK, capsule collision, camera model, plot); `act_tagrig_core.py` re-exports both |
+
+Not split: `App` (235 lines) stays one class (its methods share the run state); the small tools (`height_calib.py`,
+`cam_align.py`, `xvla_server.py`, `return_to_start.py`, `run_n_steps.py`, `cam_viewer.py`) are already one job each.
+The flat `import height_calib as HC` inside `run_session` / `start_cmd` was kept as it was (it resolves only when
+`eval_deploy/` is on `sys.path`, e.g. `python src/.../act_tagrig_deploy.py run --height-calib`).
+
+## Not done
+
+### Large modules
 
 | file | lines | proposed split |
 |---|---|---|
-| `src/garment_pipeline/eval_deploy/act_tagrig_deploy.py` | 1209 | `cameras` (wrist / global capture, UVC exposure), `bridge` (robot I/O, heartbeat, stop), `loop` (receding-horizon executor, RTC blend), `cli` (sub-commands `run`, `preview`, ...); the policy runners already live in `act_tagrig_core.py` |
 | `src/visual_teleop/vision/stereo_vio_tracker.py` | 542 | belongs to the dropped stereo-VIO experiment; move to `legacy/` together with the `stereo_*_eval` scripts it needs (they are not in this repository) |
-| `src/garment_pipeline/eval_deploy/act_tagrig_ui.py` | 528 | web app (Flask routes + page) vs. run control (settings, checkpoint discovery, deploy threads) |
 | `src/garment_pipeline/labels_dataset/tag_rig_to_lerobot.py` | 526 | take preparation (arm assignment, robotize / IK sub-process) vs. LeRobot writer (frames, features, metadata); `tag_rig_unsplit.py` already reuses both halves |
 | `src/garment_pipeline/training/tagrig_common.py` | 455 | datasets (`ActRelDataset`, `DitRelDataset`) vs. the trainer patches (`install_masks`, `install_weights`, `install_grip_bce`, ...) |
 | `src/visual_teleop/tools/tag_rig_record.py` | 449 | device setup (Orbbec, wrist cameras, IMUs, jaw servos) vs. recording session / protocol prompts |
-| `src/garment_pipeline/eval_deploy/act_tagrig_core.py` | 437 | policy runners (ACT / DiT / X-VLA client) vs. geometry helpers (frames, RTC weights, workspace clamp) |
 
-## Scripts that run at import
+### Scripts that run at import
 
 These modules do their work at module level (no `if __name__ == "__main__":` guard), so importing them runs them;
 `tests/test_imports.py` skips them. Wrapping the body in `main()` is a mechanical change but touches global-name
@@ -29,7 +50,7 @@ lookups inside nested functions, so it should be checked on a recorded take firs
 `garment_pipeline.labels_dataset.idle_trim`; `...orbbec.v2b.track_v31` has a guard but reads `start_seed_v1.json` and
 creates `out/` at import.
 
-## Working files next to the code
+### Working files next to the code
 
 The fusion stage reads and writes `fusion_stack/orbbec/v2b/out/`, `fusion_stack/stitch/qa/` and `start_seed_*.json`
 next to its modules, and the deploy tools keep `act_tagrig_cams.json`, `start_pose.json`, `height_calib*.json` and
