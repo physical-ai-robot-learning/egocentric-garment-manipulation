@@ -27,7 +27,8 @@ TAG_IDS = (200, 201, 202, 210, 211, 212, 220, 221, 222, 230, 231, 232, 400, 401)
 PREV = {"jpg": None, "tags": {}}
 # 10-29 (user: "모터를 사용해서 gripper 정보를 모을 거야"): the HandUMI jaw servos (Feetech STS3215, id 1, torque OFF = passive encoder) are
 # logged at ~100 Hz on the host monotonic clock -> gripper_motor_{left,right}.npz (host_ns, raw register, signed position ticks).
-# Sides follow configs/handumi/hardware_handumi_v1.yaml and the USB hubs they share with the XIAO IMUs (left 2073676409.., right 63ACF722..).
+# Sides follow configs/handumi/hardware_handumi_v1.yaml and the USB hubs they share with the XIAO IMUs (hand assignment of the XIAO IMUs, data owner 11-01: left hand 63ACF722.., right hand 2073676409..; an earlier
+# version of this comment listed them by rig label, not by hand).
 # 10-29 19:45: the processing chain (scripts/tag_rig_fuse.py) pairs a tag rig with imu_<rig>.npz (rig "right" = tags 200-202 = the unit that
 # carries IMU 63ACF722).  That unit is in the user's LEFT hand, so the IMUs (opened by HAND, config/teleop_rebot.yaml) are saved under
 # their RIG name; the live meter keeps hand sides.  Takes 185121..192644 were renamed afterwards (imu_byhand_*.npz = as recorded).

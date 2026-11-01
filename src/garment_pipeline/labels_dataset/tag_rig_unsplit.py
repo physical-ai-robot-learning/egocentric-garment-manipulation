@@ -13,6 +13,9 @@ Per frame, per arm (stored):
   action_mask[20]  validity of the stored absolute target (= frame i+1): xyz dims = pos_ok, rot6d dims = rot_ok, gripper = jaw label valid
   The training glue (training/tagrig_common.py) builds the chunk mask from frames t..t+31 (ACT) / t-1..t+31 (DiT) and the anchor's pose_ok.
   The state stays filled (no mask).
+  NOTE (11-01 audit): the IK terms above apply only to --label ikfk.  For --label rob / fused (labels A / F) the IK error and
+  the grasp displacement are set to 0 (see `if LABEL in ("rob", "fused")` below), so --ik-fail-mm has no effect: pos_ok /
+  rot_ok are all 1 in stitched mode and come from fill length only in gated mode.  A demo without an ik_v1 file is not built.
 Episode drop only if: measured < 50 % for BOTH arms after the trim, or a filled run > 5 s overlaps a grasp window (+-0.5 s of a close).
 Split: frozen by demo -- demos of the v1 split keep their split; new eligible demos get a stratified, seeded 85/8/7 assignment.
 usage: tag_rig_unsplit.py --out data/lerobot/tagrig_laundry_v2u --takes TAKE... [--old-split .../meta/split.json] [--render 4] [--cam-shift-ms 0]"""

@@ -43,7 +43,8 @@ Each script inserts `<repo>/src` into `sys.path` itself, so no install is needed
   logged ≈100 Hz by `tag_rig_record`) → per-hand calibration → `g_cont`, hysteresis events, per-take re-centring;
   writes the same `umi_jaw.npz` as the video path (+ `motor_pos`).
 - `jaw_motorlike.py`, `jaw_motorlike_overlay.py` — a wrist-video model trained to reproduce the servo, for relabelling
-  older video-only demos; evaluated, **not applied** to any dataset.
+  older video-only demos; evaluated; one candidate dataset was built with it on 10-31 (`flat300_S03_gold187nb_mj`, 187 GOLD
+  demos without the black cloth), not used for any reported model.
 - `umi_side_check.py` — checks which wrist camera, jaw servo and IMU belong to which hand before recording.
 
 ## Provenance

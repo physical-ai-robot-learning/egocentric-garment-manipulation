@@ -30,13 +30,19 @@ the upstream HandUMI design, which keeps its Apache-2.0 licence ([LICENSE](hardw
 | SQPnP | multi-marker pose initialisation | G. Terzakis and M. Lourakis, ECCV 2020 |
 | Robot-world/hand-eye calibration | initialisation of camera-to-robot calibration | M. Shah, J. Mechanisms and Robotics 2013 |
 | CoTracker3 | point tracking on the fixed camera (current pose source) | N. Karaev et al., "CoTracker3: Simpler and better point tracking by pseudo-labelling real videos," 2024 |
-| MASt3R-SLAM (with MASt3R, DUSt3R) | evaluated as pose source; optional gated gap filler | R. Murai, E. Dexheimer, A. J. Davison, CVPR 2025; V. Leroy et al., ECCV 2024; S. Wang et al., CVPR 2024 |
+| MASt3R-SLAM (with MASt3R, DUSt3R) | evaluated as pose source and as a gap filler; rejected (now in `legacy/`) | R. Murai, E. Dexheimer, A. J. Davison, CVPR 2025; V. Leroy et al., ECCV 2024; S. Wang et al., CVPR 2024 |
 | ORB-SLAM3 | evaluated (mono-inertial); rejected | C. Campos et al., IEEE T-RO 2021 |
 | Basalt, OpenVINS, AirSLAM | evaluated with an earlier stereo camera | V. Usenko et al., RA-L 2020; P. Geneva et al., ICRA 2020; K. Xu et al., T-RO 2025 |
 | Kalibr | camera–IMU calibration in an earlier pipeline | P. Furgale, J. Rehder, R. Siegwart, IROS 2013 |
 | Pink / Pinocchio | differential inverse kinematics | S. Caron et al., Pink (Apache-2.0); J. Carpentier et al., SII 2019 |
 | ResNet-18 / ImageNet | jaw-state classifier backbone | K. He et al., CVPR 2016; J. Deng et al., CVPR 2009 |
-| LeRobot | robot software ecosystem used by the robot driver | R. Cadene et al., 2024 |
+| LeRobot | robot software ecosystem used by the robot driver; LeRobot v3 dataset format and the DiT / X-VLA training code | R. Cadene et al., 2024 |
+| Mahony filter | IMU rotation in the pose fusion | R. Mahony, T. Hamel, J.-M. Pflimlin, IEEE TAC 2008 |
+| Ultralytics YOLO (pose) | jaw-tip keypoint model (AGPL-3.0) | Ultralytics, https://github.com/ultralytics/ultralytics |
+| Diffusion Transformer (DiT) | policy architecture (Multi-Task DiT in LeRobot) | W. Peebles and S. Xie, ICCV 2023 |
+| CLIP | text encoder of the DiT policy | A. Radford et al., ICML 2021 |
+| X-VLA | VLA base model (`lerobot/xvla-base`) | https://huggingface.co/lerobot/xvla-base |
+| diffusers | dependency of the LeRobot policy and training code | Hugging Face, https://github.com/huggingface/diffusers |
 
 ## Related work cited
 

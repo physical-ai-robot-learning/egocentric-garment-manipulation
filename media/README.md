@@ -24,7 +24,7 @@ shown at the replay speed (94 s at 0.35×).
 | `start_markers.jpg` | (a) the two start markers (IDs 400 / 401) with their measured robot coordinates, (b) a take starting with the grippers there | [README §5](../README.md#stage-0--one-world-frame-for-human-and-robot) |
 | `world_frame_start_markers.jpg` | the same two panels without the IDs and coordinates | (copy in `report/figures/`) |
 | `orbbec_global_view_demo2_start.jpg` | the fixed Orbbec camera's view at the start of a demo: both grippers on the start markers, shirt laid out, both arms in view | – |
-| `pinching_cg_gold_trajectory_sources.gif` / `.mp4` | three GOLD left-hand pinching demonstrations (11-01), Cg-fused jaw-tip paths coloured by pose source; rendered with `garment_pipeline.fusion_stack.orbbec.v2b.fusion.render_traj_sources` | | – |
+| `pinching_cg_gold_trajectory_sources.gif` / `.mp4` | three GOLD left-hand pinching demonstrations (11-01), Cg-fused jaw-tip paths coloured by pose source; rendered with `garment_pipeline.fusion_stack.orbbec.v2b.fusion.render_traj_sources` | – |
 
 Raw recordings are not included. `media/umi_hand_current.jpg` of the former `egocentric-laundry-folding` repository was
 byte-identical to `umi_hands.jpg` and was not kept.
