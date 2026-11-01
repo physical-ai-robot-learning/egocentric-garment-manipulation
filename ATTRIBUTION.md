@@ -1,6 +1,6 @@
 # Attribution
 
-This repository's own code and documentation are MIT-licensed (see [LICENSE](LICENSE)). The project builds on the
+This repository's own code, documentation and media are licensed for noncommercial use only under the PolyForm Noncommercial License 1.0.0 (see [LICENSE](LICENSE)). The project builds on the
 following work, which keeps its own licence and credit.
 
 ## Hardware

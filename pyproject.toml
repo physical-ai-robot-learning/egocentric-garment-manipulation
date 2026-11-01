@@ -7,7 +7,7 @@ name = "egogarment"
 version = "0.1.0"
 description = "Generic utilities for bimanual jaw-tip trajectories from egocentric human garment demonstrations (synthetic examples only)"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "PolyForm-Noncommercial-1.0.0" }
 authors = [{ name = "Jeong Hwan Lee" }]
 requires-python = ">=3.10"
 dependencies = [

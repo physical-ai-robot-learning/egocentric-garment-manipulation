@@ -5,7 +5,7 @@ robot-feasible end-effector trajectories and replayed on a two-arm robot, as an 
 policy is trained on it.
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[Technical note (PDF)](report/technical_note.pdf)** · [Detailed results](docs/results.md) ·
 [Attribution](ATTRIBUTION.md)
 
@@ -483,8 +483,10 @@ Full references are in the [technical note](report/technical_note.pdf); licences
 ## 10. License, acknowledgements, citation
 
 **License.** This is a research overview of work in progress, not a product. Numbers are from one setup, one
-demonstrator and a small number of runs, and are reported as measured, including failures. Code in this repository is
-released under the MIT licence ([LICENSE](LICENSE)); third-party designs and methods remain under their own licences
+demonstrator and a small number of runs, and are reported as measured, including failures. Code, documentation and media in this
+repository are licensed under the **PolyForm Noncommercial License 1.0.0** ([LICENSE](LICENSE)): free for research,
+teaching, personal and other noncommercial use; **commercial use is not permitted** without a separate written
+agreement with the author. Third-party designs and methods remain under their own licences
 ([ATTRIBUTION.md](ATTRIBUTION.md)).
 
 **Acknowledgements.** The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI
