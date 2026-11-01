@@ -27,7 +27,7 @@ For a comparison window:
   amplitude ratio 0.9–1.1, no jumps. Single-axis strokes are compared on normalised progress along the human chord,
   with gates on main-axis ratio, cross-axis leakage (< 10 %), endpoint (< 20 mm), RMSE and p95.
 
-A generic implementation of the position/rotation/lag part is in [`../scripts/parity_metrics.py`](../scripts/parity_metrics.py).
+A generic implementation of the position/rotation/lag part is in [`../src/egogarment/evaluation/parity_metrics.py`](../src/egogarment/evaluation/parity_metrics.py).
 
 ## 1. Calibration accuracy
 
@@ -139,7 +139,7 @@ tool flip (mostly right), one joint at its limit, and ≈ 1 % truly out of reach
 
 ## 8. Synthetic example (this repository)
 
-On the synthetic data in [`../examples/`](../examples), the tools in `scripts/` give (seed 0):
+On the synthetic data in [`../examples/`](../examples), the tools in `src/egogarment/` (run via `scripts/` or `python -m egogarment.<component>.<module>`) give (seed 0):
 
 | comparison | right | left |
 |---|---|---|

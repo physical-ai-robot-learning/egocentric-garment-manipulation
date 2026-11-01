@@ -40,5 +40,5 @@ SpeedFolding (Y. Avigal et al., IROS 2022), FlingBot (H. Ha and S. Song, CoRL 20
 
 ## This repository
 
-The scripts in `scripts/` and the generator in `examples/` were written for this repository and depend only on numpy,
-scipy and matplotlib. The data in `examples/` is synthetic.
+The code in `src/egogarment/` (with thin command wrappers in `scripts/`) and the generator in `examples/` were written
+for this repository and depend only on numpy, scipy and matplotlib. The data in `examples/` is synthetic.

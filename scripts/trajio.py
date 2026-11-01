@@ -1,7 +1,7 @@
 """Compatibility wrapper: the code lives in ``egogarment.io.trajio`` (src/egogarment/io/trajio.py).
 
-Kept so that ``python scripts/trajio.py ...`` and ``import trajio`` (with scripts/ on sys.path) work
-without installing the package. Equivalent: ``python -m egogarment.io.trajio ...`` after ``pip install -e .``.
+Kept so that ``import trajio`` (with scripts/ on sys.path) works without installing the package; after
+``pip install -e .`` use ``from egogarment.io import trajio``. Library only (no command line).
 """
 import sys
 from pathlib import Path

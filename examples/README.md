@@ -6,7 +6,7 @@ hand-designed keyframes. It contains no real recording, no real calibration and 
 | file | content |
 |---|---|
 | `synthetic_bimanual_demo.csv` / `.npz` | 30 s, 30 Hz bimanual "pick two corners and half-fold" jaw-tip trajectory with jaw open/close, ~1.5 mm / ~1° measurement noise and marker dropouts (around grasps, a few random short ones, and one 2 s dropout on the left hand that should *not* be filled) |
-| `synthetic_robot_replay.csv` | a simulated replay: the noise-free motion passed through `scripts/robotize.py`, delayed by 0.25 s, scaled by 0.97 about the start, with ~2 mm tracking noise |
+| `synthetic_robot_replay.csv` | a simulated replay: the noise-free motion passed through `egogarment.retarget.robotize` (`scripts/robotize.py`), delayed by 0.25 s, scaled by 0.97 about the start, with ~2 mm tracking noise |
 | `make_synthetic.py` | the generator |
 
 Scenario features that exercise the tools: the right hand briefly reaches across the body midline (robotization
