@@ -4,7 +4,7 @@
 tests/ui/tagrig_ui_probe.py builds the Flask app through act_tagrig_ui.main() over a stubbed App (no cameras, no robot, no
 network, empty HOME), calls every route except the endless MJPEG streams, round-trips the persisted settings, reads the deploy
 CLI defaults and evaluates the pure helpers (streamer timeline, temporal ensemble, chunk decode, RTC weights, ...) on synthetic
-input. tests/ui/golden/tagrig_ui_routes.json is its output on the single-file modules before the split (commit 49e7542); the
+input. tests/ui/golden/tagrig_ui_routes.json is its output on the single-file modules before the split (commit 7e501df); the
 test asserts the same output now: url map, the served page (sha256), JSON of every route, settings file location / keys /
 defaults, CLI defaults and helper values (floats to 1e-9 relative). Names of the old modules must all still exist.
 
