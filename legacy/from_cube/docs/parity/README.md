@@ -1,6 +1,6 @@
 # umi_robot_parity: UMI TCP calibration and UMI → reBot replay parity (2026-10-16 → 10-20)
 
-> **Location (restructure of 2026-11-01).** This file was `pipeline/umi_robot_parity/README.md`. Paths in it are relative to that old folder: the folder → `scripts/rebot/parity/` (inner structure unchanged: `scripts/`, `tools/`, `configs/`, `kalibr/`, `print/`). Full old → new table: [`docs/provenance/README.md`](../provenance/README.md).
+> **Location (restructure of 2026-11-01).** This file was `pipeline/umi_robot_parity/README.md`. Paths in it are relative to that old folder: the folder → `scripts/rebot/parity/` (inner structure unchanged: `scripts/`, `tools/`, `configs/`, `kalibr/`, `print/`). Full old → new table: [`docs/provenance/README.md`](https://github.com/physical-ai-vla/egocentric-cube-stacking/blob/main/docs/provenance/README.md).
 
 Goal (lead decision 10-16): motion collected with the HandUMI must replay the same on the reBot. A fixed global Orbbec sees
 3-tag AprilTag rigs on each UMI (tag36h11 200–202 right, 210–212 left, printed 48 mm) and, later, tag 220 on the robot
