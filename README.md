@@ -4,6 +4,8 @@ Human garment-manipulation demonstrations, recorded with hand-worn parallel-jaw 
 robot-feasible end-effector trajectories and replayed on a two-arm robot, as an end-to-end test of the data before any
 policy is trained on it.
 
+Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the entry point to all egocentric-demonstration projects.
+
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[Technical note (PDF)](report/technical_note.pdf)** · [Detailed results](docs/results.md) ·
