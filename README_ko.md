@@ -3,7 +3,7 @@
 손에 끼는 평행 집게로 녹화한 사람의 옷 다루기 시연을 로봇이 할 수 있는 엔드이펙터 궤적과 학습 라벨로 변환하고, 데이터 전체를
 끝까지 시험하기 위해 양팔 로봇(**reBot B601-DM**)으로 재생한 뒤, 티셔츠 펴기·접기 정책을 학습하는 데 씁니다.
 
-Physical AI / 로봇 학습 프로젝트의 입구인 **[physical-ai-robot-learning](https://github.com/physical-ai-vla/physical-ai-robot-learning)**의 일부입니다.
+Physical AI / 로봇 학습 프로젝트의 입구인 **[robot-learning](https://github.com/physical-ai-vla/robot-learning)**의 일부입니다.
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
@@ -140,7 +140,7 @@ flowchart LR
 | 설정 | [`configs/`](configs/README.md) | 0 | 현재 | 캘리브레이션 결과, 로봇 설정과 보정값, 집게 분류기 가중치, 회귀 기준값 |
 | 로봇 쪽 패키지 | [`src/visual_teleop/`](src/visual_teleop/README.md) | 1, 2, 재생, 7 | 현재 (실시간 teleop은 보류) | 녹화기, 집게 분류기, reBot IK·제한·안전, 브리지 시작, 재생 계획 |
 | 태그 리그 모듈 | [`src/rebot_prep/`](src/rebot_prep/README.md) | 2 | 현재 | 여러 script가 같이 쓰는 태그 위치·fusion 코드 (`rebot_prep.parity`) |
-| HandUMI / teleop 패키지 | 공용 [`physical-ai-robot-learning`](https://github.com/physical-ai-vla/physical-ai-robot-learning) 패키지에서 옴 | 0, 1 | 현재 | `handumi_collector`(IMU·집게 서보 드라이버, 시간 맞춤), `ego_collector`(카메라 캡처), `ego_teleop`(SE(3) 도구, reBot 클라이언트, 녹화 내보내기). 큐브 쌓기 프로젝트와 함께 쓰며 의존성으로 설치 |
+| HandUMI / teleop 패키지 | 공용 [`robot-learning`](https://github.com/physical-ai-vla/robot-learning) 패키지에서 옴 | 0, 1 | 현재 | `handumi_collector`(IMU·집게 서보 드라이버, 시간 맞춤), `ego_collector`(카메라 캡처), `ego_teleop`(SE(3) 도구, reBot 클라이언트, 녹화 내보내기). 큐브 쌓기 프로젝트와 함께 쓰며 의존성으로 설치 |
 | 위치 + 캘리브레이션 | [`scripts/pose/`](scripts/pose/README.md) | 0, 2 | 현재 | 카메라 ↔ 로봇, 태그 리그 → 집게 끝, 태그 → 집게 끝 궤적, 집게 열림 정도, 서보로 집게 상태 |
 | 학습 데이터 파이프라인 | [`src/garment_pipeline/`](src/garment_pipeline/README.md) | 3–5, 6 (DiT), 7 | 현재 (설치 가능한 패키지. 녹화 데이터, CoTracker·학습용 GPU, deploy용 로봇 필요) | CoTracker + 마커 + IMU fusion, gate, trim, 품질 등급, 라벨, LeRobot 데이터셋, DiT 학습기, 오프라인 평가, deploy |
 | 리타깃 | [`scripts/retarget/`](scripts/retarget/README.md) | 재생 | 현재 (재생 트랙) | UMI ↔ reBot EEF 정렬, 양손 시연의 로봇화 |
@@ -183,7 +183,7 @@ python -m pip install -r requirements.txt
 - 원래 실행은 여러 인터프리터로 했습니다: 녹화기는 저장소 `.venv`(macOS에서 Orbbec 때문에 `sudo`), IK·브리지 시작·재생은
   Pink / pinocchio가 있는 X-VLA 환경, 집게 keypoint script는 별도 ultralytics 환경. 코드가 프로젝트의 다른 작업 폴더에서
   import하던 보조 모듈(`contracts`, `xvla_core`, `umi_to_lerobot`)은 `src/`에 복사해 두었습니다([출처 + md5](docs/provenance.md)).
-  `ego_teleop`·`ego_collector`·`handumi_collector`는 공용 패키지 [`physical-ai-robot-learning`](https://github.com/physical-ai-vla/physical-ai-robot-learning)에서 옵니다(`pyproject.toml`이 설치).
+  `ego_teleop`·`ego_collector`·`handumi_collector`는 공용 패키지 [`robot-learning`](https://github.com/physical-ai-vla/robot-learning)에서 옵니다(`pyproject.toml`이 설치).
   아직 밖에 있는 것: reBot 제조사 LeRobot 플러그인, X-VLA 학습 패치.
 - `src/garment_pipeline/`는 기본값으로 원래 machine의 데이터 폴더를 읽고 씁니다. 다른 위치를 쓰려면 `EGO_DATA_ROOT`(녹화,
   캘리브레이션), `EGO_TRAIN_ROOT`(파생 궤적, 리포트, 데이터셋), `EGO_CKPT_ROOT`(checkpoint 보관)를 설정합니다
@@ -379,7 +379,7 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
     실행. `egogarment.paths` — 파이프라인이 쓰는 데이터·checkpoint 루트
   * import가 풀리도록 프로젝트의 다른 작업 폴더에서 복사해 온 보조 모듈(`contracts`, `xvla_core`, `umi_to_lerobot`,
     [출처 + md5](docs/provenance.md))
-  * 공용 [`physical-ai-robot-learning`](https://github.com/physical-ai-vla/physical-ai-robot-learning) 패키지에서 오는 것(의존성, `src/`에 없음): `ego_teleop`, `ego_collector`, `handumi_collector`
+  * 공용 [`robot-learning`](https://github.com/physical-ai-vla/robot-learning) 패키지에서 오는 것(의존성, `src/`에 없음): `ego_teleop`, `ego_collector`, `handumi_collector`
     (와 `umi.common.pose_util`). 큐브 쌓기 프로젝트도 쓰는 HandUMI / teleop 패키지
   * `egogarment` — 독립 재구현, 궤적 구성 요소마다 하위 패키지 하나: `io`(형식), `pose`(끊김 보완, relative SE(3)), `retarget`
     (로봇화), `evaluation`(비교 지표), `viz`(그림). 모든 도구는 라이브러리 API와 `main()` 명령이 있는 모듈입니다.

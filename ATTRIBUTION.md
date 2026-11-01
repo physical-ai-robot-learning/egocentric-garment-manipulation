@@ -60,7 +60,7 @@ numpy, scipy and matplotlib. The data in `examples/` is synthetic.
 Modules copied from the project's other working folders so that imports resolve from a clean clone (`src/contracts`,
 `src/xvla_core.py`, `src/umi_to_lerobot.py`) are our own code; sources and md5 are listed in
 [docs/provenance.md](docs/provenance.md). `ego_collector`, `ego_teleop` and `handumi_collector` (our own code, shared with
-the cube-stacking project) come from the shared package [`physical-ai-robot-learning`](https://github.com/physical-ai-vla/physical-ai-robot-learning), installed as a dependency. That package
+the cube-stacking project) come from the shared package [`robot-learning`](https://github.com/physical-ai-vla/robot-learning), installed as a dependency. That package
 also provides `umi.common.pose_util`, our minimal stand-in for UMI's pose helper (same function names and conventions);
 UMI's MIT licence is kept in [upstream/umi/LICENSE](upstream/umi/LICENSE) ([upstream/README.md](upstream/README.md)).
 

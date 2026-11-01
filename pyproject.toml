@@ -18,7 +18,7 @@ dependencies = [
     "matplotlib>=3.7",
     "pyyaml",
     # handumi_collector, ego_collector, ego_teleop (and umi): the shared package of the egocentric projects
-    "physical-ai-robot-learning @ git+https://github.com/physical-ai-vla/physical-ai-robot-learning@v0.2.0",
+    "robot-learning @ git+https://github.com/physical-ai-vla/robot-learning@v0.2.1",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +41,7 @@ egogarment-parity-metrics = "egogarment.cli:parity_metrics"
 egogarment-plot-example = "egogarment.cli:plot_example"
 
 # src layout: finds egogarment, garment_pipeline, visual_teleop, rebot_prep and the vendored package contracts
-# (docs/provenance.md). handumi_collector, ego_collector, ego_teleop and umi come from the physical-ai-robot-learning dependency.
+# (docs/provenance.md). handumi_collector, ego_collector, ego_teleop and umi come from the robot-learning dependency.
 [tool.setuptools]
 package-dir = { "" = "src" }
 py-modules = ["xvla_core", "umi_to_lerobot"]   # vendored single-file modules (docs/provenance.md)
