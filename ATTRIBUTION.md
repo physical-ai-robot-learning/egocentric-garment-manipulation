@@ -52,10 +52,11 @@ generator in `examples/` are small standalone re-implementations written for thi
 numpy, scipy and matplotlib. The data in `examples/` is synthetic.
 
 Modules copied from the project's other working folders so that imports resolve from a clean clone (`src/contracts`,
-`src/xvla_core.py`, `src/umi_to_lerobot.py`, parts of `src/{ego_collector,ego_teleop,handumi_collector}`) are our
-own code; sources and md5 are listed in [docs/provenance.md](docs/provenance.md). `src/umi/common/pose_util.py` is our
-minimal stand-in for UMI's pose helper (same function names and conventions); UMI's MIT licence is kept in
-[upstream/umi/LICENSE](upstream/umi/LICENSE) ([upstream/README.md](upstream/README.md)).
+`src/xvla_core.py`, `src/umi_to_lerobot.py`) are our own code; sources and md5 are listed in
+[docs/provenance.md](docs/provenance.md). `ego_collector`, `ego_teleop` and `handumi_collector` (our own code, shared with
+the cube-stacking project) come from the shared package [`egocentric`](https://github.com/physical-ai-vla/egocentric), installed as a dependency. That package
+also provides `umi.common.pose_util`, our minimal stand-in for UMI's pose helper (same function names and conventions);
+UMI's MIT licence is kept in [upstream/umi/LICENSE](upstream/umi/LICENSE) ([upstream/README.md](upstream/README.md)).
 
 Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot UMI (CC BY-SA 4.0); not redistributed
 here.

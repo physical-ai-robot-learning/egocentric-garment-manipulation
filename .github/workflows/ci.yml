@@ -15,7 +15,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test]"
+          python -m pip install -e ".[test]"        # also installs the shared package egocentric (git tag v0.1.0, pyproject.toml)
           python -m pip install "opencv-python-headless<5"   # camera <-> robot solver self-test (needs calibrateRobotWorldHandEye, gone in 5.0)
       - name: Compile (whole repository)
         run: python -m compileall -q .
