@@ -1,0 +1,8 @@
+# [2026-10-22] Multi-Task DiT (main) on the tag-rig laundry dataset (record of training/tagrig_train.sh MODEL=dit; lerobot 3c15fd8)
+dataset: {root: data/lerobot/tagrig_laundry_v1_train, split: meta/split.json (same as ACT), fps: 20}
+observations: {images: [global, left_wrist, right_wrist] 384x216 -> resize 240x240 -> crop 224, state: contract proprio 30D, n_obs_steps: 2}
+action: {target: "rel_chunk window: row 0 identity + rows k=1..32 (horizon 33)", gripper: "binary + 0.1 s ramp; denoised with MSE like other dims (Multi-Task DiT has NO BCE head)"}
+normalization: {state: "MIN_MAX train-only, range floor 0.02, grippers/T_LR_valid min0/max1 -> [-1,1]", action: "MIN_MAX on relative rows, grippers [0,1] -> [-1,1]"}
+policy: {type: multi_task_dit, objective: diffusion, scheduler: DDPM 100 (serve DDIM 10), horizon: 33, n_action_steps: 24, layers: 6, hidden: 512, heads: 8, rope: true, dropout: 0.1, lr: 2.0e-5, vision_lr_mult: 0.1, grad_clip_norm: 10}
+training: {steps: 500000, save_freq: 50000, global_batch: 32 (2 GPUs x 16), amp: bf16, seed: 1000, early_stop: 3 ckpts, keep: [best, last]}
+smoke_mac_mps: {run: dit_tagrig_smoke, steps: 300, bs: 4, loss: "0.838 -> 0.115", grad_norm_preclip: "1-5, clipped 0-3 %", nan: 0}

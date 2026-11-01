@@ -1,0 +1,20 @@
+{
+ "left": {
+  "threshold_px": 191.0,
+  "d_closed_px": 140.0,
+  "d_open_px": 298.0,
+  "band_px": 15.0,
+  "model": "configs/calibration/jaw_kpt_left_v002.pt",
+  "n_labels": 396
+ },
+ "right": {
+  "threshold_px": 150.0,
+  "d_closed_px": 90.0,
+  "d_open_px": 205.0,
+  "band_px": 15.0,
+  "model": "configs/calibration/jaw_kpt_right_v002.pt",
+  "n_labels": 285
+ },
+ "source": "datasets/jaw_kpt/combined_v002",
+ "note": "10-22 Otsu threshold on hand-labelled tip distances; distances in px of the jaw crop (jaw_kpt_label.CROP) | 10-22 thresholds set by hand: label rounds 1/2 used different tip conventions (outer apex vs inner contact, closed d ~100 vs ~55), so Otsu on the merged labels put the threshold inside the closed cluster (left 75 % on the 96 checked frames). Values from v002 predictions on take 105200: left closed <= 188 / open >= 195; right closed mostly <= 149 / open >= 137."
+}

@@ -1,0 +1,102 @@
+# CANONICAL PRE-IMU PRODUCTION PROFILE (frozen 2026-09-11): head Orbbec RGB-D + LEFT/RIGHT Arducam + LEFT/RIGHT Feetech.
+#
+# The human head sensor IS the Orbbec RGB-D: the C922 is not used on the human head any more, so it is absent here
+# rather than optional. The robot side will also carry an RGB-D head camera, which is what makes the head modality match.
+#
+#   head_depth        Orbbec RGB-D   head policy RGB + raw depth (recorded from day one; the baseline policy may ignore
+#                                    depth, and the depth ablation then needs no re-collection). Also the METRIC ANCHOR
+#                                    for the IMU-less pose pipeline (pose/cross_view.py).
+#   left/right_wrist  Arducam raw    ONE recording, TWO consumers: VIO/VO for pose, and the frozen virtual
+#                                    robot-wrist-like RGB view for the policy. Never record the virtual view.
+#   grippers          Feetech        authoritative jaw signal; grip is never inferred from vision
+#   imus: []          ICM-42688P not attached. The IMU-less V0 does not wait for it.
+#
+# Requires sudo on macOS (pyorbbecsdk cannot claim the UVC interface otherwise).
+#
+# ---------------------------------------------------------------------------------------------------- CAMERA IDENTITY
+# `strict_identity` is ON and it is the whole reason this profile is trustworthy. Each wrist camera is selected by a
+# product name that matches EXACTLY ONE device, so the AVFoundation enumeration order — which is NOT stable, and was
+# observed changing between calls on 2026-09-11 — cannot make `left_wrist` open the right-hand camera. `ordinal: 0` no
+# longer means "the first of several identical cameras"; it means "the only device with this name".
+#
+# The left unit's USB product name was reflashed to "FisheyeCamLeft". The right unit keeps the factory name, which is
+# fine because that also matches exactly one device today — but it is the FACTORY name, so plugging in a spare unit of
+# the same model makes it ambiguous again. `strict_identity` then REFUSES to record rather than silently swapping L/R;
+# reflash the spare when that happens.
+#
+# `serial` is deliberately absent: both units report the factory serial "UC684" (a model string, not a unit id), so a
+# serial check would verify nothing. AVFoundation's uniqueID is no help either — measured, it is literally the USB
+# locationID plus VID/PID, so it carries no per-unit identity and changes with the port.
+#
+# ------------------------------------------------------------------------------------------------- RESOLUTION, FROZEN
+# 1920x1080 @30. Measured with this exact profile, Orbbec + both Arducams + both grippers, repeated opens:
+#   @1920x1080   6/6 runs, all three streams at 30 fps   <- frozen
+#   @1280x720    6/6 runs, all three streams at 30 fps
+# 1080p is chosen because the 640x480 virtual robot-wrist view is reprojected from a small central crop of a 160deg
+# fisheye, so source pixel density is what limits the policy image.
+#
+# CORRECTION: earlier today the same 1080p combination failed and was diagnosed as a USB bandwidth ceiling. That was
+# wrong. The failures ("opened but returned no frame", non-deterministic in which camera died) were the identity bug:
+# an unstable enumeration order made the ordinal select the Orbbec's RGB node or the other Arducam. With unique names
+# the 1080p triple passes every run. Neither bandwidth nor bus wedging nor exposure was involved.
+#
+# This resolution is FROZEN because the calibration depends on it: calibrate_fisheye.py writes image_size into the
+# intrinsics, and the frozen virtual-view pipeline renders the policy image from this source.
+# ------------------------------------------------------------------------------------------- EXPOSURE / GAIN FREEZE
+# Set on the CAMERA over UVC before OpenCV opens it (devices/uvc_controls.py, external `uvc-util`), because macOS
+# AVFoundation refuses every one of these controls: cv2.VideoCapture.set() returns False and reads back 0 for
+# exposure/gain/white balance. The hardware does advertise them — measured on the real camera, and the settings persist
+# unchanged while OpenCV holds the stream (identical before, during and after a 9 s capture, stable brightness).
+# Every value is verified by read-back and the camera is REFUSED on a mismatch: a preset that exists only in a config
+# file is worse than none, because it looks deliberate.
+#
+# Control semantics, derived rather than assumed: auto-exposure-mode is a UVC CT_AE_MODE bitmap and this camera's
+# GET_RES reports 9 = 0b1001, so it supports only {1 = Manual, 8 = Aperture-priority}. Factory default is 8, which
+# leaves exposure time automatic — that is the drift we are removing. exposure-time-abs is in UVC units of 100 us
+# (range 1..5000, so 0.1..500 ms) and gain is 0..100.
+#
+# EXPOSURE FROZEN AT 20 units = 2.0 ms, gain 0, by measurement. Left camera, four 20 s takes at gain 0 with only the
+# exposure varied (2 / 4 / 8 / 12 ms), each containing a fast wrist rotation, judged on feature retention under the
+# frames' OWN measured motion (tools.wrist_exposure_qa):
+#
+#   exp    ms   brightness p05/mean/p95   blur(varLap)   fast-bucket retention
+#    20   2.0     123-127 / 131-137 / 138-158   283-361   0.890 and 0.911  (two takes)
+#    40   4.0       149.4 / 156.5 / 165.1         254.1   0.816
+#    80   8.0       176.8 / 184.3 / 199.4         160.0   0.669
+#   120  12.0       194.1 / 201.8 / 211.3         116.2   0.525
+#
+# There is no trade-off to make: 2 ms is simultaneously the shortest exposure AND the best retention, it is bright
+# enough (mean ~134, p95 158 — neither dark nor clipping; the factory 15.6 ms read 216), and it reproduced across two
+# takes (spread 0.021). Timing was identical at every setting (median gap 33.0 ms, p95 jitter 1.65-1.89 ms, one dropped
+# frame per 20 s take), so nothing here is exposure-induced. No flicker signature, so the 8.33 ms mains-safe value was
+# not needed. A fifth take was discarded from the comparison because it contained no fast-motion frames at all — the
+# tool refuses to draw a conclusion from a take that never moved.
+#
+# Corner counts hit the detector cap (800) at every setting, so they cannot discriminate; the verdict rests on
+# retention, which is a fraction and is unaffected by the cap.
+#
+# RIGHT confirmed on the SAME preset, one 20 s take with the same protocol — no Right-specific values needed:
+#            brightness p05/mean/p95   blur(varLap)   fast retention   normal retention   gap/jitter/max
+#   LEFT      123.1/136.7/158.1            282.9         0.911             0.959          33.04/1.65/66.7
+#   LEFT      126.5/131.2/137.9            361.3         0.890             0.951          33.06/1.88/66.5
+#   RIGHT     134.6/145.4/173.7            413.9         0.902             0.980          33.05/1.54/66.9
+# Right lands inside Left's retention range and is marginally brighter and sharper. Both cameras therefore share one
+# imaging preset, which is what keeps the two wrist streams' imaging characteristics consistent for human data.
+hardware_version: handumi_v1_preimu
+profile: handumi_rgbd
+calibration_version: exposure_v001         # exposure/gain/WB/60Hz frozen 2026-09-11; bump again when the L/R fisheye intrinsics are frozen
+cameras:
+  - {name: head_depth, role: aux_depth, backend: orbbec, width: 848, height: 480, fps: 30, required: true}
+  - {name: left_wrist,  role: pose_estimation, backend: uvc, match_name: "FisheyeCamLeft", ordinal: 0,
+     width: 1920, height: 1080, fps: 30, fourcc: MJPG, required: true, strict_identity: true, strict_format: true,
+     uvc_controls: {auto-exposure-mode: 1, exposure-time-abs: 20, gain: 0, auto-white-balance-temp: false,
+                    white-balance-temp: 4600, power-line-frequency: 2}}
+  - {name: right_wrist, role: pose_estimation, backend: uvc, match_name: "Arducam 1080P Low Light", ordinal: 0,
+     width: 1920, height: 1080, fps: 30, fourcc: MJPG, required: true, strict_identity: true, strict_format: true,
+     uvc_controls: {auto-exposure-mode: 1, exposure-time-abs: 20, gain: 0, auto-white-balance-temp: false,
+                    white-balance-temp: 4600, power-line-frequency: 2}}
+imus: []
+grippers:
+  - {side: left,  backend: feetech, port_serial: "5B3D048082", port: "/dev/cu.usbmodem5B3D0480821", servo_id: 1, baud: 1000000, sample_hz: 100, norm_one_is: open, required: true}
+  - {side: right, backend: feetech, port_serial: "5B3D049747", port: "/dev/cu.usbmodem5B3D0497471", servo_id: 1, baud: 1000000, sample_hz: 100, norm_one_is: open, required: true}
+gripper_calibration: latest

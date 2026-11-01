@@ -1,0 +1,45 @@
+{
+ "metrics": {
+  "ik_err_mm": 0.4886140207967108,
+  "ik_rot_deg": 0.23248356025000252,
+  "max_deg_s": 47.22629878719068,
+  "link_min_mm": 18.317487769355935,
+  "arm_gap_mm": 216.32454629671838
+ },
+ "cmd": [
+  "-m",
+  "visual_teleop.tools.umi_replay_bi",
+  "datasets/tag_rig/20261021_113243",
+  "--rep",
+  "1",
+  "--window",
+  "19.5,24",
+  "--traj",
+  "_robot",
+  "--ori-cost",
+  "0.1",
+  "--speed",
+  "0.5",
+  "--q-smooth",
+  "9",
+  "--tcp-margin",
+  "0.010",
+  "--link-margin",
+  "0.025",
+  "--tip-clear",
+  "0.005",
+  "--only",
+  "right",
+  "--roll-flip",
+  "off",
+  "--offline"
+ ],
+ "tol": {
+  "ik_err_mm": 1.0,
+  "ik_rot_deg": 1.0,
+  "max_deg_s": 5.0,
+  "link_min_mm": -3.0,
+  "arm_gap_mm": -10.0
+ },
+ "real_replay": "datasets/replay/bi_20261021_152107 (+ tip-clear 0.005 rerun)"
+}

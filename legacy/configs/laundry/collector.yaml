@@ -1,0 +1,14 @@
+dataset_root: ~/datasets/laundry_raw
+dataset: laundry_pilot          # 10-episode pilot first (spec §22), then laundry_h100
+task: tshirt_folding
+operator: ""
+preview_hz: 15
+buffer_s: 4.0
+depth_writers: 3
+qa_sample_every: 15
+initial_states: [flat, semi_flat, crumpled, rotated]
+garments: [shirt_01]
+protocol:
+  init_hold_s: 3.0              # Phase 1: wrists on X_L / X_R, still
+  end_hold_s: 2.0               # Phase 3: hands off the cloth, still
+  min_manip_s: 3.0

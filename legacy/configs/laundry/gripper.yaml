@@ -1,0 +1,9 @@
+# Virtual gripper (laundry_collector/preprocess/gripper_frame.py GripperConfig). Spec default mapping: pinch 15..100 mm -> jaw 0..80 mm.
+human_pinch_min_m: 0.015
+human_pinch_max_m: 0.100
+robot_jaw_min_m: 0.000
+robot_jaw_max_m: 0.080
+alpha_position: 0.3
+alpha_jaw: 0.3
+alpha_rotation: 0.2
+zero_phase: true

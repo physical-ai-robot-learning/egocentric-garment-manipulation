@@ -1,0 +1,56 @@
+{
+ "left_T_world_correction": [
+  [
+   0.9986201315912067,
+   0.018650486123520448,
+   -0.04909167086296623,
+   -0.0067867325225757225
+  ],
+  [
+   -0.017749823733785156,
+   0.9996672155556118,
+   0.018719025100411502,
+   -0.07020088608569962
+  ],
+  [
+   0.049424452836435095,
+   -0.017821826804417396,
+   0.998618849186802,
+   -0.00321240494187236
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "right_T_world_correction": [
+  [
+   1.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   1.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   1.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "convention": "true pose of every LEFT-arm joint/link in the (right-arm-calibrated) robot base = D @ URDF pose; applied to the left_joint1 placement in visual_teleop/robot/ik_pink.py",
+ "measured": "2026-10-21: T_B_C solved from the right arm (configs/calibration/robot_cam_v001.json) vs from the LEFT arm (tag 220 on its wrist, take 20261021_160050 + robot_cam/20261021_160055, 1.6 px, held-out 1.9 px) -> left base at y +244.7 / z -8.8 mm, ~3 deg tilt; arm spacing 560 mm, tape-confirmed 56 cm (URDF 630). NOTE solved WITH the left j2 -6.6 deg offset active."
+}

@@ -1,0 +1,14 @@
+# Bring-up test (2026-10-08): only the LEFT wrist Arducam connected (it enumerates as "Arducam 1080P Low Light");
+# global + right wrist are synthetic.
+profile: wrist_test
+hardware_version: laundry_v1_partial
+cameras:
+- {name: global, backend: mock, width: 640, height: 360, fps: 30, depth: true, codec: libx264, bitrate_kbps: 2000}
+- name: left_wrist
+  backend: uvc
+  match_name: Arducam 1080P Low Light
+  width: 1920
+  height: 1080
+  fps: 30
+  intrinsics: fisheye_left
+- {name: right_wrist, backend: mock, width: 640, height: 360, fps: 30, codec: libx264, bitrate_kbps: 2000}

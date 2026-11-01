@@ -1,0 +1,5 @@
+# Overlay geometry check: jaw width == thumb-index distance (1:1), so the jaw tips must sit on the fingertips.
+human_pinch_min_m: 0.0
+human_pinch_max_m: 0.100
+robot_jaw_min_m: 0.0
+robot_jaw_max_m: 0.100

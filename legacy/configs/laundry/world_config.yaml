@@ -1,0 +1,19 @@
+# WORLD = TABLE frame. Fill in the measured values before the pilot; every episode stores a copy (calibration/world_config.json).
+schema: laundry_world/v1
+world_frame: table
+units: m
+axes: "x = to the operator's right along the table edge, y = away from the operator, z = up (right-handed)"
+origin: "table corner nearest the operator's left (mark it)"
+init_markers:
+  X_L:
+    position: [null, null, 0.0]      # measured marker centre in the table frame
+    orientation_ref: "marker arrow points +y; wrist camera faces along the arrow"   # how the hand is placed
+  X_R:
+    position: [null, null, 0.0]
+    orientation_ref: "marker arrow points +y; wrist camera faces along the arrow"
+# Fixed global camera pose in the table frame (T_world_global, 4x4), from a table checkerboard; null until calibrated.
+T_world_global: null
+# Wrist camera -> virtual TCP (thumb-index pinch point) per side (4x4), null until calibrated (spec §15).
+T_camera_tcp:
+  left: null
+  right: null

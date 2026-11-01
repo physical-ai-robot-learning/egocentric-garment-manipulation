@@ -1,0 +1,7 @@
+# Synthetic cameras for tests / UI development (no hardware). Same stream names and contract as laundry_v1.
+profile: mock
+hardware_version: mock
+cameras:
+- {name: global, backend: mock, width: 320, height: 240, fps: 30, depth: true, codec: libx264, bitrate_kbps: 2000}
+- {name: left_wrist, backend: mock, width: 320, height: 240, fps: 30, codec: libx264, bitrate_kbps: 2000}
+- {name: right_wrist, backend: mock, width: 320, height: 240, fps: 30, codec: libx264, bitrate_kbps: 2000}

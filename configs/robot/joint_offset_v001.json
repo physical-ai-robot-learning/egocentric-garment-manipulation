@@ -1,0 +1,24 @@
+{
+ "offset_deg": {
+  "left": [
+   0.0,
+   -8.4,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "right": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "convention": "physical (model) joint = bridge-read / commanded joint + offset; applied in visual_teleop/robot/ik_pink.py (_q, sync, ik return)",
+ "measured": "2026-10-21 left arm at READY (joints match READY_Q within 0.1 deg): jaw tip 370 mm forward / 245 mm above table vs model 360 / 287 (right arm: 6 mm). j2-only fit -6.6 deg leaves (5.0, 1.5) mm; j2 -5.2 + j3 +1.2 fits exactly (2 measurements, 2 unknowns). VERIFY at 2 more poses (330/100, 450/150-200 mm) before trusting near the table.",
+ "verified": "2026-10-21 left j2 -6.6 deg: tape at pose A (330 fwd / 126 up) and pose B (450 / 175) both within 5-10 mm -> ADOPTED",
+ "refit_with_base_override": "2026-10-21 after configs/robot/base_override_v001.json (left base 70 mm inward, ~3 deg tilt): j2-only refit on READY (370/245 tape) + poses A (330/126) and B (450/175) -> -8.4 deg, residuals <= 8 mm, RMS 4.8 mm (j2+j3 = -9.8/-1.4 gives 1.6 mm but A/B tapes are only +-5-10 mm)."
+}

@@ -1,0 +1,15 @@
+{
+ "unit": "mm, TCP frame (raw R_tag convention), body centre = p_tcp + R o; median of the 123747 leave-one-demo-out offsets per RIG label (dev take, frozen)",
+ "offsets_by_rig": {
+  "right": [
+   -79.9,
+   -53.9,
+   58.6
+  ],
+  "left": [
+   83.5,
+   -65.2,
+   59.2
+  ]
+ }
+}

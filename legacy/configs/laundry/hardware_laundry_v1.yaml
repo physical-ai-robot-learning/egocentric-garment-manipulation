@@ -1,0 +1,29 @@
+# Bare-hand laundry collector v1 (2026-10-08): fixed global Orbbec RGB-D + left/right wrist Arducam fisheye (RGB only).
+# No IMU, no gripper. Wrists are told apart by their distinct AVFoundation product names (the HandUMI units were renamed);
+# both report the factory serial "UC684", so a serial can never be the left/right key.
+profile: laundry_v1
+hardware_version: laundry_v1
+cameras:
+- name: global
+  backend: orbbec
+  width: 1280          # color MJPG; depth is hardware-aligned to color
+  height: 720
+  fps: 30
+  depth: true
+  depth_width: 848
+  depth_height: 480
+  intrinsics: null     # read from the Orbbec SDK at open (color intrinsics + distortion), saved per episode
+- name: left_wrist
+  backend: uvc
+  match_name: FisheyeCamLeft
+  width: 1920
+  height: 1080
+  fps: 30
+  intrinsics: fisheye_left
+- name: right_wrist
+  backend: uvc
+  match_name: Arducam 1080P Low Light
+  width: 1920
+  height: 1080
+  fps: 30
+  intrinsics: fisheye_right

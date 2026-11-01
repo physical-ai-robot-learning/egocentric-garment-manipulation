@@ -1,0 +1,50 @@
+{
+ "_note": "2026-10-20 deployment-layer controller settings (NOT part of the label contract). Verified by replay parity: X/Y/Z 16/18 PASS, free 0.9x 2/2 PASS, absolute replay C-B 6.1 mm.",
+ "bridge": {
+  "script": "~/robot-cockpit/robot_service_mit.py",
+  "python": "~/bh_indy7_LeRobot/.venv/bin/python",
+  "log": "~/robot_service_mit.log",
+  "port": 8021,
+  "env": {
+   "MIT_SIDES": "right",
+   "MIT_KP": "64,96,96,28,28,28",
+   "MIT_KI": "56",
+   "MIT_KI_JOINTS": "56,84,56,56,56,56",
+   "MIT_GRIP_DEG_S": "600",
+   "MIT_NO_CAMERAS": "1",
+   "MIT_GOAL_INTERP": "1",
+   "MIT_REST_TORQUE_OFF": "1",
+   "MIT_GRIP_OPEN_FRAC_LEFT": "0.5"
+  },
+  "loc_env": {
+   "right": "RIGHT_LOC",
+   "left": "LEFT_LOC"
+  },
+  "locs": {
+   "right": "17891328",
+   "left": "51445760"
+  },
+  "locs_note": "10-20 18:20 verified: software right = the raised arm the user named right. LEFT arm j6 reads 180.4 deg while physically ~0 (encoder zero half a turn off) -> left NOT usable until re-zeroed (any command clips j6 to +-130 = sudden 50 deg wrist turn). | 10-21 13:05: LEFT j6 re-zeroed ALONE (robot-cockpit/zero_left_j6_only.py, torque never on): 178.5 -> 0.0, j1-j5 untouched; no software j6 offset exists anywhere. Power-cycle readback + small j6 motion test pending. USB 10-21: right arm 0x01140000, left arm 0x03110000 (locs above are stale).",
+  "locs_history": {
+   "10-20": {
+    "right": "18087936",
+    "left": "51642368"
+   },
+   "10-21 13:00": {
+    "right": "18087936",
+    "left": "51445760"
+   }
+  },
+  "grip_note": "10-21: LEFT jaw zero was +268 deg (closed read 268, open toward 124) -> commanding 'closed' drove it OPEN past the stop and popped a finger. Re-zeroed alone at closed (robot-cockpit/zero_left_gripper_only.py). Left travel only ~145 deg vs 270 assumed -> MIT_GRIP_OPEN_FRAC_LEFT 0.5 (verify with jaw_jog). Gripper zeros can drift per power cycle: read_left_gripper.py before trusting the jaw."
+ },
+ "gripper_lead_ms": 335,
+ "gripper_lead_note": "command->encoder half-way at 600 deg/s, no load (20261020_172036). May change with load: keep as a parameter.",
+ "history": {
+  "kp": "64 -> 96 on j2/j3 did not change moving error (integral law: e ~ dtau_g/dt / Ki)",
+  "ki": "28 -> 56 all, then j2 84: X replay RMSE 25/37 -> 14/12 mm; j3 overshoot 0.47 deg / osc 0.147 deg = keep j3 at 56",
+  "grip_deg_s": "90 -> 600: command->actual 1969 -> 335 ms"
+ },
+ "gripper_lead_open_ms": 320,
+ "gripper_lead_close_ms": 480,
+ "gripper_lead_split_note": "10-21 grip-only run 20261021_121322 (leads 135/370, n=4+4, wrist 15 fps): UMI event -> robot jaw 10/50/90 % = open +3/+185/+487 ms, close -239/-42/+242 ms. Wrist frames: UMI open event (p>0.3) ~ human mid-stroke, close event (p<0.1) ~ jaws shut, human mid-stroke ~150 ms earlier. Convention = robot 50 % at human mid-stroke -> open 135+185=320, close 370+108=480. VERIFIED 20261021_121746 (320/480): robot 50 % at open event +4 ms (-4..8), close event -171 ms (target -150)."
+}

@@ -1,0 +1,20 @@
+{
+ "left": {
+  "threshold_px": 191.46650203666076,
+  "d_closed_px": 134.70822028790576,
+  "d_open_px": 300.2174965016635,
+  "band_px": 15.0,
+  "model": "configs/calibration/jaw_kpt_left_v001.pt",
+  "n_labels": 260
+ },
+ "right": {
+  "threshold_px": 153.77302511628406,
+  "d_closed_px": 127.39309243440164,
+  "d_open_px": 207.78533778354125,
+  "band_px": 15.0,
+  "model": "configs/calibration/jaw_kpt_right_v001.pt",
+  "n_labels": 140
+ },
+ "source": "datasets/jaw_kpt/20261022_105200",
+ "note": "10-22 Otsu threshold on hand-labelled tip distances; distances in px of the jaw crop (jaw_kpt_label.CROP)"
+}

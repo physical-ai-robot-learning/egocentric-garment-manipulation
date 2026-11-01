@@ -1,0 +1,8 @@
+# [2026-10-22] ACT baseline on the tag-rig laundry dataset (record of training/tagrig_train.sh MODEL=act; lerobot 3c15fd8)
+dataset: {root: data/lerobot/tagrig_laundry_v1_train, split: meta/split.json (episode-level, frozen; same for DiT), fps: 20}
+observations: {images: [global (Orbbec), left_wrist, right_wrist] 384x216, state: contract proprio 30D, n_obs_steps: 1}
+action: {target: "contract rows k=1..32 = inv(T(t)) @ T(t+k), anchor = pose_abs(t) (training/tagrig_common.py)", gripper: "binary jaw state + 0.1 s ramp, absolute, L1 like other dims"}
+normalization: {state: "MEAN_STD, train-only, std floor 0.01, grippers/T_LR_valid unscaled", action: "MEAN_STD with mean=(max+min)/2, std=(max-min)/2 = [-1,1] range map (plain mean/std gave |x|<=13.6 on rot6d diagonals); grippers unscaled [0,1]"}
+policy: {type: act, chunk_size: 32, n_action_steps: 16, use_vae: true, kl_weight: 10, optimizer_lr: 1.0e-5, optimizer_lr_backbone: 1.0e-5, grad_clip_norm: 10 (preset)}
+training: {steps: 500000, save_freq: 50000, global_batch: 32 (2 GPUs x 16, DDP via accelerate), amp: bf16, seed: 1000, early_stop: "3 ckpts w/o val_score_mm improvement (training/tagrig_ckpt_watcher.py)", keep: [best, last]}
+smoke_mac_mps: {run: act_tagrig_smoke, steps: 400, bs: 8, l1: "0.244 -> 0.141", grad_norm_preclip: "460 (1-20) -> 79 (301-400), ~99.8% from kl_weight*KL", nan: 0}

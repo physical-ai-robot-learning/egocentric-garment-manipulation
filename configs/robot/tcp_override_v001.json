@@ -1,0 +1,7 @@
+{
+ "tcp_x_from_gripper_link_m": -0.019,
+ "urdf_value_m": 0.07,
+ "measured": "2026-10-21 right arm at rest (q~0, torque off): jaw tip 205 mm forward of the j1 axis (FK URDF TCP 330 mm, gripper_link 261 mm, tool axis (0.996,0.022,-0.084)) -> tip = gripper_link + (205-261)/0.996 = -56 mm along the tool axis. Height check: tip centre 180 mm above table vs 168 mm predicted with this offset (15 mm unexplained; base plate / measuring point). User also: tip to wrist-roll motor start 16 cm.",
+ "applies_to": "visual_teleop/robot/ik_pink.py (all planners / FK through PinkIkSolver)",
+ "measured_ready": "2026-10-21 right arm at READY (torque on, held): jaw tip 360 mm forward of the base centre (URDF TCP 449, -0.056 override gave 323) and 280 mm above the table (predicted 289 with -0.019: 9 mm high). Tool axis at READY ~horizontal forward -> offset = -0.056 + 0.037 = -0.019 m. The rest-pose tape (205 mm) was taken torque-OFF and the arm was found rotated (j1 107 deg) right after -> superseded."
+}
