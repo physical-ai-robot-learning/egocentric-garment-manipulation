@@ -5,3 +5,5 @@ __pycache__/
 .DS_Store
 report/*.aux
 report/*.log
+*.egg-info/
+build/
