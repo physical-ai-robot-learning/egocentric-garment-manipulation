@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 import yaml
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -56,7 +57,7 @@ class TagCamera:
 
     def _lock_focus(self, focus) -> str:
         """Autofocus off + fixed focus via robot-cockpit/bin/uvc-util (the same tool calibrate_c922.sh uses)."""
-        u = Path.home() / "robot-cockpit/bin/uvc-util"
+        u = egopaths.UVC_UTIL
         if not u.exists(): return "uvc-util missing: autofocus NOT locked"
         try:
             lst = subprocess.run([str(u), "-d"], capture_output=True, text=True, timeout=5).stdout

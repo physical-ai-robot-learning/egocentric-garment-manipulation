@@ -15,6 +15,7 @@ import argparse, json, subprocess, sys, time
 from pathlib import Path
 import cv2
 import numpy as np
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
 LOCATIONS = {"right": "0x0311", "left": "0x0111"}  # 11-01 14:40 re-cable for laundry pinching x100: right cam now 0x03110000 (left 0x01110000 cover test 88 -> 21, right unchanged 146; left jaw motor 5B3D049747 moved -591..-118, right 5B3D048082 still)
@@ -48,7 +49,7 @@ def say(t: str) -> None:
 def _cam_key() -> str:
     """10-20: the UVC cameras that matter (vendor 0x0c45 = the Arducam / fisheye wrist cameras), location + name, sorted. The Orbbec
     line of uvc-util changes when the sudo recorder opens it, which invalidated the whole-text cache and made two probes collide."""
-    lst = subprocess.run([str(Path.home() / "robot-cockpit/bin/uvc-util"), "-d"], capture_output=True, text=True).stdout
+    lst = subprocess.run([str(egopaths.UVC_UTIL), "-d"], capture_output=True, text=True).stdout
     return "\n".join(sorted(" ".join(l.split()[1:]) for l in lst.splitlines() if "0x0c45" in l))
 
 
@@ -56,7 +57,7 @@ def open_cam(index: int, w=1920, h=1080, location: str | None = None):
     location = location or LOCATION
     if index < 0:     # 10-21: the robot's wrist fisheye (FisheyeCamLeft) got plugged into the right UMI's hub branch 0x0113 while the UMI
         # camera was unplugged -> a whole jaw capture recorded the robot gripper. The UMI wrist cameras are the "Arducam 1080P Low Light" ones.
-        lst = subprocess.run([str(Path.home() / "robot-cockpit/bin/uvc-util"), "-d"], capture_output=True, text=True).stdout
+        lst = subprocess.run([str(egopaths.UVC_UTIL), "-d"], capture_output=True, text=True).stdout
         hit = [l for l in lst.splitlines() if "0x0c45" in l and l.split()[2].startswith(location)]
         if not any("Arducam" in l for l in hit):
             sys.exit(f"[집게] USB 위치 {location} 에 UMI 손목 카메라(Arducam)가 없음: {[' '.join(l.split()[2:]) for l in hit] or '아무것도 없음'} -- UMI 카메라 USB 를 확인하세요")
@@ -155,7 +156,7 @@ IMAGE_CTRL = {"backlight-compensation": 0, "gamma": 72, "contrast": 48, "brightn
 def fixed_exposure(cam, location: str, value: int):
     """10-22: take 123614 locked exposure 63 at the start pose (a darker view there) -> the whole take was washed out (mean grey 211,
     contrast 39 vs 5-6 / 170 / 66 on the good takes). A fixed value measured on the table under the room lights avoids that."""
-    U = str(Path.home() / "robot-cockpit/bin/uvc-util"); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
+    U = str(egopaths.UVC_UTIL); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
     line = next((l for l in lst.splitlines() if location.lower() in l.lower()), None)
     if line is None: print(f"[집게] 노출 고정 실패: uvc-util 에 {location} 없음", flush=True); return None
     u = line.split()[0]
@@ -177,7 +178,7 @@ def fixed_exposure(cam, location: str, value: int):
 def lock_exposure(cam, location: str, lo=225.0, hi=245.0):
     """10-20 (MASt3R lost 92 % of a white-T-shirt take: auto exposure washed the cloth out). Manual exposure, chosen on the live scene so
     the top 1 % of grey levels sits in [lo, hi] (no clipping, ~0.5-1 stop under auto). Bisection over exposure-time-abs (1..5000)."""
-    U = str(Path.home() / "robot-cockpit/bin/uvc-util"); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
+    U = str(egopaths.UVC_UTIL); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
     line = next((l for l in lst.splitlines() if location.lower() in l.lower()), None)
     if line is None: print(f"[집게] 노출 고정 실패: uvc-util 에 {location} 없음", flush=True); return None
     u = line.split()[0]; subprocess.run([U, "-I", u, "-s", "auto-exposure-mode=1"], capture_output=True)
@@ -256,7 +257,7 @@ def record(a):
         while True:
             time.sleep(0.25)
             if time.monotonic() - S["last"] < STALL_S: continue
-            lst = subprocess.run([str(Path.home() / "robot-cockpit/bin/uvc-util"), "-d"], capture_output=True, text=True).stdout
+            lst = subprocess.run([str(egopaths.UVC_UTIL), "-d"], capture_output=True, text=True).stdout
             if not any(l.split()[2].startswith(loc) for l in lst.splitlines() if "0x0c45" in l and len(l.split()) > 2):
                 print(f"[집게] {a.hand} 손목 카메라 {loc} 가 USB 목록에 없음 -- 다시 꽂아 주세요 (기다리는 중)", flush=True); S["last"] = time.monotonic(); continue
             gap = time.monotonic() - S["last"]; print(f"[집게] {a.hand} 손목 카메라 {gap:.1f}초 멈춤 -> 다시 엽니다 (index {idx})", flush=True)

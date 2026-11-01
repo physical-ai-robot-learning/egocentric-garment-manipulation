@@ -1,12 +1,12 @@
 """Figure: human vs robotized vs executed TCP (top view) and robotization displacement, demo 2 of take 20261021_171057, run 200335.
 Reads only; writes PDF to the report figures dir. Also prints the numbers quoted in the text."""
-import json, sys
+import json, os, sys
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-D = "/Users/jeonghwanlee/ego_collector/datasets/"
+D = os.environ.get("EGO_DATA_ROOT", os.path.expanduser("~/ego_collector")) + "/datasets/"   # = egogarment.paths.DATA_ROOT (original: /Users/jeonghwanlee/ego_collector)
 E = D + "tag_rig/20261021_171057/"
 RUN = D + "replay/bi_20261021_200335/"
 OUT = sys.argv[1]

@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-ROOT = Path(__file__).resolve().parents[3]; sys.path.insert(0, str(ROOT))   # repo root (this file: src/rebot_prep/parity/)
+ROOT = Path(__file__).resolve().parents[3]   # repo root (this file: src/rebot_prep/parity/)
 from rebot_prep.parity.tag_rig_pose import rig_pose, corners_obj, size_of, DepthStore, quad_depth_m, only_guard_tags, single_tag_candidates, guard_pick, GUARD_MAX_GAP_S  # noqa: E402
 SIDE = {"오른손": ("UMI 오른손", "right"), "왼손": ("UMI 왼손", "left")}
 

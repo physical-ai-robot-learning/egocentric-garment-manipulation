@@ -13,7 +13,6 @@ import cv2
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT))
 from ego_collector.camera.calibration import CharucoSpec, detect_charuco   # noqa: E402
 from .wrist_frontend_check import lock_exposure, say                        # noqa: E402
 

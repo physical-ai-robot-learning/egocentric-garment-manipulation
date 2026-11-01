@@ -18,7 +18,7 @@ import argparse, csv, hashlib, json, pathlib, shutil, sys
 import cv2, numpy as np
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system")); sys.path.insert(0, str(pathlib.Path.home() / "ego_cart20"))
+sys.path.insert(0, str(pathlib.Path.home() / "ego_cart20"))   # cube-project package for the ego-data branches only (lazy imports below); see docs/provenance.md
 from xvla_core import abs_action_rows, nearest_frame, resample_pose, valid_segments  # noqa: E402
 from contracts.action_contract import ACTION_DT_S, T_to_pose9, inv_T  # noqa: E402
 from contracts.observation_contract import (PROPRIO_DIM, PROPRIO_NAMES, P_GRIP_L, P_GRIP_R, P_L_POSE, P_R_POSE,  # noqa: E402

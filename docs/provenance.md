@@ -67,6 +67,8 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 | file | change | why |
 |---|---|---|
 | `src/ego_teleop/robot/__init__.py` | the `aero_client` and `coordinator` re-export lines removed (comment added) | they import the Aero-hand teleop stack (`tracking/`, `retarget/`, `ego_collector.hands3d`), which is not used here and not copied |
+| `src/xvla_core.py` | the two lines that put `~/laundry_system` on `sys.path` removed | `contracts` is now `src/contracts` |
+| `src/umi_to_lerobot.py` | of the three `sys.path` inserts (own folder, `~/laundry_system`, `~/ego_cart20`) only `~/ego_cart20` kept | `xvla_core` and `contracts` are now in `src/`; `ego_cart20` (cube project) is only needed by the ego-data branches |
 
 ## Imports that are still not resolvable from this repository
 

@@ -18,12 +18,8 @@ import sys
 from ego_teleop.recorder.umi_contract_export import export_umi_contract
 from ego_teleop.transforms.umi_robot_frame import fk_to_dataset_tcp
 
-SHARED_CONTRACT_ROOT = Path.home() / "laundry_system"
-
-
 def shared_contract():
-    """Agent A's action contract module (read-only import)."""
-    if str(SHARED_CONTRACT_ROOT) not in sys.path: sys.path.insert(0, str(SHARED_CONTRACT_ROOT))
+    """Agent A's action contract module (read-only import; vendored as src/contracts, see docs/provenance.md)."""
     from contracts import action_contract
     return action_contract
 

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Protocol
 import numpy as np
+from egogarment import paths as egopaths
 
 
 @dataclass
@@ -37,7 +38,7 @@ class StudentYoloDetector:
     """WiLoR-distilled YOLO-pose student (scripts/finger_distill_*.py). Picks the LARGEST hand (the wearer's; the far hand is small)."""
     name = "student"
 
-    def __init__(self, model: str = "~/finger_distill/student.pt", conf: float = 0.4, imgsz: int = 640, device: str = "mps",
+    def __init__(self, model: str = str(egopaths.MODELS_ROOT / "student.pt"), conf: float = 0.4, imgsz: int = 640, device: str = "mps",
                  undistort: Callable[[np.ndarray], np.ndarray] | None = None) -> None:
         from ultralytics import YOLO      # lazy: only in the finger_distill venv
         self.model = YOLO(str(Path(model).expanduser())); self.conf, self.imgsz, self.device, self.undistort = conf, imgsz, device, undistort
@@ -57,7 +58,7 @@ class StudentTwoKptDetector(StudentYoloDetector):
     wrist/palm needs to be in view. metric = tip distance in % of image WIDTH (camera rigid on the wrist); thresholds per mount."""
     name = "student2"
 
-    def __init__(self, model: str = "~/finger_distill/student2kpt.pt", **kw) -> None: super().__init__(model, **kw)
+    def __init__(self, model: str = str(egopaths.MODELS_ROOT / "student2kpt.pt"), **kw) -> None: super().__init__(model, **kw)
 
     def detect(self, image_bgr: np.ndarray) -> FingertipResult:
         img = self.undistort(image_bgr) if self.undistort else image_bgr

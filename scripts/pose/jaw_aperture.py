@@ -19,7 +19,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT / "scripts" / "pose")); sys.path.insert(0, str(ROOT / "src"))
+ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT / "src"))   # sibling jaw_kpt_label resolves from this script's folder
 from jaw_kpt_label import crop              # noqa: E402  same crop as the labels
 CAL = ROOT / "configs/calibration/jaw_kpt_calib_v002.json"   # 10-22: v002 models (white + dark cloth, new camera settings)
 
@@ -47,7 +47,7 @@ def calibrate(D: Path) -> None:
 
 def run(a) -> None:
     from ultralytics import YOLO
-    sys.path.insert(0, str(ROOT / "src")); from visual_teleop.tools.umi_jaw import events
+    from visual_teleop.tools.umi_jaw import events
     d = Path(a.dir); meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}; hand = meta.get("hand", "right")
     c = json.loads(CAL.read_text())[hand]; t = np.load(d / "t_ns.npy")
     old = dict(np.load(d / "umi_jaw.npz")) if (d / "umi_jaw.npz").exists() else {}

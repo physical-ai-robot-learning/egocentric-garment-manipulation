@@ -34,6 +34,7 @@ from ..robot.bridge import MockBridge, HttpBridge
 from ..robot.ik import ToyIk, toy_limits, pyroki_pair
 from ..safety.clutch import Clutch
 from ..safety.deadman import ScriptedDeadman
+from egogarment import paths as egopaths
 
 SIDES = ("left", "right")
 G = 9.80665
@@ -193,7 +194,7 @@ def stage0_checks(ep: Path, c, segs, init: dict, ctl) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("logs", nargs="*"); ap.add_argument("--synthetic", action="store_true"); ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--out", default="~/Desktop/visual_teleop_stage0_v2"); ap.add_argument("--ik", choices=["toy", "pyroki"], default="toy")
+    ap.add_argument("--out", default=str(egopaths.DESKTOP / "visual_teleop_stage0_v2")); ap.add_argument("--ik", choices=["toy", "pyroki"], default="toy")
     ap.add_argument("--robot-url", default=None, help="HttpBridge(live=False): real /observe, never POSTs"); ap.add_argument("--config", default=None)
     a = ap.parse_args(); out = Path(a.out).expanduser(); out.mkdir(parents=True, exist_ok=True)
     ov = {"control": {"arms_enabled": {"left": True, "right": True}}, "retarget": {"orientation_mode": "full"},

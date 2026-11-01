@@ -31,6 +31,7 @@ _ove.CAMIMU_FILE = _bse.CAMIMU_FILE = CAMIMU_FILE
 STEREO_FILE = "configs/calibration/stereo_trackcam_v005.yaml"   # 10-16 18:56 new camera mount (baseline 4.39 cm, parallel); v004 = old mount
 _ove.STEREO_FILE = _bse.STEREO_FILE = STEREO_FILE
 from ego_teleop.tracking.backends.openvins import import_bridge     # noqa: E402
+from egogarment import paths as egopaths
 
 DEG_TRACK, DEG_HOLD, DEG_RECOVER, CALM_S, HEALTHY_N = 160.0, 200.0, 140.0, 0.25, 5
 # 10-16 live: n_msckf + n_slam (features USED in this frame's update) dips to 3-11 during ordinary 60-150 deg/s rotation while the
@@ -207,7 +208,7 @@ class BasaltLive:
     stdout: 'P t_ns px py pz qx qy qz qw vx vy vz' per estimated state, optional 'L t_ns n_points'. Basalt has no mask input -> the
     self-view masks are painted mid-grey (same as the offline export). Basalt is asynchronous: feed_stereo waits <= WAIT_S for the state of
     that frame, else the latest state is used (the age is in state()['lag_ms'])."""
-    BIN = Path.home() / "vio/basalt_live/build/basalt_live"
+    BIN = egopaths.VIO_ROOT / "basalt_live/build/basalt_live"
     WAIT_S = 0.0             # asynchronous: the newest available state is used (its age is state()['lag_ms'])
 
     def __init__(self, calib: Path, config: Path):
@@ -429,7 +430,7 @@ def main() -> None:
     elif a.backend == "basalt":       # 10-16 A/B on the same take: Basalt stayed bounded after fast motion (5 jumps > 2 m/s vs 385 for OpenVINS)
         from stereo_basalt_eval import calib as basalt_calib
         (work / "basalt").mkdir(exist_ok=True); cp, _ = basalt_calib(work / "basalt", [float(v) for v in a.t_ci.split(",")], sc)
-        br = BasaltLive(cp, Path.home() / "vio/basalt_bin/release/data/euroc_config_lv5.json")
+        br = BasaltLive(cp, egopaths.VIO_ROOT / "basalt_bin/release/data/euroc_config_lv5.json")
     else:
         cfg = write_config(work / "ov", [float(v) for v in a.t_ci.split(",")], sc, {"num_pts": 350})   # 10-16: init_dyn_use tried and REVERTED (no faster re-init on replay, NaN pose live)
         ovb = import_bridge(); br = ovb.Bridge(str(cfg), "WARNING")

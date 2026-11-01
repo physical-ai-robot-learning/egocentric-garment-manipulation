@@ -15,9 +15,10 @@ import cv2
 import numpy as np
 from visual_teleop import config as vcfg
 from visual_teleop.tools.stereo_check import index_for_location
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
-U = str(Path.home() / "robot-cockpit/bin/uvc-util")
+U = str(egopaths.UVC_UTIL)
 RULER_CM = 30   # 10-16 ruler length used by the "ruler" protocol
 PROTOS = {
     "calib": [(6, "보드가 두 카메라에 다 보이게 들고, 완전히 가만히 계세요"), (12, "보드를 보면서 천천히 가깝게 그리고 멀게 움직이세요"),

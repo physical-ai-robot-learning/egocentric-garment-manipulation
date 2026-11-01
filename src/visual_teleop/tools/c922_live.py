@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse, os, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import cv2, numpy as np
+from egogarment import paths as egopaths
 
 LATEST = {"jpg": None}
 
@@ -17,7 +18,7 @@ def main() -> None:
     kpt = None
     if not a.no_kpt:
         from ..vision.umi_kpt import UmiKptTracker
-        kpt = UmiKptTracker(os.path.expanduser("~/finger_distill/umi_kpt.onnx"), np.eye(4), conf=0.3)
+        kpt = UmiKptTracker(str(egopaths.MODELS_ROOT / "umi_kpt.onnx"), np.eye(4), conf=0.3)
 
     def grab():
         hist = []

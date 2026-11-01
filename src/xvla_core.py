@@ -10,8 +10,6 @@ import pathlib, sys
 
 import numpy as np
 
-_LS = pathlib.Path.home() / "laundry_system"
-if str(_LS) not in sys.path: sys.path.insert(0, str(_LS))
 from contracts.action_contract import ACTION_DT_S, T_to_pose9, inv_T, make_T, matrix_to_rot6d  # noqa: E402
 
 # contract TCP axes (x = approach, y = wrist image x, z = wrist image y) from Piper link6 axes (z6 = approach,

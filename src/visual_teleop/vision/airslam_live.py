@@ -18,8 +18,9 @@ import cv2
 import numpy as np
 import yaml
 from scipy.spatial.transform import Rotation as R
+from egogarment import paths as egopaths
 
-BENCH = Path.home() / "vio/airslam_bench"
+BENCH = egopaths.VIO_ROOT / "airslam_bench"
 
 
 def _rect_maps(cam_yaml: Path, rect_npz: Path):

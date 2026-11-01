@@ -12,7 +12,7 @@ import argparse, json, os, sys
 from pathlib import Path
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "src"))
+ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT / "src"))
 from rebot_prep.parity.tag_rig_fuse import fuse_take, SIDE      # noqa: E402
 DIRS = {"앞으로": ("X", +1), "뒤로": ("X", -1), "왼쪽으로": ("Y", +1), "오른쪽으로": ("Y", -1), "위로": ("Z", +1), "아래로": ("Z", -1),
         # 10-20 --proto rot: rotation about the robot-BASE axis through the jaw tip (right-hand rule; READY approach axis = base +X):

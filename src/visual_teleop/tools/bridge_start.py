@@ -7,6 +7,7 @@ with torque on drops the arm. Kills by PID only (never a pattern; 10-01 incident
 from __future__ import annotations
 import argparse, json, os, subprocess, sys, time, urllib.request
 from pathlib import Path
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -23,7 +24,7 @@ def main() -> None:
     cfg = json.loads(Path(a.config).read_text()); b = cfg["bridge"]; env = dict(b["env"]); url = f"http://localhost:{b['port']}"
     if a.sides: env["MIT_SIDES"] = a.sides
     sides = [x for x in ("left", "right") if x in env["MIT_SIDES"].split(",")]
-    out = subprocess.run([os.path.expanduser(b["python"]), "usb_arm_ports.py"], cwd=os.path.expanduser("~/robot-cockpit"), capture_output=True, text=True).stdout
+    out = subprocess.run([os.path.expanduser(b["python"]), "usb_arm_ports.py"], cwd=str(egopaths.COCKPIT_ROOT), capture_output=True, text=True).stdout
     present = [l.split()[0].split("=")[1] for l in out.splitlines() if l.startswith("loc=")]
     for side in sides:
         loc = (a.loc if len(sides) == 1 and a.loc else None) or b.get("locs", {}).get(side)
@@ -56,7 +57,7 @@ def main() -> None:
     ports = {l.split("=")[1].split()[0]: l.split()[-1] for l in out.splitlines() if l.startswith("loc=")}
     try:
         chk = subprocess.run([os.path.expanduser(b["python"]), "check_grippers.py", *[ports[env[b["loc_env"][x]]] for x in sides if env[b["loc_env"][x]] in ports]],
-                             cwd=os.path.expanduser("~/robot-cockpit"), capture_output=True, text=True, timeout=60).stdout
+                             cwd=str(egopaths.COCKPIT_ROOT), capture_output=True, text=True, timeout=60).stdout
         for l in chk.splitlines():
             if l.startswith("GRIP"):
                 _, port_, val = l.split(maxsplit=2); side_ = [x for x in sides if ports.get(env[b["loc_env"][x]]) == port_]
@@ -65,7 +66,7 @@ def main() -> None:
     except Exception as e:
         print("집게 영점 확인 실패:", str(e)[:120])
     full = {**os.environ, **env}; log = open(os.path.expanduser(b["log"]), "a")
-    subprocess.Popen([os.path.expanduser(b["python"]), os.path.expanduser(b["script"])], cwd=os.path.expanduser("~/robot-cockpit"), env=full, stdout=log, stderr=log, start_new_session=True)
+    subprocess.Popen([os.path.expanduser(b["python"]), os.path.expanduser(b["script"])], cwd=str(egopaths.COCKPIT_ROOT), env=full, stdout=log, stderr=log, start_new_session=True)
     for _ in range(40):
         time.sleep(1)
         try: http(url + "/status"); break

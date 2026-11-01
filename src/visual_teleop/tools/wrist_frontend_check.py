@@ -13,6 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import cv2
 import numpy as np
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
 PROTO = [(5, "가만히 들고 계세요"), (7, "유미를 앞뒤 좌우로 천천히 움직이세요"), (7, "손목을 돌리고 숙이세요"), (5, "빠르게 움직이세요"), (6, "천을 집으러 가듯이 작업대로 손을 뻗으세요")]
@@ -25,7 +26,7 @@ def say(s):
 
 
 def lock_exposure(location: str, exposure: int) -> str:
-    U = Path.home() / "robot-cockpit/bin/uvc-util"
+    U = egopaths.UVC_UTIL
     lst = subprocess.run([str(U), "-d"], capture_output=True, text=True).stdout
     line = next((l for l in lst.splitlines() if location.lower() in l.lower()), None)
     if line is None: return f"uvc-util: no camera at {location} (exposure NOT locked)"

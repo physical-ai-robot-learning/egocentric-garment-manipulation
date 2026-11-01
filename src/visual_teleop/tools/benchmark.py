@@ -10,6 +10,7 @@ import argparse
 import json
 import time
 import numpy as np
+from egogarment import paths as egopaths
 
 
 def pct(x) -> dict:
@@ -88,7 +89,7 @@ def bench_tick(n: int, ik: str) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser(); ap.add_argument("what", choices=["detector", "ahrs", "ik", "tick"]); ap.add_argument("--n", type=int, default=300)
-    ap.add_argument("--video", default="~/finger_distill/rec_01.mp4"); ap.add_argument("--ik", default="toy", choices=["toy", "pyroki"])
+    ap.add_argument("--video", default=str(egopaths.MODELS_ROOT / "rec_01.mp4")); ap.add_argument("--ik", default="toy", choices=["toy", "pyroki"])
     a = ap.parse_args()
     from pathlib import Path
     r = {"detector": lambda: bench_detector(str(Path(a.video).expanduser()), a.n), "ahrs": lambda: bench_ahrs(a.n * 10),

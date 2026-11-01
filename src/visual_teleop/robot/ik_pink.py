@@ -12,8 +12,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
+from egogarment import paths as egopaths
 
-URDF = Path.home() / "handumi-sw/assets/rebot_b601/rebot_b601_bimanual.urdf"
+URDF = egopaths.HANDUMI_SW_ROOT / "assets/rebot_b601/rebot_b601_bimanual.urdf"
 HOME6 = {"left": [-0.3, -0.05, -0.25, 0.55, -0.1, -0.4], "right": [0.3, -0.05, -0.25, 0.55, 0.1, 0.4]}   # handumi rebot_b601 home_q
 
 

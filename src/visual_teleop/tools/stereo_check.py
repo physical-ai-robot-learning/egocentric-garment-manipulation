@@ -14,6 +14,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from visual_teleop.tools.wrist_frontend_check import lock_exposure
+from egogarment import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -37,7 +38,7 @@ def index_for_location(location: str, candidates=range(8), w=1920, h=1080) -> in
     """OpenCV (AVFoundation) index of the camera at a USB location: AVFoundation order != uvc-util order and changes on replug, so
     darken that location through uvc-util (exposure 1 vs 30) and take the opened camera whose brightness drops the most."""
     import subprocess
-    U = str(Path.home() / "robot-cockpit/bin/uvc-util"); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
+    U = str(egopaths.UVC_UTIL); lst = subprocess.run([U, "-d"], capture_output=True, text=True).stdout
     line = next((l for l in lst.splitlines() if location.lower() in l.lower()), None)
     if line is None: raise SystemExit(f"uvc-util: no camera at {location}")
     u = line.split()[0]; caps = {}

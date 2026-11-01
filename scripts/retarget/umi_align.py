@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "src"))
+ROOT = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(ROOT / "src"))
 
 
 def main() -> None:
