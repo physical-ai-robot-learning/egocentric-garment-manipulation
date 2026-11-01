@@ -2,15 +2,21 @@
 
 The pipeline code imported a few modules that lived outside this repository on the original machine (the shared
 action / observation contract, two dataset helpers, a UMI pose helper and parts of the earlier `ego_collector`
-workspace). They are copied into `src/` (refactor v3, 2026-11-01) so that every import resolves from a clean clone.
+workspace). They were copied into `src/` (refactor v3, 2026-11-01) so that every import resolves from a clean clone.
 Import names are unchanged, so the code that uses them is unchanged.
+
+**Shared package (2026-11-01, later the same day).** The copies of `ego_collector`, `ego_teleop`, `handumi_collector` and
+`umi` were removed from `src/`. These packages now come from the shared package [`egocentric`](https://github.com/physical-ai-vla/egocentric) (v0.1.0;
+`pyproject.toml`: `egocentric @ git+https://github.com/physical-ai-vla/egocentric@v0.1.0`), which holds their full
+versions once for this repository and egocentric-cube-stacking; see [Moved to the shared package](#moved-to-the-shared-package).
+Still vendored here: `contracts`, `xvla_core`, `umi_to_lerobot`.
 
 * Copies are byte-exact at the time of copying; the md5 below is that of the **source** file. Edits made afterwards
   in this repository are listed under "Changes after copying".
 * `ego_collector`, `ego_teleop` and `handumi_collector` are the HandUMI / teleop packages of the earlier cube-stacking
-  project (their home is the `egocentric-cube-stacking` repository). Only the modules this repository imports at
-  module level, plus the package `__init__` files they need, are copied — not the whole packages.
-* `src/umi/common/pose_util.py` is our own minimal stand-in (written 2026-10-08) for UMI's `umi/common/pose_util.py`:
+  project. Only the modules this repository imports at module level, plus the package `__init__` files they need, were
+  copied — not the whole packages (now replaced by the shared package, see above).
+* `umi/common/pose_util.py` (formerly `src/umi/`, now in the shared package) is our own minimal stand-in (written 2026-10-08) for UMI's `umi/common/pose_util.py`:
   same function names and conventions (pose = xyz + rotation vector; rot6d = first two rows of R; Gram–Schmidt back
   to R) for the five functions we use. It is not a copy of upstream code; UMI's MIT licence and source are recorded in
   [`upstream/README.md`](../upstream/README.md) because the API and conventions follow it.
@@ -27,6 +33,44 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 | `src/contracts/skill_contract.py` | `~/laundry_system/contracts/skill_contract.py` | `edfcd2cc82c6f41d85dbf2418ebf0e98` |
 | `src/xvla_core.py` | `~/laundry_dit_training/datasets/xvla_core.py` | `17f5af4c858a424e71ba26e10421e7d8` |
 | `src/umi_to_lerobot.py` | `~/laundry_dit_training/datasets/umi_to_lerobot.py` | `4d39624a53ff90e1fbf2c320be49732e` |
+
+## Changes after copying
+
+| file | change | why |
+|---|---|---|
+| `src/xvla_core.py` | the two lines that put `~/laundry_system` on `sys.path` removed | `contracts` is now `src/contracts` |
+| `src/umi_to_lerobot.py` | of the three `sys.path` inserts (own folder, `~/laundry_system`, `~/ego_cart20`) only `~/ego_cart20` kept | `xvla_core` and `contracts` are now in `src/`; `ego_cart20` (cube project) is only needed by the ego-data branches |
+
+## Imports that are still not resolvable from this repository
+
+| import | used by | why it is not copied |
+|---|---|---|
+| `rel_relonly_bce` | `garment_pipeline.eval_deploy.xvla_server` | X-VLA training patch from the cube project's X-VLA deploy tree (`~/xvla_deploy/umi_bridge/umi76`, `~/ego_cart20/launch/rel32bin`); the server runs in a separate X-VLA environment set up with `PYTHONPATH` (see the module docstring) |
+| `ego_cart20.*` | `umi_to_lerobot` (lazy, ego-data branches only), `ego_teleop.ego_cart20_link` (shared package, lazy), `legacy/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
+| `lerobot_plugin_rebot.*`, `bh_indy7_lerobot*`, `usb_arm_ports` | `scripts/deploy/robot_bridge/` | reBot driver stack of the robot PC (`~/robot-cockpit`), third-party / company code |
+| `stereo_openvins_eval`, `stereo_basalt_eval` | `visual_teleop.vision.stereo_vio_tracker` | stereo VIO experiment (dropped 10-16, see `legacy/`), needs native OpenVINS / Basalt bridges |
+| `jaw_redx` | `visual_teleop.vision.fingertip_detector` (red-tape detector, lazy) | lives in `legacy/scripts/umi_fusion/` (tape removed 10-20) and itself needs `ego_cart20` |
+
+The modules `ego_teleop.hand3d.*`, `ego_collector.hands.mediapipe_tracker` and `ego_teleop.tracking.backends.openvins`
+(imported lazily by `visual_teleop.vision.rgbd_pose`, `visual_teleop.tools.sensor_hub` and
+`visual_teleop.vision.stereo_vio_tracker`) were in this table until the shared package replaced the partial copies; they
+now resolve from `egocentric` (their optional dependencies, e.g. MediaPipe, `pyorbbecsdk` or the OpenVINS bridge, still
+apply).
+
+## Moved to the shared package
+
+Record of the 34 files (31 of `handumi_collector` / `ego_collector` / `ego_teleop`, 3 of `umi`) that were copied here (source on the original machine, md5 of the source) and are now provided
+by [`egocentric`](https://github.com/physical-ai-vla/egocentric). The shared package has these sources byte-identical, with one exception:
+`handumi_collector/config.py` sets `REPO_ROOT = parents[2]` (the repository root in the `src/` layout) instead of the
+`parents[1]` of the flat source tree; this repository only uses `ImuCfg` from it. `ego_teleop/robot/__init__.py` is the
+source file in full, i.e. with the `aero_client` / `coordinator` re-exports that the copy here had removed (the shared
+package contains those modules). The four files where this copy was newer than the cube-stacking copy
+(`ego_collector/camera/orbbec_capture.py`, `ego_teleop/robot/rebot_client.py`, `ego_teleop/robot/safety.py`,
+`ego_teleop/transforms/frames.py`) are the versions below, so the code this repository runs is unchanged; the shared
+package's [`docs/provenance.md`](https://github.com/physical-ai-vla/egocentric/blob/main/docs/provenance.md) lists every difference that was reconciled.
+
+| file (was in this repository) | source (original machine) | md5 of source |
+|---|---|---|
 | `src/umi/__init__.py` | `~/softfold_infer/rebot/umi/__init__.py` | `d41d8cd98f00b204e9800998ecf8427e` |
 | `src/umi/common/__init__.py` | `~/softfold_infer/rebot/umi/common/__init__.py` | `d41d8cd98f00b204e9800998ecf8427e` |
 | `src/umi/common/pose_util.py` | `~/softfold_infer/rebot/umi/common/pose_util.py` | `63731316f6b46e0958326817f9df5748` |
@@ -61,22 +105,3 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 | `src/handumi_collector/pose/estimator.py` | `~/ego_collector/handumi_collector/pose/estimator.py` | `755dccb672dae4aabae41e86cd9e13db` |
 | `src/handumi_collector/pose/se3.py` | `~/ego_collector/handumi_collector/pose/se3.py` | `7039a6f7e06e29535757eb975097c6db` |
 | `src/handumi_collector/pose/timing.py` | `~/ego_collector/handumi_collector/pose/timing.py` | `c7cceefabc8db408d33893725dd567fc` |
-
-## Changes after copying
-
-| file | change | why |
-|---|---|---|
-| `src/ego_teleop/robot/__init__.py` | the `aero_client` and `coordinator` re-export lines removed (comment added) | they import the Aero-hand teleop stack (`tracking/`, `retarget/`, `ego_collector.hands3d`), which is not used here and not copied |
-| `src/xvla_core.py` | the two lines that put `~/laundry_system` on `sys.path` removed | `contracts` is now `src/contracts` |
-| `src/umi_to_lerobot.py` | of the three `sys.path` inserts (own folder, `~/laundry_system`, `~/ego_cart20`) only `~/ego_cart20` kept | `xvla_core` and `contracts` are now in `src/`; `ego_cart20` (cube project) is only needed by the ego-data branches |
-
-## Imports that are still not resolvable from this repository
-
-| import | used by | why it is not copied |
-|---|---|---|
-| `rel_relonly_bce` | `garment_pipeline.eval_deploy.xvla_server` | X-VLA training patch from the cube project's X-VLA deploy tree (`~/xvla_deploy/umi_bridge/umi76`, `~/ego_cart20/launch/rel32bin`); the server runs in a separate X-VLA environment set up with `PYTHONPATH` (see the module docstring) |
-| `ego_cart20.*` | `umi_to_lerobot` (lazy, ego-data branches only), `ego_teleop.ego_cart20_link` (lazy), `legacy/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
-| `lerobot_plugin_rebot.*`, `bh_indy7_lerobot*`, `usb_arm_ports` | `scripts/deploy/robot_bridge/` | reBot driver stack of the robot PC (`~/robot-cockpit`), third-party / company code |
-| `ego_teleop.hand3d.*`, `ego_collector.hands.mediapipe_tracker` | `visual_teleop.vision.rgbd_pose`, `visual_teleop.tools.sensor_hub` (lazy) | head-camera hand tracking of the cube project's teleop stack |
-| `ego_teleop.tracking.backends.openvins`, `stereo_openvins_eval`, `stereo_basalt_eval` | `visual_teleop.vision.stereo_vio_tracker` | stereo VIO experiment (dropped 10-16, see `legacy/`), needs native OpenVINS / Basalt bridges |
-| `jaw_redx` | `visual_teleop.vision.fingertip_detector` (red-tape detector, lazy) | lives in `legacy/scripts/umi_fusion/` (tape removed 10-20) and itself needs `ego_cart20` |

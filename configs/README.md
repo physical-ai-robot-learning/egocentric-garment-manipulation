@@ -2,7 +2,7 @@
 
 Calibration results, robot settings / overrides, regression baselines and HandUMI collector profiles.
 
-**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code is not in this repo)
+**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code, `handumi_collector`, comes from the shared [`egocentric`](https://github.com/physical-ai-vla/egocentric) package)
 
 ## Inputs → Outputs
 Written by the calibration scripts in `scripts/pose/` and `scripts/retarget/`; read by those scripts,

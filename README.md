@@ -156,6 +156,7 @@ What is in this repository, by pipeline stage (see [§5](#5-pipeline)).
 | Configs | [`configs/`](configs/README.md) | 0 | current | calibration results, robot settings and overrides, jaw classifier weights, regression baseline |
 | Robot-side package | [`src/visual_teleop/`](src/visual_teleop/README.md) | 1, 2, replay, 7 | current (live teleop parked) | recorder, jaw classifier, reBot IK / limits / safety, bridge start, replay planner |
 | Tag-rig modules | [`src/rebot_prep/`](src/rebot_prep/README.md) | 2 | current | shared tag pose / fusion code (`rebot_prep.parity`) |
+| HandUMI / teleop packages | from the shared [`egocentric`](https://github.com/physical-ai-vla/egocentric) package | 0, 1 | current | `handumi_collector` (IMU / jaw-servo drivers, timing), `ego_collector` (camera capture), `ego_teleop` (SE(3) helpers, reBot client, recorder export); shared with the cube-stacking project, installed as a dependency |
 | Pose + calibration | [`scripts/pose/`](scripts/pose/README.md) | 0, 2 | current | camera ↔ robot, tag rig → jaw tip, tags → jaw-tip path, jaw aperture, jaw state from the servo |
 | Training-data pipeline | [`src/garment_pipeline/`](src/garment_pipeline/README.md) | 3–5, 6 (DiT), 7 | current (installable package; needs the recorded data, a GPU for CoTracker / training, the robot for deploy) | CoTracker + marker + IMU fusion, gates, trims, quality grades, labels, LeRobot dataset, DiT trainer, offline eval, deploy |
 | Retarget | [`scripts/retarget/`](scripts/retarget/README.md) | replay | current (replay track) | UMI ↔ reBot EEF alignment, robotization of a two-hand demo |
@@ -181,7 +182,8 @@ Per-module inputs, outputs and entry points: each component folder has its own R
 
 ```bash
 python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; packages egogarment, garment_pipeline, visual_teleop,
-                                     # rebot_prep (+ vendored helpers) from src/; egogarment-* console commands; pytest (Python >= 3.10)
+                                     # rebot_prep (+ vendored helpers) from src/; the shared package egocentric (git, v0.1.0);
+                                     # egogarment-* console commands; pytest (Python >= 3.10)
 pip install -e ".[pipeline]"         # + pandas, OpenCV < 5 (garment_pipeline fusion / labels / dataset stages)
 pip install -e ".[vision]"           # + OpenCV < 5 (tag pose, video)
 pip install -e ".[robot]"            # + Pink / pinocchio IK, HTTP bridge client
@@ -198,8 +200,9 @@ Notes:
 - The original runs used several interpreters: the repo `.venv` for the recorder (`sudo` for the Orbbec on macOS), an
   X-VLA environment with Pink / pinocchio for IK, bridge start and replay, and a separate ultralytics environment for the
   jaw keypoint scripts. The helper modules the code imported from the project's other working folders (`contracts`,
-  `xvla_core`, `umi_to_lerobot`, the used parts of `ego_teleop`, `ego_collector`, `handumi_collector`) are copied into
-  `src/` ([provenance + md5](docs/provenance.md)); still outside: the vendor reBot LeRobot plugin, the X-VLA training patch.
+  `xvla_core`, `umi_to_lerobot`) are copied into `src/` ([provenance + md5](docs/provenance.md)); `ego_teleop`,
+  `ego_collector` and `handumi_collector` come from the shared package [`egocentric`](https://github.com/physical-ai-vla/egocentric) (installed by
+  `pyproject.toml`); still outside: the vendor reBot LeRobot plugin, the X-VLA training patch.
 - `src/garment_pipeline/` reads and writes the data folders of the original machine by default; set `EGO_DATA_ROOT`
   (recordings, calibration), `EGO_TRAIN_ROOT` (derived trajectories, reports, datasets) and `EGO_CKPT_ROOT`
   (checkpoint archive) to use other locations ([`src/egogarment/paths.py`](src/egogarment/paths.py)). Training and the
@@ -410,8 +413,9 @@ workspace corner).
   * `garment_pipeline` — the training-data pipeline (fusion, labels, dataset, DiT trainer, eval / deploy), run with
     `python -m garment_pipeline.<stage>.<module>`; `egogarment.paths` — the data / checkpoint roots it uses;
   * helper modules copied from the project's other working folders so imports resolve (`contracts`, `xvla_core`,
-    `umi_to_lerobot`, `umi.common.pose_util`, parts of `ego_teleop` / `ego_collector` / `handumi_collector`;
-    [provenance + md5](docs/provenance.md));
+    `umi_to_lerobot`; [provenance + md5](docs/provenance.md));
+  * from the shared [`egocentric`](https://github.com/physical-ai-vla/egocentric) package (a dependency, not in `src/`): `ego_teleop`, `ego_collector`,
+    `handumi_collector` (and `umi.common.pose_util`), the HandUMI / teleop packages that the cube-stacking project uses too;
   * `egogarment` — standalone re-implementations, one subpackage per trajectory component: `io` (format), `pose` (gap
     filling, relative SE(3)), `retarget` (robotization), `evaluation` (parity metrics), `viz` (plots). Every tool is a
     module with a library API plus a `main()` command; details in [`src/egogarment/README.md`](src/egogarment/README.md).
