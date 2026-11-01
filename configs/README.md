@@ -6,7 +6,7 @@ Calibration results, robot settings / overrides, regression baselines and HandUM
 
 ## Inputs → Outputs
 Written by the calibration scripts in `scripts/pose/` and `scripts/retarget/`; read by those scripts,
-`src/visual_teleop/` and `scripts/processing/`.
+`src/visual_teleop/` and `src/garment_pipeline/`.
 
 ## Entry points
 None. Code addresses these files as `<repo root>/configs/...`, so this folder stays at the top level.

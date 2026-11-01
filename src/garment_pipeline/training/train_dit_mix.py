@@ -21,13 +21,12 @@ import numpy as np
 import torch
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system")); sys.path.insert(0, "/root/laundry_system")
 import lerobot.scripts.lerobot_train as LT  # noqa: E402
 from lerobot.datasets.lerobot_dataset import LeRobotDataset  # noqa: E402
 from lerobot.datasets.dataset_metadata import LeRobotDatasetMetadata  # noqa: E402
 from lerobot.transforms import ImageTransforms  # noqa: E402
 from lerobot.utils.constants import IMAGENET_STATS  # noqa: E402
-from rel_chunk import HORIZON  # noqa: E402
+from garment_pipeline.training.rel_chunk import HORIZON  # noqa: E402
 from contracts.action_contract import ACTION_NAMES, T_to_pose9  # noqa: E402
 from contracts.observation_contract import PROPRIO_NAMES  # noqa: E402
 

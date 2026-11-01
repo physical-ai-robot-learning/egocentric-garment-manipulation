@@ -8,7 +8,8 @@ import csv, json, shutil, sys
 from pathlib import Path
 import numpy as np
 HERE = Path(__file__).resolve().parent
-TAG = Path.home() / "ego_collector/datasets/tag_rig"; DER = Path.home() / "laundry_dit_training/data/tag_rig_derived"; CSV = Path.home() / "laundry_dit_training/reports/idle_trim.csv"
+from egogarment import paths as egopaths  # noqa: E402
+TAG = egopaths.TAG_RIG; DER = egopaths.DERIVED; CSV = egopaths.IDLE_TRIM_CSV
 GYR, VEL, MARGIN = 0.35, 0.03, 0.5
 OFF = json.loads((HERE / "body_offset_by_rig_v1.json").read_text())["offsets_by_rig"]
 

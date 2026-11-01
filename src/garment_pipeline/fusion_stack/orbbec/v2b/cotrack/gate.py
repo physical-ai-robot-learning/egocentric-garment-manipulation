@@ -16,11 +16,12 @@ from pathlib import Path
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.spatial.transform import Rotation as R
-HERE = Path(__file__).resolve().parent; sys.path[:0] = [str(HERE.parent), str(HERE.parents[2]), str(HERE.parents[2] / "stitch")]
-import core as C  # noqa
-import imu_motion as IM  # noqa
-import build_candidate_v0 as V0  # noqa
-from wdo import hidden_mask  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import imu_motion as IM  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import build_candidate_v0 as V0  # noqa
+from garment_pipeline.fusion_stack.stitch.wdo import hidden_mask  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD
 G = dict(WIN_S=1.0, E_MIN=0.5, NCC_BAD=0.2, MIN_BAD_S=0.4, LR_MIN=0.08, LR_PAD_S=0.3, TAG_BAD=0.10, TAG_N=3, TAG_WIN_S=1.0)
 OFF = json.loads((HERE.parent / "body_offset_by_rig_v1.json").read_text())["offsets_by_rig"]
@@ -50,7 +51,7 @@ def main(pack, hoff):
         fz = {a: d / (f"solve2_{a}.npz" if hoff is None else f"solve2_{a}_h{hoff}.npz") for a in ("left", "right")}
         if not all(f.exists() for f in fz.values()): continue
         meta = json.loads((d / "meta.json").read_text()); take, demo = meta["take"], int(meta["demo"]); W = {w["demo"]: w for w in FD.trims()[take]}[demo]
-        asg = json.loads((Path.home() / "laundry_dit_training/data/tag_rig_derived" / take / "assignment.json").read_text())
+        asg = json.loads((egopaths.DERIVED / take / "assignment.json").read_text())
         Z = {a: dict(np.load(fz[a])) for a in fz}; t = Z["left"]["t"].astype(np.int64); n = len(t); dt = np.median(np.diff(t)) / 1e9
         bad = {}; ncc = {}; tagd = {}
         for a in ("left", "right"):

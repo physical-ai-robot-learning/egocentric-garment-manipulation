@@ -34,12 +34,13 @@ import argparse, collections, json, os, pathlib, subprocess, sys, threading, tim
 import cv2
 import numpy as np
 
-HERE = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
-import act_tagrig_core as core  # noqa: E402
+HERE = pathlib.Path(__file__).resolve().parent
+from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
 
 CAMS_CFG = HERE / "act_tagrig_cams.json"
-UVC = str(pathlib.Path.home() / "robot-cockpit/bin/uvc-util")
-DESKTOP = pathlib.Path.home() / "Desktop"
+UVC = str(egopaths.UVC_UTIL)
+DESKTOP = egopaths.DESKTOP
 OUT = core.LDT / "reports/act_deploy"
 START_FILE = HERE / "start_pose.json"
 HIST_TOL_S = 0.03          # n_obs 2 (DiT): accept a history sample within 50 +- 30 ms (dit_serving HISTORY_TOL_S)

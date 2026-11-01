@@ -1,14 +1,40 @@
-# processing — demonstration → training data (2026-10-26/27 flattening pipeline)
+# garment_pipeline — demonstration → training data (2026-10-26/27 flattening pipeline)
 
 The current offline pipeline that turns fixed-camera + wrist + IMU recordings into fused jaw-tip trajectories, quality grades, Cartesian training labels and a LeRobot dataset.
 
-**Status:** current (snapshot record — see Provenance)
+**Status:** current — installable package (`pip install -e .` from the repository root); runs on the recorded data, see *What each stage needs*
 
 ## Inputs → Outputs
 Recorded takes (`tag_rig_record`: Orbbec RGB-D, wrist fisheyes, IMUs) + tag poses from `scripts/pose/` → fused trajectories, GOLD / SILVER / REJECT grades, labels A / B, LeRobot v3 dataset, offline eval and deploy.
 
 ## Entry points
-The stage table below (paths relative to this folder unless they start with `scripts/` or `src/`).
+The stage table below (paths relative to this folder unless they start with `scripts/` or `src/`). Every file is a module
+of the package; run it as `python -m garment_pipeline.<path with dots>`, e.g.
+
+```bash
+pip install -e ".[pipeline]"                                            # from the repository root
+python -m garment_pipeline.fusion_stack.orbbec.v2b.new_take_prep <take>
+python -m garment_pipeline.labels_dataset.tag_rig_unsplit --help
+python -m garment_pipeline.eval_deploy.act_tagrig_deploy run --policy dit --secs 30   # dry run
+```
+
+Imports are absolute (`from garment_pipeline.fusion_stack import core`), with no `sys.path` edits. File locations come
+from [`egogarment.paths`](../egogarment/paths.py): recordings and calibration under `EGO_DATA_ROOT` (default
+`~/ego_collector`), derived trajectories / `reports/idle_trim.csv` / datasets / local checkpoints under `EGO_TRAIN_ROOT`
+(default `~/laundry_dit_training`), the checkpoint and raw-take archive under `EGO_CKPT_ROOT` (default
+`/Volumes/PortableSSD/laundry_dit`). The defaults are the paths the code used on the recording machine. Working files of
+the fusion stage (`fusion_stack/orbbec/v2b/out/`, `fusion_stack/stitch/qa/`, start seeds, deploy settings) are read and
+written next to the module, as in the original tree.
+
+## What each stage needs
+
+| stages | data | compute | robot / hardware | Python packages beyond the base install |
+|---|---|---|---|---|
+| 3–4 fusion, gates, trims, quality | recorded takes (`tag_rig_record`: Orbbec RGB-D, wrist video, IMUs), tag poses from `scripts/pose/`, calibration | CPU; CoTracker (`run_cotracker`) needs a CUDA GPU | – | pandas, OpenCV (`[pipeline]`); torch + CoTracker3 from torch.hub for `run_cotracker` |
+| 5 labels + dataset | fused trajectories (`EGO_TRAIN_ROOT/data/tag_rig_derived`), recorded takes | CPU (IK in a sub-process, `EGO_IK_PYTHON`) | – | OpenCV, pinocchio + pink (`[robot]`) for IK, lerobot for the LeRobot write |
+| 6 training | LeRobot dataset | GPU | – | torch, lerobot (multi-task DiT), diffusers, accelerate |
+| 7 offline eval | dataset + checkpoint | GPU or Apple MPS | – | torch, lerobot, diffusers |
+| 7 deploy, height calibration, camera tools | checkpoint, calibration | GPU or Apple MPS | both reBot arms through the MIT bridge (`scripts/deploy/`), Orbbec + wrist cameras | flask, requests, OpenCV, torch; X-VLA server: the X-VLA LeRobot fork + `rel_relonly_bce` (not in this repository) |
 
 ## Layout
 - `fusion_stack/` — CoTracker + tag + IMU pose fusion, gates, trims, quality, QA renders
@@ -18,11 +44,10 @@ The stage table below (paths relative to this folder unless they start with `scr
 - `eval_deploy/` — offline policy eval, receding-horizon deploy core + UI, X-VLA server, height calibration, camera tools
 
 ## Provenance
-Moved whole from `processing/` in the 11-01 layout refactor (internal relative paths unchanged). Synced 11-01 with the 10-28 → 11-01 code (`training/` and the new `eval_deploy/` files added).
+Moved whole from `processing/` in the 11-01 layout refactor to `scripts/processing/`, synced 11-01 with the 10-28 → 11-01 code (`training/` and the new `eval_deploy/` files added), and made the importable package `src/garment_pipeline/` in refactor v3 (11-01): `sys.path` edits replaced by package imports, home / SSD paths by `egogarment.paths` (same defaults), modules it imported from other working folders copied into `src/` ([docs/provenance.md](../../docs/provenance.md)). Algorithms, constants and defaults are unchanged.
 
-Snapshot of the offline pipeline that turned 300 successful T-shirt **flattening** demonstrations into robot training
-labels. The code is copied as it runs (absolute home paths, same module layout); it is a record of the method, not a
-packaged library.
+The offline pipeline that turned 300 successful T-shirt **flattening** demonstrations into robot training labels. The
+module layout is the one it ran with; refactor v3 changed only imports and where paths come from.
 
 | stage | where it runs | code |
 |---|---|---|
@@ -40,4 +65,6 @@ packaged library.
 | 11b · training | GPU | `training/train_dit_tagrig.py` + `training/tagrig_common.py` (jaw BCE, masks, episode weights; `GRAD_CLIP=0`), configs `training/dit_tagrig_v1.yaml`, `act_tagrig_v1.yaml` |
 | 12 · eval / deploy | GPU / robot | `eval_deploy/tagrig_offline_eval.py` (k16/k32, zero-motion baseline, grasp / free and episode-phase breakdown), `eval_deploy/act_tagrig_deploy.py` + `act_tagrig_core.py` + `act_tagrig_ui.py` (receding-horizon deploy and its UI; refuses GO unless the bridge limits the left jaw opening), `xvla_server.py`, `height_calib.py` (per-arm table plane from tag touches, not yet validated on the robot) |
 
-`fusion_stack/` = the `_imu_consistency` tree, `fgo_tools/` = `_fgo_1023/tools` (data loaders shared by every stage).
+`fusion_stack/` = the `_imu_consistency` tree, `fgo_tools/` = `_fgo_1023/tools` (data loaders shared by every stage); `labels_dataset/`, `training/`, `eval_deploy/` came from the `datasets/`, `training/`, `evaluation/` + `deploy/` folders of the training workspace.
+
+Seven modules do their work at module level (no `__main__` guard) and are meant to be run, not imported: `fgo_tools/tag_rot_extract_v002`, `cotrack/make_pack2`, `cotrack/run_cotracker`, `cotrack/solve2`, `orbbec/v2b/tighten_trim`, `labels_dataset/idle_trim`; `orbbec/v2b/track_v31` reads its start seeds at import (`tests/test_imports.py` skips them; [docs/refactor_candidates.md](../../docs/refactor_candidates.md)).

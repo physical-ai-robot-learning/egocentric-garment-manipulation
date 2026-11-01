@@ -20,11 +20,11 @@ import numpy as np, scipy.sparse as sp
 from scipy.sparse.linalg import splu
 from scipy.spatial.transform import Rotation as R
 HERE = Path(__file__).resolve().parent; V2B = HERE.parent; ROOT = V2B.parents[1]
-sys.path[:0] = [str(V2B), str(ROOT), str(ROOT / "stitch")]
-import core as C  # noqa
-import imu_motion as IM  # noqa
-import build_candidate_v0 as V0  # noqa
-from wdo import hidden_mask  # noqa
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import imu_motion as IM  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import build_candidate_v0 as V0  # noqa
+from garment_pipeline.fusion_stack.stitch.wdo import hidden_mask  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD; DT = 0.05; STRICT = False; SUFFIX = ""; CT = "solve2"
 SIG = dict(ct_hi=0.010, ct_lo=0.025, tag2=0.004, tag1=0.008, tag_rot_deg=5.0, imu_acc=2.0, acc_info=30.0, acc_gap=3.0, cauchy=3.0,
            bias_prior=0.10, bias_rw=0.010, bias_knot_s=4.0, rot_knot_s=2.0, rot_tag_deg=3.0, rot_rw_deg=1.0)
@@ -97,7 +97,7 @@ def main():
         if not (d / f"{CT}_left.npz").exists(): continue
         meta = json.loads((d / "meta.json").read_text()); take, demo = meta["take"], int(meta["demo"])
         if demos and demo not in demos: continue
-        W = {w["demo"]: w for w in FD.trims()[take]}[demo]; asg = json.loads((Path.home() / "laundry_dit_training/data/tag_rig_derived" / take / "assignment.json").read_text())
+        W = {w["demo"]: w for w in FD.trims()[take]}[demo]; asg = json.loads((egopaths.DERIVED / take / "assignment.json").read_text())
         for arm in ("left", "right"):
             D = FD.load_arm(take, arm, with_slam=False); C.FC.prep(D); D["b_rest"] = IM.rest_bias(D, take, FD); t = D["t"]
             o = np.array(OFF[asg["rig_of_arm"][arm]]) / 1000

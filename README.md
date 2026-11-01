@@ -32,10 +32,11 @@ Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the 
 > the HandUMI build copy ([`hardware/umihand/`](hardware/umihand/README.md)), superseded code ([`legacy/`](legacy/README.md)),
 > the technical reports, detailed notes and media. [`src/egogarment/`](src/egogarment/README.md) is a separate set of
 > small standalone re-implementations of the trajectory stages that run on the synthetic data in [`examples/`](examples/README.md).
-> Two limits: [`scripts/processing/`](scripts/processing/README.md) is a snapshot of the code as it ran — its imports and
-> paths point at the original machine layout, so it is **not runnable from this repository alone**; and raw
-> recordings, trained checkpoints, the reBot vendor plugin and URDF are not included. The X-VLA fine-tuning code is not
-> in this repository.
+> The training-data pipeline is the installable package [`src/garment_pipeline/`](src/garment_pipeline/README.md)
+> (`python -m garment_pipeline.<stage>.<module>`); its file locations come from [`egogarment.paths`](src/egogarment/paths.py)
+> (environment variables `EGO_DATA_ROOT`, `EGO_TRAIN_ROOT`, `EGO_CKPT_ROOT`). What it needs to run is real data:
+> raw recordings, trained checkpoints, the reBot vendor plugin and URDF are not included, and some stages need a GPU or
+> the robot. The X-VLA fine-tuning code is not in this repository.
 
 **Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.
@@ -115,10 +116,10 @@ The same flow by stage, with the code for each stage:
 flowchart LR
   A["Stage 0<br/>calibrate<br/>scripts/pose"] --> B["Stage 1<br/>record<br/>visual_teleop.tools.tag_rig_record"]
   B --> C["Stage 2<br/>tag pose + jaw state<br/>scripts/pose · rebot_prep.parity"]
-  C --> D["Stage 3–4<br/>CoTracker + marker + IMU fusion,<br/>trims, GOLD/SILVER/REJECT<br/>scripts/processing/fusion_stack"]
-  D --> E["Stage 5<br/>labels + LeRobot dataset<br/>scripts/processing/labels_dataset"]
-  E --> F["Stage 6<br/>train<br/>scripts/processing/training (DiT)"]
-  F --> G["Stage 7<br/>deploy + evaluate<br/>scripts/processing/eval_deploy · scripts/deploy"]
+  C --> D["Stage 3–4<br/>CoTracker + marker + IMU fusion,<br/>trims, GOLD/SILVER/REJECT<br/>src/garment_pipeline/fusion_stack"]
+  D --> E["Stage 5<br/>labels + LeRobot dataset<br/>src/garment_pipeline/labels_dataset"]
+  E --> F["Stage 6<br/>train<br/>src/garment_pipeline/training (DiT)"]
+  F --> G["Stage 7<br/>deploy + evaluate<br/>src/garment_pipeline/eval_deploy · scripts/deploy"]
   C -. replay track .-> R["robotize → plan → replay → compare<br/>scripts/retarget · visual_teleop.tools.umi_replay_bi · scripts/evaluation"]
 ```
 
@@ -152,7 +153,7 @@ What is in this repository, by pipeline stage (see [§5](#5-pipeline)).
 | Robot-side package | [`src/visual_teleop/`](src/visual_teleop/README.md) | 1, 2, replay, 7 | current (live teleop parked) | recorder, jaw classifier, reBot IK / limits / safety, bridge start, replay planner |
 | Tag-rig modules | [`src/rebot_prep/`](src/rebot_prep/README.md) | 2 | current | shared tag pose / fusion code (`rebot_prep.parity`) |
 | Pose + calibration | [`scripts/pose/`](scripts/pose/README.md) | 0, 2 | current | camera ↔ robot, tag rig → jaw tip, tags → jaw-tip path, jaw aperture, jaw state from the servo |
-| Training-data pipeline | [`scripts/processing/`](scripts/processing/README.md) | 3–5, 6 (DiT), 7 | current (snapshot record, not runnable from this repo alone) | CoTracker + marker + IMU fusion, gates, trims, quality grades, labels, LeRobot dataset, DiT trainer, offline eval, deploy |
+| Training-data pipeline | [`src/garment_pipeline/`](src/garment_pipeline/README.md) | 3–5, 6 (DiT), 7 | current (installable package; needs the recorded data, a GPU for CoTracker / training, the robot for deploy) | CoTracker + marker + IMU fusion, gates, trims, quality grades, labels, LeRobot dataset, DiT trainer, offline eval, deploy |
 | Retarget | [`scripts/retarget/`](scripts/retarget/README.md) | replay | current (replay track) | UMI ↔ reBot EEF alignment, robotization of a two-hand demo |
 | Evaluation | [`scripts/evaluation/`](scripts/evaluation/README.md) | replay | current (replay track) | human / command / robot parity, side-by-side video, planner regression test |
 | Robot bridge | [`scripts/deploy/`](scripts/deploy/README.md) | 7 | current | reBot MIT bridge + gripper / joint zero tools |
@@ -176,8 +177,9 @@ Per-module inputs, outputs and entry points: each component folder has its own R
 ## 4. Installation
 
 ```bash
-python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; packages egogarment, visual_teleop, rebot_prep
-                                     # from src/; egogarment-* console commands; pytest (Python >= 3.10)
+python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; packages egogarment, garment_pipeline, visual_teleop,
+                                     # rebot_prep (+ vendored helpers) from src/; egogarment-* console commands; pytest (Python >= 3.10)
+pip install -e ".[pipeline]"         # + pandas, OpenCV < 5 (garment_pipeline fusion / labels / dataset stages)
 pip install -e ".[vision]"           # + OpenCV < 5 (tag pose, video)
 pip install -e ".[robot]"            # + Pink / pinocchio IK, HTTP bridge client
 pip install -e ".[jaw]"              # + torch / ultralytics / flask (jaw classifier and keypoints)
@@ -192,10 +194,13 @@ Without installing, put `src/` on the path: `PYTHONPATH=src python -m visual_tel
 Notes:
 - The original runs used several interpreters: the repo `.venv` for the recorder (`sudo` for the Orbbec on macOS), an
   X-VLA environment with Pink / pinocchio for IK, bridge start and replay, and a separate ultralytics environment for the
-  jaw keypoint scripts. Some modules import packages that are not in this repository (`ego_teleop`, `ego_collector`,
-  `handumi_collector`, the vendor reBot LeRobot plugin).
-- `scripts/processing/` is a snapshot of code as it ran; its imports point at the original machine layout
-  (see its [README](scripts/processing/README.md)), so it is not runnable from this repository alone.
+  jaw keypoint scripts. The helper modules the code imported from the project's other working folders (`contracts`,
+  `xvla_core`, `umi_to_lerobot`, the used parts of `ego_teleop`, `ego_collector`, `handumi_collector`) are copied into
+  `src/` ([provenance + md5](docs/provenance.md)); still outside: the vendor reBot LeRobot plugin, the X-VLA training patch.
+- `src/garment_pipeline/` reads and writes the data folders of the original machine by default; set `EGO_DATA_ROOT`
+  (recordings, calibration), `EGO_TRAIN_ROOT` (derived trajectories, reports, datasets) and `EGO_CKPT_ROOT`
+  (checkpoint archive) to use other locations ([`src/egogarment/paths.py`](src/egogarment/paths.py)). Training and the
+  X-VLA server need the LeRobot / X-VLA environments (torch, lerobot, diffusers), not the base install.
 - Not included: raw data, trained checkpoints, the reBot vendor plugin and URDF, ORB-SLAM3 source.
 
 ## 5. Pipeline
@@ -252,7 +257,7 @@ Since 26–27 October the stages after pose reconstruction produce **policy trai
 ### Commands on real data (stages 0–7)
 
 Commands run from the repo root; they need the recorded takes, which are not in this repository. Per-stage detail:
-[scripts/processing/README.md](scripts/processing/README.md) (12-stage map of the training-data pipeline) and
+[src/garment_pipeline/README.md](src/garment_pipeline/README.md) (12-stage map of the training-data pipeline, with what each stage needs) and
 [docs/pipeline_replay_track.md](docs/pipeline_replay_track.md) (replay track).
 
 **Stage 0 · calibrate** (once, and the camera ↔ robot part after every camera move)
@@ -282,37 +287,37 @@ and warns aloud when a servo reads outside its calibrated range. `jaw_from_motor
 calibration (closed … open) to `g_cont`, adds open/close events with hysteresis + dwell, and re-centres each take because a
 re-plug or power cycle shifts the whole reading.
 
-**Stage 3 · CoTracker + marker + IMU fusion** (paths below relative to `scripts/processing/`)
+**Stage 3 · CoTracker + marker + IMU fusion** (modules of the `garment_pipeline` package, `pip install -e .`)
 ```bash
-python fusion_stack/orbbec/v2b/new_take_prep.py <take>                          # arm assignment, idle trim, start seeds
-python fusion_stack/orbbec/v2b/cotrack/make_pack2.py <pack> <take>:<demo> ...    # CoTracker query points (40 per rig)
-python fusion_stack/orbbec/v2b/cotrack/run_cotracker.py <pack>                   # GPU
-python fusion_stack/orbbec/v2b/cotrack/solve2.py <pack> && python fusion_stack/orbbec/v2b/cotrack/gate.py <pack>
-python fusion_stack/orbbec/v2b/fusion/trajectory_fusion_v1.py <pack> Cg --ct solve3
+python -m garment_pipeline.fusion_stack.orbbec.v2b.new_take_prep <take>                          # arm assignment, idle trim, start seeds
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.make_pack2 <pack> <take>:<demo> ...    # CoTracker query points (40 per rig)
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.run_cotracker <pack>                   # GPU
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.solve2 <pack> && python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.gate <pack>
+python -m garment_pipeline.fusion_stack.orbbec.v2b.fusion.trajectory_fusion_v1 <pack> Cg --ct solve3
 ```
 
 **Stage 4 · trims + quality grade**
 ```bash
-python fusion_stack/orbbec/v2b/tighten_trim.py <idle_audit.csv> 0.3 && python fusion_stack/orbbec/v2b/edge_gap_trim.py <pack> ...
-python fusion_stack/orbbec/v2b/cotrack/episode_quality.py <quality.csv> <pack> ...   # GOLD / SILVER / REJECT
+python -m garment_pipeline.fusion_stack.orbbec.v2b.tighten_trim <idle_audit.csv> 0.3 && python -m garment_pipeline.fusion_stack.orbbec.v2b.edge_gap_trim <pack> ...
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.episode_quality <quality.csv> <pack> ...   # GOLD / SILVER / REJECT
 ```
 
 **Stage 5 · labels + dataset**
 ```bash
-python labels_dataset/robotize_ik.py <raw take> <derived take> --demos 0,1,... --workers 8   # labels A + B + IK diagnostics
-python labels_dataset/tag_rig_unsplit.py --label rob --mask-mode stitched --out <dataset> --takes <take> ...
+python -m garment_pipeline.labels_dataset.robotize_ik <raw take> <derived take> --demos 0,1,... --workers 8   # labels A + B + IK diagnostics
+python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label rob --mask-mode stitched --out <dataset> --takes <take> ...
 # since 10-29: label F (measured jaw tip, no clamp/lift), optionally on the 0.3× time-stretched copy
-python labels_dataset/tag_rig_unsplit.py --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
+python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
 ```
 
 **Stage 6 · train** — the DiT trainer (jaw BCE head, masks, per-episode weights, gradient clipping off) and its configs
-are in `scripts/processing/training/` (added 11-01); the X-VLA fine-tuning code is not in this repository. The plan
+are in `src/garment_pipeline/training/` (added 11-01); the X-VLA fine-tuning code is not in this repository. The plan
 (DiT and X-VLA fine-tuned on GOLD) is in [docs/details.md §3.2](docs/details.md#32-training-plan).
 
 **Stage 7 · deploy + evaluate**
 ```bash
-python eval_deploy/act_tagrig_deploy.py run --policy dit --secs 30                # dry run; add --go only with a person at the robot
-python eval_deploy/tagrig_offline_eval.py --ckpt <run>/checkpoints/last --data <val dataset> --out <report dir>   # k16/k32, zero-motion baseline, grasp / free breakdown
+python -m garment_pipeline.eval_deploy.act_tagrig_deploy run --policy dit --secs 30                # dry run; add --go only with a person at the robot
+python -m garment_pipeline.eval_deploy.tagrig_offline_eval --ckpt <run>/checkpoints/last --data <val dataset> --out <report dir>   # k16/k32, zero-motion baseline, grasp / free breakdown
 ```
 
 **Earlier track: open-loop replay** (stages 1–2 as above, then)
@@ -398,12 +403,18 @@ workspace corner).
   * `visual_teleop` — robot-side tools and libraries (recorder, jaw classifier, reBot IK / limits / safety, bridge
     start, replay planner);
   * `rebot_prep.parity` — tag-rig pose modules that several scripts import;
+  * `garment_pipeline` — the training-data pipeline (fusion, labels, dataset, DiT trainer, eval / deploy), run with
+    `python -m garment_pipeline.<stage>.<module>`; `egogarment.paths` — the data / checkpoint roots it uses;
+  * helper modules copied from the project's other working folders so imports resolve (`contracts`, `xvla_core`,
+    `umi_to_lerobot`, `umi.common.pose_util`, parts of `ego_teleop` / `ego_collector` / `handumi_collector`;
+    [provenance + md5](docs/provenance.md));
   * `egogarment` — standalone re-implementations, one subpackage per trajectory component: `io` (format), `pose` (gap
     filling, relative SE(3)), `retarget` (robotization), `evaluation` (parity metrics), `viz` (plots). Every tool is a
     module with a library API plus a `main()` command; details in [`src/egogarment/README.md`](src/egogarment/README.md).
 * **`scripts/<stage>/`** holds the project's entry scripts grouped by pipeline stage (`pose`, `retarget`, `evaluation`,
-  `deploy`, `processing`); `scripts/processing/` is the training-data pipeline kept as one tree because its files find
-  each other by relative path. The flat **`scripts/*.py`** files are one thin wrapper per `egogarment` module, so the
+  `deploy`). The training-data pipeline is the package **`src/garment_pipeline/`** (subpackages `fusion_stack`,
+  `fgo_tools`, `labels_dataset`, `training`, `eval_deploy`, absolute imports, run with `python -m`); file locations come
+  from `egogarment.paths`. The flat **`scripts/*.py`** files are one thin wrapper per `egogarment` module, so the
   synthetic commands work from a plain checkout.
 * **`configs/`** stays at the top level because code addresses it as `<repo root>/configs/...`
   (`Path(__file__).parents[n] / "configs/..."`).
@@ -418,11 +429,11 @@ From the code that defines them:
 
 | interface | definition | where |
 |---|---|---|
-| world frame | reBot base frame B; camera → base `T_B_C` from `configs/calibration/robot_cam_v00N.json` (per take by date) | `scripts/processing/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
+| world frame | reBot base frame B; camera → base `T_B_C` from `configs/calibration/robot_cam_v00N.json` (per take by date) | `src/garment_pipeline/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
 | jaw-tip path per take | `umi_traj_{right,left}.npz`: jaw-tip TCP `p_B`, rig rotation `R_B_tcp`, `ntags` | `scripts/pose/umi_tcp_traj.py` |
 | jaw state | `umi_jaw.npz`: `g_cont` 0 = closed … 1 = open, `valid`, `ev_t`; binary `state` 1 = open, 0 = closed; servo-derived files also keep `motor_pos` and set `model = feetech_sts3215_motor` | video: `src/visual_teleop/tools/umi_jaw.py`, `scripts/pose/jaw_aperture.py`; servo (Feetech STS3215, torque-off encoder, 10-29 →): `scripts/pose/jaw_from_motor.py` |
-| training label | **F** (10-29 →) = measured human jaw-tip pose before IK, no clamp or lift (`--label fused`); ~~**A** = Cartesian jaw-tip pose in reBot gripper axes before IK (0.25 s smoothing + table clearance)~~; **B** = IK → FK (QA) | `scripts/processing/labels_dataset/robotize_ik.py` (`--label rob` / `ikfk` / `fused` in `tag_rig_unsplit.py`) |
-| dataset | LeRobot v3, 20 Hz, 3 cameras, `observation.state` 30-D, `action` 20-D absolute = per arm xyz + rot6d + gripper, with a per-dim `action_mask[20]` | `scripts/processing/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
+| training label | **F** (10-29 →) = measured human jaw-tip pose before IK, no clamp or lift (`--label fused`); ~~**A** = Cartesian jaw-tip pose in reBot gripper axes before IK (0.25 s smoothing + table clearance)~~; **B** = IK → FK (QA) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`--label rob` / `ikfk` / `fused` in `tag_rig_unsplit.py`) |
+| dataset | LeRobot v3, 20 Hz, 3 cameras, `observation.state` 30-D, `action` 20-D absolute = per arm xyz + rot6d + gripper, with a per-dim `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
 | chunk | relative motion `inv(T_t)·T_{t+k}`, k = 1…32 at 20 Hz, built in the training loader; deploy commits the first 4 steps, then re-plans | [docs/details.md §3.2–3.3](docs/details.md#33-running-a-trained-policy-on-the-robot) |
 | robot model corrections | TCP offset, per-arm joint zero offsets, left base pose: `configs/robot/{tcp_override,joint_offset,base_override}_v001.json` | applied in `src/visual_teleop/robot/ik_pink.py` |
 | units | code stores metres and seconds (e.g. tag size 0.048 m); README / report quote mm | — |
@@ -550,7 +561,7 @@ was dropped: [legacy/README.md](legacy/README.md).
 
 | part | current (11-01) | ~~no longer used~~ |
 |---|---|---|
-| pose source | CoTracker3 points on the fixed camera + AprilTag anchors + constant bias, IMU acceleration only inside gaps (`scripts/processing/`) | ~~MASt3R wrist SLAM gap filling~~ (breaks at grasps, 10-23) · ~~ORB-SLAM3~~ (scale diverged, 10-21) · tags + IMU fill alone (replay track only) |
+| pose source | CoTracker3 points on the fixed camera + AprilTag anchors + constant bias, IMU acceleration only inside gaps (`src/garment_pipeline/`) | ~~MASt3R wrist SLAM gap filling~~ (breaks at grasps, 10-23) · ~~ORB-SLAM3~~ (scale diverged, 10-21) · tags + IMU fill alone (replay track only) |
 | camera ↔ robot | re-solved after every camera move from two fixed table tags + the table plane (`robot_cam_v002…v005`) | wrist-marker 32-pose solve (`v001`, still valid for the old camera position) |
 | jaw state | demos from 10-29: Feetech servo reading on the UMI (`scripts/pose/jaw_from_motor.py`); earlier demos (incl. GOLD-281): ResNet18 classifier v003 → YOLO-pose jaw tips → aperture g. The two sources are never mixed in one comparison | ~~red-tape jaw detector~~ (tape removed 10-20) |
 | arm assignment | by the gripper's side of the table | ~~by rig label~~ (labels swapped since 10-22) |
@@ -610,14 +621,14 @@ close the jaws early. Tracing this back pointed at the data rather than the mode
 
 | finding | change | code |
 |---|---|---|
-| The "kept above the table" step (table clearance in label A) lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Label F: the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. | `scripts/processing/labels_dataset/tag_rig_unsplit.py --label fused` |
+| The "kept above the table" step (table clearance in label A) lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Label F: the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
 | Human demonstrations are faster than the robot can follow (p95 ≈ 0.93 m/s, 127 °/s). | A time-stretched copy of the data set (0.3× speed): pose, jaw events and every camera frame are resampled on one common slower timeline; rows stay 20 Hz. | `tag_rig_unsplit.py --speed 0.3` |
 | The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading, re-centred per take. Labels from the two sources are kept apart and never mixed in one comparison. | `scripts/pose/jaw_from_motor.py`; relabel attempt for older demos `scripts/pose/jaw_motorlike.py` (not applied) |
 | The robot's wrist cameras look at the jaws from a different place than the hand-worn ones. | Measured with the table markers: the robot cameras are tilted 11–13° less toward the tool axis and sit 25–44 mm closer to it. Next: re-mount them to the hand-worn geometry. | — |
 
 Also added (in progress, **not yet validated on the robot**): per-arm table-height calibration by touching the table
-tags (`scripts/processing/eval_deploy/height_calib.py`), real-time chunking blend between plans (`act_tagrig_core.py`,
-offline test only), X-VLA policy server (`xvla_server.py`). Training code: `scripts/processing/training/`
+tags (`src/garment_pipeline/eval_deploy/height_calib.py`), real-time chunking blend between plans (`act_tagrig_core.py`,
+offline test only), X-VLA policy server (`xvla_server.py`). Training code: `src/garment_pipeline/training/`
 (DiT trainer with jaw BCE head, masks and per-episode weights; gradient clipping off).
 
 ### Research directions

@@ -12,7 +12,8 @@ import cv2
 import numpy as np
 from flask import Flask, Response, jsonify, request
 
-TAKES = pathlib.Path.home() / "ego_collector/datasets/tag_rig"
+from egogarment import paths as egopaths  # noqa: E402
+TAKES = egopaths.TAG_RIG
 SRC = "http://127.0.0.1:8770/stream/global"
 REFS = {"20261030": "10-30 (E1000 학습 데이터, 집기)", "20261026": "10-26 (GOLD 학습 데이터 + 카메라 캘리브 v005)", "20261027": "10-27 (GOLD 학습 데이터)"}
 MASK_Y = 0.62                      # static scene = rows above 62 % of the height (robots, near table, people's hands below)

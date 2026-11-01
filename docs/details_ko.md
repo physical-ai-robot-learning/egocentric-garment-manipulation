@@ -15,7 +15,7 @@
 ## 3. 현재 파이프라인: 정책 학습 데이터 (2026-10-26 / 27)
 
 open-loop 재생이 아니라 정책 학습을 위해, 재생 트랙의 캘리브레이션·녹화기·로봇 도구 위에 위치 추정과 라벨을 다시 만들었습니다.
-코드와 12단계 표: [scripts/processing/README.md](../scripts/processing/README.md)
+코드와 12단계 표: [src/garment_pipeline/README.md](../src/garment_pipeline/README.md)
 
 ### 3.1 데이터: 펴기 시연 300개
 

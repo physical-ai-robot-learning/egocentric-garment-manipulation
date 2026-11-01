@@ -30,9 +30,8 @@ import numpy as np
 import torch
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(HERE.parent / "datasets")); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system"))
 from xvla_core import relative_chunk_from_abs  # noqa: E402
-from rel_chunk import to_contract33  # noqa: E402
+from garment_pipeline.training.rel_chunk import to_contract33  # noqa: E402
 
 H_ACT = 32
 STD_FLOOR, RANGE_FLOOR = 1e-2, 2e-2

@@ -9,9 +9,8 @@ import json, sys
 from pathlib import Path
 import numpy as np, pandas as pd
 HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]
-sys.path[:0] = [str(ROOT), str(ROOT / "stitch")]
-import core as C  # noqa
-from wdo import hidden_mask  # noqa
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.stitch.wdo import hidden_mask  # noqa
 FD = C.FD
 
 

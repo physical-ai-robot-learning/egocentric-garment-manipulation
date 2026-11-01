@@ -3,11 +3,12 @@
 import json, sys
 from pathlib import Path
 import cv2, numpy as np
-ROOT = Path.home() / "ego_collector"; sys.path.insert(0, str(ROOT / "scripts"))
-from tag_rig_pose import rig_pose  # noqa
+from egogarment import paths as egopaths  # noqa: E402
+ROOT = egopaths.DATA_ROOT
+from rebot_prep.parity.tag_rig_pose import rig_pose  # noqa
 take = Path(sys.argv[1]); meta = json.loads((take / "meta.json").read_text()); I = meta["intrinsics"]
 K = np.array([[I["fx"], 0, I["cx"]], [0, I["fy"], I["cy"]], [0, 0, 1.0]]); cfg = json.loads((ROOT / "configs/calibration/umi_tag_rig_v002.json").read_text())
-sys.path.insert(0, str(ROOT / "datasets/m3_runs/_imu_consistency")); import camcal  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
 TBC = camcal.T_B_C(take.name)                                     # 10-26: per-take camera calibration
 rigs = {"right": "UMI 오른손", "left": "UMI 왼손"}; Trt = {s: {int(k): np.array(v) for k, v in cfg[n]["T_rig_tag"].items()} for s, n in rigs.items()}
 prm = cv2.aruco.DetectorParameters(); prm.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
@@ -22,4 +23,4 @@ for k in range(n):
         r = rig_pose(cs, ids, Trt[s], K, 0.048)
         if r is None or r["rmse_px"] > 2.0: continue
         out[f"R_{s}"][k] = TBC[:3, :3] @ r["T"][:3, :3]; out[f"n_{s}"][k] = len(r["tags"]); out[f"rmse_{s}"][k] = r["rmse_px"]
-np.savez(Path.home() / f"ego_collector/datasets/m3_runs/_fgo_1023/tagrot/{take.name}.npz", **out); print(take.name, n, {s: int((out[f'n_{s}'] > 0).sum()) for s in rigs})
+np.savez(egopaths.M3_RUNS / f"_fgo_1023/tagrot/{take.name}.npz", **out); print(take.name, n, {s: int((out[f'n_{s}'] > 0).sum()) for s in rigs})

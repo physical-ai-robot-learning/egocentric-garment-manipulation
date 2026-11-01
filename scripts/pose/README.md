@@ -3,7 +3,7 @@
 Calibration and pose scripts: camera ↔ robot, UMI tag rig → jaw tip, AprilTag + depth + IMU jaw-tip paths in the robot
 base, and the jaw aperture (the gripper DoF) — from the jaw servo for demos since 10-29, from the wrist video before.
 
-**Status:** current (tag pose and jaw aperture feed `scripts/processing/`; the open-loop replay track uses them directly)
+**Status:** current (tag pose and jaw aperture feed `src/garment_pipeline/`; the open-loop replay track uses them directly)
 
 ## Inputs → Outputs
 Recorded takes `datasets/tag_rig/<take>` (Orbbec RGB-D + tag detections, wrist video, IMU, jaw servo `gripper_motor_{left,right}.npz` since 10-29) →

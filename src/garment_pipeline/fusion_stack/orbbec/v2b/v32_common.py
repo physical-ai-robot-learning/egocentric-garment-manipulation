@@ -6,9 +6,9 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.spatial.transform import Rotation as R
-import core as C  # noqa
-import imu_motion as IM  # noqa
-import build_candidate_v0 as V0  # noqa
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import imu_motion as IM  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import build_candidate_v0 as V0  # noqa
 FD = C.FD
 HERE = Path(__file__).resolve().parent
 

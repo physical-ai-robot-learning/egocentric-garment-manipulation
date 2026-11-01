@@ -12,11 +12,12 @@ from __future__ import annotations
 import argparse, json, pathlib, shutil, sys, time
 import numpy as np
 
-HERE = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
-import act_tagrig_core as core  # noqa: E402
+HERE = pathlib.Path(__file__).resolve().parent
+from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
 
 OUT = HERE / "height_calib.json"
-ANCHORS = pathlib.Path.home() / "ego_collector/configs/calibration/start_anchors_v003_70mm.json"
+ANCHORS = egopaths.DATA_CALIB / "start_anchors_v003_70mm.json"
 TABLE_Z = 0.001        # anchors file: tags lie on the table -> z = 0.001 m in B
 
 
@@ -62,7 +63,7 @@ def camxy():
     on the table (z = 0.001) is the true B position, the pivot touches (pending p400 / p401) give the robot-FK position of the same
     point -> per-arm xy shift B - robot, stored into height_calib.json (plane untouched)"""
     import cv2, urllib.request
-    C = pathlib.Path.home() / "ego_collector/configs/calibration"
+    C = egopaths.DATA_CALIB
     K = json.loads((C / "robot_cam_v001.json").read_text())["intrinsics"]; Km = np.array([[K["fx"], 0, K["cx"]], [0, K["fy"], K["cy"]], [0, 0, 1]])
     T_B_C = np.array(json.loads((C / "robot_cam_v005.json").read_text())["T_B_C"])
     b = urllib.request.urlopen("http://127.0.0.1:8770/stream/global", timeout=3).read(400000)

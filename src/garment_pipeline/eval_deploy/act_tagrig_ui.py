@@ -19,24 +19,25 @@ import argparse, json, pathlib, sys, threading, time, traceback
 import cv2
 import numpy as np
 
-HERE = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
-import act_tagrig_core as core  # noqa: E402
-import act_tagrig_deploy as dep  # noqa: E402
+HERE = pathlib.Path(__file__).resolve().parent
+from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
+from garment_pipeline.eval_deploy import act_tagrig_deploy as dep  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
 
 SETTINGS = HERE / "act_tagrig_ui_settings.json"
-XVLA_FT = pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints")
+XVLA_FT = (egopaths.CKPT_ROOT / "ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints")
 DEFAULTS = dict(policy="act", ckpt_act=str(core.CKPT), ckpt_dit=str(core.DIT_CKPT), ckpt_xvla=str(XVLA_FT / "100000"), commit_act=1, commit_dit=4, commit_xvla=8,
                 speed=0.5, slow_start_speed=0.25, active_arms="both", grip_fake_open=False, rtc="blend", z_offset_mm=0.0, height_calib=False, tens=False, grip_cont=True, grip_mode="linear", grip_gain=10.0,
                 secs=60.0, dit_steps=10, show_umi_ref=False)
 CK_DIRS = {"act": [core.LDT / "checkpoints_pod/act_tagrig_v1_1m/checkpoints"],
            "dit": [core.LDT / "checkpoints_pod/dit_tagrig_v1/checkpoints",
                    # 10-28: Exp 1 = DiT Soft-Fold pretrain 300k -> GOLD-281 300k (best offline val/test at 300k), SSD archive
-                   pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod1/DITFT-SFPRE300K-FLAT300-A-GOLD281-BS16-300K/checkpoints"),
+                   (egopaths.CKPT_ROOT / "ckpts/runpod/pod1/DITFT-SFPRE300K-FLAT300-A-GOLD281-BS16-300K/checkpoints"),
                    # 10-30: UMI-style S03 (0.3x) GOLD-281 all-281 B64 BCE GSM, H100 (stopped at epoch 26) + UMI50 0.5x 150 epochs, 4090
-                   pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/runpod/h100/DITFT-MIX3PT100K-S03ALL281-B64-BCE-GSM-E150-NOCLIP/checkpoints"),
-                   pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/4090/DITFT-S03PT50K-UMI50-S05-B64ACC4-BCE-GSM-E150-NOCLIP/checkpoints"),
+                   (egopaths.CKPT_ROOT / "ckpts/runpod/h100/DITFT-MIX3PT100K-S03ALL281-B64-BCE-GSM-E150-NOCLIP/checkpoints"),
+                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-S03PT50K-UMI50-S05-B64ACC4-BCE-GSM-E150-NOCLIP/checkpoints"),
                    # 10-30: today's pinching (A' 53, 0.5x) 1000-epoch run from E150, every 25 epochs; P10 test: 50 ep 18.5 mm vs E150 28.5
-                   pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints")],
+                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints")],
            "xvla": [XVLA_FT]}         # 10-28: Exp 3 X-VLA through deploy/xvla_server.py (:8775, separate venv)
 
 
@@ -115,12 +116,12 @@ class App:
 
     def _umi_refs(self):
         try:
-            from act_tagrig_domain_gap import umi_frames
+            from garment_pipeline.eval_deploy.act_tagrig_domain_gap import umi_frames
             U = umi_frames(1, start_only=True); return {s: cv2.imread(str(U[s][len(U[s]) // 2])) for s in core.SIDES}
         except Exception: return {}
 
     def _jaw_loop(self):
-        from act_tagrig_domain_gap import measure
+        from garment_pipeline.eval_deploy.act_tagrig_domain_gap import measure
         while True:
             if self.s.get("show_umi_ref"):
                 for s in core.SIDES:
@@ -268,7 +269,7 @@ class App:
         g = cv2.imdecode(np.frombuffer(x[1], np.uint8), cv2.IMREAD_COLOR); T_C_B, K = core.robot_cam(); c = self.ctl
         # 11-01 user "UI 에서 TCP 가 벗어나": the Orbbec extrinsic is in the label B frame, FK is the robot's -> map FK points to B with
         # deploy/height_calib.json (per-arm xy shift from the tag camera ray + table-height plane) before projecting
-        import height_calib as HC; hc = HC.load(); toB = lambda s_, P_: HC.to_B(hc, s_, P_)
+        from garment_pipeline.eval_deploy import height_calib as HC; hc = HC.load(); toB = lambda s_, P_: HC.to_B(hc, s_, P_)
         snap = c.snap if (c is not None and self.mode in ("dry", "go")) else None
         _, (q, _, _) = self.rig.rob.ring.latest()
         if q is not None:

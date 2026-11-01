@@ -45,7 +45,7 @@ SpeedFolding (Y. Avigal et al., IROS 2022), FlingBot (H. Ha and S. Song, CoRL 20
 
 ## This repository
 
-The full project code is here: `src/visual_teleop/`, `src/rebot_prep/`, `scripts/{pose,retarget,evaluation,deploy,processing}/`,
+The full project code is here: `src/visual_teleop/`, `src/rebot_prep/`, `src/garment_pipeline/`, `scripts/{pose,retarget,evaluation,deploy}/`,
 `configs/` and `legacy/` (merged on 1 November 2026 from the project's former working repository,
 `egocentric-laundry-folding`). The code in `src/egogarment/` (with thin command wrappers in `scripts/`) and the
 generator in `examples/` are small standalone re-implementations written for this repository; they depend only on

@@ -12,9 +12,8 @@ import cv2, numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]
-sys.path[:0] = [str(ROOT), str(ROOT / "stitch")]
-import core as C  # noqa
-import camcal  # noqa
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
 FD = C.FD
 T_C_B = np.array(json.loads((FD.EGO / "configs/calibration/robot_cam_v001.json").read_text())["T_C_B"])
 RAW_VAR = "fus_R_s"

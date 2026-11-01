@@ -16,10 +16,11 @@ wrong burst (> 10 cm, unknown frames joined only between wrong frames), trusted 
 import json, sys
 from pathlib import Path
 import cv2, numpy as np
-HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE.parent)); sys.path.insert(1, str(HERE.parents[2]))
-import core as C  # noqa
-import v32_common as V  # noqa
-import camcal  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import v32_common as V  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD
 P = dict(INL=0.025, MIN_INL=6, MIN_FRAC=0.4, HIGH_INL=10, SPREAD_MIN=0.012, OUT_N=3, PROB_N=4, AGE_FULL=30, REFILL_FRAC=0.5, RES_HI=0.012,
          REFILL_GAP_S=0.5, N_ADD=15, BODY_R=0.08, FIT_MIN=0.3, GATE0=0.05, GATE_V=1.0, GATE_MAX=0.4)
@@ -113,14 +114,14 @@ def solve_arm(PT, VIS, qstart, kind, Rm, t, j0, T0, M, fit_fn):
     return c, conf, ntr, events
 
 
-sys.path.insert(0, str(HERE.parents[2] / "stitch")); from wdo import hidden_mask  # noqa
+from garment_pipeline.fusion_stack.stitch.wdo import hidden_mask  # noqa
 HOFF = int(sys.argv[2]) if len(sys.argv) > 2 else None      # hidden-tag run offset: yaw anchor from visible tags only -> solve2_<arm>_h<off>.npz
 for d in sorted(Path(sys.argv[1]).iterdir()):
     if not (d / "tracks.npz").exists(): continue
     meta = json.loads((d / "meta.json").read_text()); take = meta["take"]; TBC = camcal.T_B_C(take); ks = np.array(meta["ks"]); trz = np.load(d / "tracks.npz"); TR, VIS = trz["tracks"], trz["vis"].astype(float)
     tk = FD.TAG / take; I = json.loads((tk / "meta.json").read_text())["intrinsics"]; aq = np.array(meta["arm_of_query"]); kind = np.array(meta["query_kind"]); qs = np.array(meta["queries"])[:, 0].astype(int)
     ref = np.load(HERE.parent / f"out/trackv31speed_{take}.npz"); tfull = ref["t_ns"]; z_tab = float(ref["z_table"]); t = tfull[ks]
-    asg = json.loads((Path.home() / "laundry_dit_training/data/tag_rig_derived" / take / "assignment.json").read_text())
+    asg = json.loads((egopaths.DERIVED / take / "assignment.json").read_text())
     base_name = "trackv4speed" if (HERE.parent / f"out/trackv4speed_{take}.npz").exists() else "trackv31speed"; base = np.load(HERE.parent / f"out/{base_name}_{take}.npz")
     depth = [cv2.imread(str(tk / f"depth_{k:05d}.png"), -1) for k in ks]; PT = lift_all(depth, TR, I)
     gray = {}

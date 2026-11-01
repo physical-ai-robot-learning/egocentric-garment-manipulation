@@ -9,9 +9,10 @@ Then the in-view episodes keep their GOLD / SILVER / REJECT class; folders of ha
 import json, os, sys
 from pathlib import Path
 import numpy as np, pandas as pd
-HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]; sys.path[:0] = [str(ROOT)]
-import core as C  # noqa
-import camcal  # noqa
+HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD; EDGE, MIN_GAP_S, W_, H_ = 40, 0.5, 848, 480
 T_C_B = np.array(json.loads((FD.EGO / "configs/calibration/robot_cam_v001.json").read_text())["T_C_B"])
 
@@ -57,7 +58,7 @@ def main(qcsv, renders, out, packs):
         global T_C_B; T_C_B = camcal.T_C_B(r["take"])
         key = f"{r['take']}_d{int(r['demo']):02d}"; d = loc[key]; W = {w["demo"]: w for w in FD.trims()[r["take"]]}[int(r["demo"])]
         I = json.loads((FD.TAG / r["take"] / "meta.json").read_text())["intrinsics"]; row = dict(r)
-        asg = json.loads((Path.home() / "laundry_dit_training/data/tag_rig_derived" / r["take"] / "assignment.json").read_text())
+        asg = json.loads((egopaths.DERIVED / r["take"] / "assignment.json").read_text())
         off = json.loads((HERE.parent / "body_offset_by_rig_v1.json").read_text())["offsets_by_rig"]
         for a in ("left", "right"): OFFS[a] = np.array(off[asg["rig_of_arm"][a]]) / 1000
         for a in ("left", "right"):

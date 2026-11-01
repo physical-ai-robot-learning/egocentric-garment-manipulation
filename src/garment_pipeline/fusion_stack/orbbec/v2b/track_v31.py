@@ -36,11 +36,11 @@ import json, os, sys
 from pathlib import Path
 import cv2, numpy as np
 from scipy.optimize import linear_sum_assignment
-HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE.parents[2] / "_fgo_1023/tools"))
-import fgo_data as FD  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fgo_tools import fgo_data as FD  # noqa
 OUT = HERE / "out"; OUT.mkdir(exist_ok=True)
 SEEDS = json.loads((HERE / "start_seed_v1.json").read_text())   # per-take override start_seed_<take>.json (10-26: fixed tags / start spots moved)
-sys.path.insert(0, str(HERE.parents[1])); import camcal  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
 P = dict(DARK=40, H_MIN=0.020, H_MAX=0.65, STRIDE=2, K_OPEN=15, TH=0.025, W_FLAT=0.3, BW=0.07, MIN_PTS=60, EXT_MAX=0.09, MERGE=0.06,
          R_GATE=0.07, V_GATE=0.5, GATE_LOST=0.6, LOST_S=0.3, SIDE_W=1.0, MIN_SEP=0.10, JUMP=0.06, N_SEEDS=4,
          SEED_R=0.15, SEED_TIMEOUT_S=3.0, VEL_DT_MIN=0.05, VEL_DT_MAX=0.25, ROI_PAD=0.02,
@@ -83,7 +83,7 @@ def main(take):
     tb = np.concatenate(tb); roi = (np.percentile(tb[:, 0], 1) - P["ROI_PAD"], np.percentile(tb[:, 0], 99) + P["ROI_PAD"], np.percentile(tb[:, 1], 1) - P["ROI_PAD"], np.percentile(tb[:, 1], 99) + P["ROI_PAD"])
     sx = [SEEDS[a][0] for a in ("left", "right")]; sy = [SEEDS[a][1] for a in ("left", "right")]
     roi = (max(roi[0], min(sx) - P["WS_R"]), min(roi[1], max(sx) + P["WS_R"]), max(roi[2], min(sy) - P["WS_R"]), min(roi[3], max(sy) + P["WS_R"]))   # (8)
-    sys.path.insert(1, str(HERE.parents[1])); sys.path.insert(1, str(HERE)); import imu_motion as IM  # noqa
+    from garment_pipeline.fusion_stack.orbbec.v2b import imu_motion as IM  # noqa
     from scipy.ndimage import gaussian_filter1d
     omega = {}
     for a in ("left", "right"):

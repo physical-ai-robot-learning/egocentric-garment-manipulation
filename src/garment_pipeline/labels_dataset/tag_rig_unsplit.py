@@ -21,8 +21,7 @@ import argparse, csv, json, pathlib, shutil, sys, time
 import cv2, numpy as np
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system"))
-import tag_rig_to_lerobot as T2L  # noqa: E402
+from garment_pipeline.labels_dataset import tag_rig_to_lerobot as T2L  # noqa: E402
 from xvla_core import abs_action_rows, nearest_frame, resample_pose  # noqa: E402
 from umi_to_lerobot import ABS_NAMES, proprio_rows_lr  # noqa: E402
 from contracts.action_contract import ACTION_DT_S, T_to_pose9, make_T  # noqa: E402

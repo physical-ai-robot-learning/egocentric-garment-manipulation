@@ -16,13 +16,14 @@ import argparse, json, pathlib, sys, time
 import cv2
 import numpy as np
 
-HERE = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
-import act_tagrig_core as core  # noqa: E402
-from act_tagrig_deploy import CAMS_CFG, DESKTOP, OUT, WristCam, recorder_running, umi_location_warning  # noqa: E402
+HERE = pathlib.Path(__file__).resolve().parent
+from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
+from garment_pipeline.eval_deploy.act_tagrig_deploy import CAMS_CFG, DESKTOP, OUT, WristCam, recorder_running, umi_location_warning  # noqa: E402
 
-TAG = pathlib.Path.home() / "ego_collector/datasets/tag_rig"
-FISHEYE = {"left": pathlib.Path.home() / "ego_collector/configs/calibration/fisheye_left_v002.yaml",
-           "right": pathlib.Path.home() / "ego_collector/configs/calibration/fisheye_right_v002.yaml"}
+TAG = egopaths.TAG_RIG
+FISHEYE = {"left": egopaths.DATA_CALIB / "fisheye_left_v002.yaml",
+           "right": egopaths.DATA_CALIB / "fisheye_right_v002.yaml"}
 
 
 def jaw_mask(bgr):

@@ -25,9 +25,11 @@
 > 파이프라인, DiT 학습기와 deploy 루프([`scripts/`](#3-구성-요소)), 캘리브레이션 결과와 로봇 설정([`configs/`](configs/README.md)),
 > HandUMI 제작 사본([`hardware/umihand/`](hardware/umihand/README.md)), 더 이상 안 쓰는 코드([`legacy/`](legacy/README.md)),
 > 테크니컬 리포트, 세부 문서와 미디어. [`src/egogarment/`](src/egogarment/README.md)는 따로 만든 작은 독립 재구현으로, 궤적 단계를
-> [`examples/`](examples/README.md)의 합성 데이터로 돌립니다. 한계 두 가지: [`scripts/processing/`](scripts/processing/README.md)은
-> 돌던 그대로의 snapshot이라 import와 경로가 원래 machine 구조를 가리키므로 **이 저장소만으로는 실행할 수 없습니다**. 원본 녹화,
-> 학습된 checkpoint, reBot 제조사 플러그인과 URDF는 포함하지 않았습니다. X-VLA 파인튜닝 코드는 이 저장소에 없습니다.
+> [`examples/`](examples/README.md)의 합성 데이터로 돌립니다. 학습 데이터 파이프라인은 설치 가능한 패키지
+> [`src/garment_pipeline/`](src/garment_pipeline/README.md)입니다(`python -m garment_pipeline.<단계>.<모듈>`). 파일 위치는
+> [`egogarment.paths`](src/egogarment/paths.py)에서 옵니다(환경 변수 `EGO_DATA_ROOT`, `EGO_TRAIN_ROOT`, `EGO_CKPT_ROOT`).
+> 실행에는 실제 데이터가 필요합니다: 원본 녹화, 학습된 checkpoint, reBot 제조사 플러그인과 URDF는 포함하지 않았고, 일부 단계는
+> GPU나 로봇이 필요합니다. X-VLA 파인튜닝 코드는 이 저장소에 없습니다.
 
 **사람 시연(왼쪽) vs 변환한 궤적의 로봇 재생(오른쪽).** 같은 고정 카메라, 하나의 시계로 맞췄고 사람 속도로 보여 줍니다. 막대는
 로봇 집게 명령입니다.
@@ -101,10 +103,10 @@ IK 이전 Cartesian 포즈입니다. 공개 천 데이터로 pretrain한 정책�
 flowchart LR
   A["0단계<br/>캘리브레이션<br/>scripts/pose"] --> B["1단계<br/>녹화<br/>visual_teleop.tools.tag_rig_record"]
   B --> C["2단계<br/>태그 위치 + 집게 상태<br/>scripts/pose · rebot_prep.parity"]
-  C --> D["3–4단계<br/>CoTracker + 마커 + IMU fusion,<br/>trim, GOLD/SILVER/REJECT<br/>scripts/processing/fusion_stack"]
-  D --> E["5단계<br/>라벨 + LeRobot 데이터셋<br/>scripts/processing/labels_dataset"]
-  E --> F["6단계<br/>학습<br/>scripts/processing/training (DiT)"]
-  F --> G["7단계<br/>deploy + 평가<br/>scripts/processing/eval_deploy · scripts/deploy"]
+  C --> D["3–4단계<br/>CoTracker + 마커 + IMU fusion,<br/>trim, GOLD/SILVER/REJECT<br/>src/garment_pipeline/fusion_stack"]
+  D --> E["5단계<br/>라벨 + LeRobot 데이터셋<br/>src/garment_pipeline/labels_dataset"]
+  E --> F["6단계<br/>학습<br/>src/garment_pipeline/training (DiT)"]
+  F --> G["7단계<br/>deploy + 평가<br/>src/garment_pipeline/eval_deploy · scripts/deploy"]
   C -. 재생 트랙 .-> R["로봇화 → 계획 → 재생 → 비교<br/>scripts/retarget · visual_teleop.tools.umi_replay_bi · scripts/evaluation"]
 ```
 
@@ -136,7 +138,7 @@ flowchart LR
 | 로봇 쪽 패키지 | [`src/visual_teleop/`](src/visual_teleop/README.md) | 1, 2, 재생, 7 | 현재 (실시간 teleop은 보류) | 녹화기, 집게 분류기, reBot IK·제한·안전, 브리지 시작, 재생 계획 |
 | 태그 리그 모듈 | [`src/rebot_prep/`](src/rebot_prep/README.md) | 2 | 현재 | 여러 script가 같이 쓰는 태그 위치·fusion 코드 (`rebot_prep.parity`) |
 | 위치 + 캘리브레이션 | [`scripts/pose/`](scripts/pose/README.md) | 0, 2 | 현재 | 카메라 ↔ 로봇, 태그 리그 → 집게 끝, 태그 → 집게 끝 궤적, 집게 열림 정도, 서보로 집게 상태 |
-| 학습 데이터 파이프라인 | [`scripts/processing/`](scripts/processing/README.md) | 3–5, 6 (DiT), 7 | 현재 (snapshot 기록, 이 저장소만으로는 실행 불가) | CoTracker + 마커 + IMU fusion, gate, trim, 품질 등급, 라벨, LeRobot 데이터셋, DiT 학습기, 오프라인 평가, deploy |
+| 학습 데이터 파이프라인 | [`src/garment_pipeline/`](src/garment_pipeline/README.md) | 3–5, 6 (DiT), 7 | 현재 (설치 가능한 패키지. 녹화 데이터, CoTracker·학습용 GPU, deploy용 로봇 필요) | CoTracker + 마커 + IMU fusion, gate, trim, 품질 등급, 라벨, LeRobot 데이터셋, DiT 학습기, 오프라인 평가, deploy |
 | 리타깃 | [`scripts/retarget/`](scripts/retarget/README.md) | 재생 | 현재 (재생 트랙) | UMI ↔ reBot EEF 정렬, 양손 시연의 로봇화 |
 | 평가 | [`scripts/evaluation/`](scripts/evaluation/README.md) | 재생 | 현재 (재생 트랙) | 사람·명령·로봇 비교, 나란히 보기 영상, 계획 회귀 검사 |
 | 로봇 브리지 | [`scripts/deploy/`](scripts/deploy/README.md) | 7 | 현재 | reBot MIT 브리지 + 집게/관절 영점 도구 |
@@ -159,8 +161,9 @@ flowchart LR
 ## 4. 설치
 
 ```bash
-python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; src/의 egogarment, visual_teleop, rebot_prep 패키지,
-                                     # egogarment-* 콘솔 명령, pytest (Python >= 3.10)
+python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; src/의 egogarment, garment_pipeline, visual_teleop,
+                                     # rebot_prep 패키지(+ 복사해 온 보조 모듈), egogarment-* 콘솔 명령, pytest (Python >= 3.10)
+pip install -e ".[pipeline]"         # + pandas, OpenCV < 5 (garment_pipeline의 fusion / 라벨 / 데이터셋 단계)
 pip install -e ".[vision]"           # + OpenCV < 5 (태그 위치, 영상)
 pip install -e ".[robot]"            # + Pink / pinocchio IK, HTTP 브리지 클라이언트
 pip install -e ".[jaw]"              # + torch / ultralytics / flask (집게 분류기와 keypoint)
@@ -174,10 +177,13 @@ python -m pip install -r requirements.txt
 
 참고:
 - 원래 실행은 여러 인터프리터로 했습니다: 녹화기는 저장소 `.venv`(macOS에서 Orbbec 때문에 `sudo`), IK·브리지 시작·재생은
-  Pink / pinocchio가 있는 X-VLA 환경, 집게 keypoint script는 별도 ultralytics 환경. 일부 모듈은 이 저장소에 없는 패키지
-  (`ego_teleop`, `ego_collector`, `handumi_collector`, reBot 제조사 LeRobot 플러그인)를 import합니다.
-- `scripts/processing/`는 돌던 그대로의 snapshot이라 import가 원래 machine의 경로를 가리키므로([README](scripts/processing/README.md)),
-  이 저장소만으로는 실행할 수 없습니다.
+  Pink / pinocchio가 있는 X-VLA 환경, 집게 keypoint script는 별도 ultralytics 환경. 코드가 프로젝트의 다른 작업 폴더에서
+  import하던 보조 모듈(`contracts`, `xvla_core`, `umi_to_lerobot`, `ego_teleop`·`ego_collector`·`handumi_collector` 중 쓰는 부분)은
+  `src/`에 복사해 두었습니다([출처 + md5](docs/provenance.md)). 아직 밖에 있는 것: reBot 제조사 LeRobot 플러그인, X-VLA 학습 패치.
+- `src/garment_pipeline/`는 기본값으로 원래 machine의 데이터 폴더를 읽고 씁니다. 다른 위치를 쓰려면 `EGO_DATA_ROOT`(녹화,
+  캘리브레이션), `EGO_TRAIN_ROOT`(파생 궤적, 리포트, 데이터셋), `EGO_CKPT_ROOT`(checkpoint 보관)를 설정합니다
+  ([`src/egogarment/paths.py`](src/egogarment/paths.py)). 학습과 X-VLA 서버는 기본 설치가 아니라 LeRobot / X-VLA 환경(torch,
+  lerobot, diffusers)이 필요합니다.
 - 포함하지 않은 것: 원본 데이터, 학습된 checkpoint, reBot 제조사 플러그인과 URDF, ORB-SLAM3 소스.
 
 ## 5. 파이프라인
@@ -226,7 +232,7 @@ python -m pip install -r requirements.txt
 ### 실제 데이터 명령 (0–7단계)
 
 명령은 저장소 루트에서 실행하며, 이 저장소에 없는 녹화 take가 필요합니다. 단계별 자세한 표:
-[scripts/processing/README.md](scripts/processing/README.md)(학습 데이터 파이프라인 12단계)와
+[src/garment_pipeline/README.md](src/garment_pipeline/README.md)(학습 데이터 파이프라인 12단계와 단계별 필요한 것)와
 [docs/pipeline_replay_track.md](docs/pipeline_replay_track.md)(재생 트랙).
 
 **0단계 · 캘리브레이션** (한 번, 카메라 ↔ 로봇은 카메라를 옮길 때마다)
@@ -255,37 +261,37 @@ python scripts/pose/jaw_from_motor.py <take>                                # gr
 캘리브레이션 범위를 벗어나면 음성으로 알립니다. `jaw_from_motor.py`는 손별 캘리브레이션(닫힘 … 열림 tick)으로 `g_cont`를 만들고,
 히스테리시스 + 최소 유지 시간으로 열림/닫힘 이벤트를 붙이며, 다시 꽂거나 전원을 껐다 켜면 값 전체가 밀리기 때문에 take마다 재중심합니다.
 
-**3단계 · CoTracker + 마커 + IMU fusion** (아래 경로는 `scripts/processing/` 기준)
+**3단계 · CoTracker + 마커 + IMU fusion** (`garment_pipeline` 패키지의 모듈, `pip install -e .`)
 ```bash
-python fusion_stack/orbbec/v2b/new_take_prep.py <take>                          # 팔 배정, 정지 trim, 시작 seed
-python fusion_stack/orbbec/v2b/cotrack/make_pack2.py <pack> <take>:<demo> ...    # CoTracker 질의 점 (리그마다 40개)
-python fusion_stack/orbbec/v2b/cotrack/run_cotracker.py <pack>                   # GPU
-python fusion_stack/orbbec/v2b/cotrack/solve2.py <pack> && python fusion_stack/orbbec/v2b/cotrack/gate.py <pack>
-python fusion_stack/orbbec/v2b/fusion/trajectory_fusion_v1.py <pack> Cg --ct solve3
+python -m garment_pipeline.fusion_stack.orbbec.v2b.new_take_prep <take>                          # 팔 배정, 정지 trim, 시작 seed
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.make_pack2 <pack> <take>:<demo> ...    # CoTracker 질의 점 (리그마다 40개)
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.run_cotracker <pack>                   # GPU
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.solve2 <pack> && python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.gate <pack>
+python -m garment_pipeline.fusion_stack.orbbec.v2b.fusion.trajectory_fusion_v1 <pack> Cg --ct solve3
 ```
 
 **4단계 · trim + 품질 등급**
 ```bash
-python fusion_stack/orbbec/v2b/tighten_trim.py <idle_audit.csv> 0.3 && python fusion_stack/orbbec/v2b/edge_gap_trim.py <pack> ...
-python fusion_stack/orbbec/v2b/cotrack/episode_quality.py <quality.csv> <pack> ...   # GOLD / SILVER / REJECT
+python -m garment_pipeline.fusion_stack.orbbec.v2b.tighten_trim <idle_audit.csv> 0.3 && python -m garment_pipeline.fusion_stack.orbbec.v2b.edge_gap_trim <pack> ...
+python -m garment_pipeline.fusion_stack.orbbec.v2b.cotrack.episode_quality <quality.csv> <pack> ...   # GOLD / SILVER / REJECT
 ```
 
 **5단계 · 라벨 + 데이터셋**
 ```bash
-python labels_dataset/robotize_ik.py <raw take> <derived take> --demos 0,1,... --workers 8   # 라벨 A + B + IK 진단
-python labels_dataset/tag_rig_unsplit.py --label rob --mask-mode stitched --out <dataset> --takes <take> ...
+python -m garment_pipeline.labels_dataset.robotize_ik <raw take> <derived take> --demos 0,1,... --workers 8   # 라벨 A + B + IK 진단
+python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label rob --mask-mode stitched --out <dataset> --takes <take> ...
 # 10-29부터: 라벨 F (측정한 집게 끝, clamp·들어올림 없음), 필요하면 0.3배속으로 늘린 복사본
-python labels_dataset/tag_rig_unsplit.py --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
+python -m garment_pipeline.labels_dataset.tag_rig_unsplit --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
 ```
 
 **6단계 · 학습** — DiT 학습기(집게 BCE head, mask, 에피소드별 가중치, gradient clipping 끔)와 설정은
-`scripts/processing/training/`에 있습니다(11-01 추가). X-VLA 파인튜닝 코드는 이 저장소에 없습니다. 계획(GOLD로 DiT, X-VLA
+`src/garment_pipeline/training/`에 있습니다(11-01 추가). X-VLA 파인튜닝 코드는 이 저장소에 없습니다. 계획(GOLD로 DiT, X-VLA
 파인튜닝)은 [docs/details_ko.md 3.2절](docs/details_ko.md#32-학습-계획)에 있습니다.
 
 **7단계 · deploy + 평가**
 ```bash
-python eval_deploy/act_tagrig_deploy.py run --policy dit --secs 30                # dry run. --go는 로봇 옆에 사람이 있을 때만
-python eval_deploy/tagrig_offline_eval.py --ckpt <run>/checkpoints/last --data <val dataset> --out <report dir>   # k16/k32, 움직임 0 기준선, 집기/자유 구간별
+python -m garment_pipeline.eval_deploy.act_tagrig_deploy run --policy dit --secs 30                # dry run. --go는 로봇 옆에 사람이 있을 때만
+python -m garment_pipeline.eval_deploy.tagrig_offline_eval --ckpt <run>/checkpoints/last --data <val dataset> --out <report dir>   # k16/k32, 움직임 0 기준선, 집기/자유 구간별
 ```
 
 **이전 트랙: open-loop 재생** (1–2단계는 위와 같고, 그다음)
@@ -363,11 +369,16 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 * **`src/`**에는 import하는 코드가 있습니다.
   * `visual_teleop` — 로봇 쪽 도구와 라이브러리(녹화기, 집게 분류기, reBot IK·제한·안전, 브리지 시작, 재생 계획)
   * `rebot_prep.parity` — 여러 script가 import하는 태그 리그 위치 모듈
+  * `garment_pipeline` — 학습 데이터 파이프라인(fusion, 라벨, 데이터셋, DiT 학습기, 평가·deploy), `python -m garment_pipeline.<단계>.<모듈>`로
+    실행. `egogarment.paths` — 파이프라인이 쓰는 데이터·checkpoint 루트
+  * import가 풀리도록 프로젝트의 다른 작업 폴더에서 복사해 온 보조 모듈(`contracts`, `xvla_core`, `umi_to_lerobot`,
+    `umi.common.pose_util`, `ego_teleop` / `ego_collector` / `handumi_collector`의 일부, [출처 + md5](docs/provenance.md))
   * `egogarment` — 독립 재구현, 궤적 구성 요소마다 하위 패키지 하나: `io`(형식), `pose`(끊김 보완, relative SE(3)), `retarget`
     (로봇화), `evaluation`(비교 지표), `viz`(그림). 모든 도구는 라이브러리 API와 `main()` 명령이 있는 모듈입니다.
     자세한 내용: [`src/egogarment/README.md`](src/egogarment/README.md)
-* **`scripts/<단계>/`**에는 파이프라인 단계별 실행 script가 있습니다(`pose`, `retarget`, `evaluation`, `deploy`, `processing`).
-  `scripts/processing/`은 파일끼리 상대 경로로 서로를 찾으므로 한 덩어리로 둡니다. 최상위 **`scripts/*.py`**는 `egogarment`
+* **`scripts/<단계>/`**에는 파이프라인 단계별 실행 script가 있습니다(`pose`, `retarget`, `evaluation`, `deploy`). 학습 데이터
+  파이프라인은 패키지 **`src/garment_pipeline/`**입니다(하위 패키지 `fusion_stack`, `fgo_tools`, `labels_dataset`, `training`,
+  `eval_deploy`, 절대 import, `python -m`으로 실행). 파일 위치는 `egogarment.paths`에서 옵니다. 최상위 **`scripts/*.py`**는 `egogarment`
   모듈마다 하나씩 있는 얇은 wrapper로, 합성 명령이 설치 없이 돌아가게 합니다.
 * 코드가 `<저장소 루트>/configs/...`로 읽기 때문에 **`configs/`**는 최상위에 둡니다(`Path(__file__).parents[n] / "configs/..."`).
 * **`examples/`** — 합성 데이터와 결정적 생성기. **`tests/`** — 그 데이터에 대한 검사, import·경로 smoke test, script의 합성 자체 시험.
@@ -380,11 +391,11 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 
 | 인터페이스 | 정의 | 위치 |
 |---|---|---|
-| 월드 좌표 | reBot 베이스 좌표 B. 카메라 → 베이스 `T_B_C`는 `configs/calibration/robot_cam_v00N.json` (take 날짜로 고름) | `scripts/processing/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
+| 월드 좌표 | reBot 베이스 좌표 B. 카메라 → 베이스 `T_B_C`는 `configs/calibration/robot_cam_v00N.json` (take 날짜로 고름) | `src/garment_pipeline/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
 | take별 집게 끝 궤적 | `umi_traj_{right,left}.npz`: 집게 끝 TCP `p_B`, 리그 회전 `R_B_tcp`, `ntags` | `scripts/pose/umi_tcp_traj.py` |
 | 집게 상태 | `umi_jaw.npz`: `g_cont` 0 = 닫힘 … 1 = 열림, `valid`, `ev_t`. 이진 `state`는 1 = 열림, 0 = 닫힘. 서보에서 만든 파일은 `motor_pos`를 함께 두고 `model = feetech_sts3215_motor` | 영상: `src/visual_teleop/tools/umi_jaw.py`, `scripts/pose/jaw_aperture.py`, 서보(Feetech STS3215, 토크 끈 엔코더, 10-29 →): `scripts/pose/jaw_from_motor.py` |
-| 학습 라벨 | **F**(10-29 →) = IK 이전, 측정한 사람 집게 끝 포즈 그대로, clamp·들어올림 없음(`--label fused`). ~~**A** = IK 이전, reBot 집게 축의 Cartesian 집게 끝 포즈(0.25초 smoothing + 테이블 clearance)~~. **B** = IK → FK(QA용) | `scripts/processing/labels_dataset/robotize_ik.py` (`tag_rig_unsplit.py`의 `--label rob` / `ikfk` / `fused`) |
-| 데이터셋 | LeRobot v3, 20 Hz, 카메라 3대, `observation.state` 30차원, `action` 20차원 absolute = 팔마다 xyz + rot6d + 집게, 차원별 `action_mask[20]` | `scripts/processing/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
+| 학습 라벨 | **F**(10-29 →) = IK 이전, 측정한 사람 집게 끝 포즈 그대로, clamp·들어올림 없음(`--label fused`). ~~**A** = IK 이전, reBot 집게 축의 Cartesian 집게 끝 포즈(0.25초 smoothing + 테이블 clearance)~~. **B** = IK → FK(QA용) | `src/garment_pipeline/labels_dataset/robotize_ik.py` (`tag_rig_unsplit.py`의 `--label rob` / `ikfk` / `fused`) |
+| 데이터셋 | LeRobot v3, 20 Hz, 카메라 3대, `observation.state` 30차원, `action` 20차원 absolute = 팔마다 xyz + rot6d + 집게, 차원별 `action_mask[20]` | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
 | chunk | relative 동작 `inv(T_t)·T_{t+k}`, k = 1…32, 20 Hz, 학습 loader에서 만듦. deploy는 앞 4 step만 실행하고 다시 계획 | [docs/details_ko.md 3.2–3.3절](docs/details_ko.md#33-학습한-정책을-로봇에서-실행하기) |
 | 로봇 모델 보정 | TCP 오프셋, 팔별 관절 영점 오프셋, 왼팔 베이스 자세: `configs/robot/{tcp_override,joint_offset,base_override}_v001.json` | `src/visual_teleop/robot/ik_pink.py`에서 적용 |
 | 단위 | 코드는 미터와 초로 저장(예: 태그 크기 0.048 m). README와 리포트는 mm로 적음 | — |
@@ -505,7 +516,7 @@ python scripts/pose/robot_cam_solve.py --synthetic       # 시뮬레이션 데�
 
 | 부분 | 현재 (11-01) | ~~더 이상 안 씀~~ |
 |---|---|---|
-| 위치 추정 | 고정 카메라의 CoTracker3 점 + AprilTag 기준점 + 상수 bias, IMU 가속도는 끊긴 구간 안에서만 (`scripts/processing/`) | ~~MASt3R 손목 SLAM 끊김 보완~~ (집는 순간 끊김, 10-23) · ~~ORB-SLAM3~~ (스케일 발산, 10-21) · 태그 + IMU만 (재생 트랙에서만) |
+| 위치 추정 | 고정 카메라의 CoTracker3 점 + AprilTag 기준점 + 상수 bias, IMU 가속도는 끊긴 구간 안에서만 (`src/garment_pipeline/`) | ~~MASt3R 손목 SLAM 끊김 보완~~ (집는 순간 끊김, 10-23) · ~~ORB-SLAM3~~ (스케일 발산, 10-21) · 태그 + IMU만 (재생 트랙에서만) |
 | 카메라 ↔ 로봇 | 카메라를 옮길 때마다 테이블 고정 태그 2장 + 테이블 평면으로 다시 풂 (`robot_cam_v002…v005`) | 손목 마커 32자세 풀이 (`v001`, 예전 카메라 위치에서는 유효) |
 | 집게 상태 | 10-29 이후 시연: UMI의 Feetech 서보 값 (`scripts/pose/jaw_from_motor.py`), 그 전 시연(GOLD-281 포함): ResNet18 분류기 v003 → YOLO-pose 집게 끝 → 열림 정도 g. 두 출처는 한 비교 안에서 섞지 않음 | ~~빨간 테이프 집게 검출~~ (10-20 테이프 제거) |
 | 팔 배정 | 집게가 테이블의 어느 쪽에 있는지로 | ~~리그 라벨로~~ (10-22부터 라벨이 바뀌어 있음) |
@@ -560,14 +571,14 @@ GOLD 데모 281개로 파인튜닝한 DiT(Soft-Fold pretrain)와 X-VLA 정책을
 
 | 찾은 것 | 바꾼 것 | 코드 |
 |---|---|---|
-| "테이블 위로 유지" 단계(라벨 A의 테이블 여유)가 라벨 프레임 44 %를 중앙값 27 mm 들어 올림 — 정책이 천까지 내려가는 법을 배우지 못함 | 라벨 F: 측정한 사람 집게 끝 그대로, clamp·들어올림·도달성 수정 없음. 제한은 학습 라벨이 아니라 deploy에서만 | `scripts/processing/labels_dataset/tag_rig_unsplit.py --label fused` |
+| "테이블 위로 유지" 단계(라벨 A의 테이블 여유)가 라벨 프레임 44 %를 중앙값 27 mm 들어 올림 — 정책이 천까지 내려가는 법을 배우지 못함 | 라벨 F: 측정한 사람 집게 끝 그대로, clamp·들어올림·도달성 수정 없음. 제한은 학습 라벨이 아니라 deploy에서만 | `src/garment_pipeline/labels_dataset/tag_rig_unsplit.py --label fused` |
 | 사람 시연이 로봇이 따라가기에 너무 빠름 (p95 약 0.93 m/s, 127 °/s) | 0.3배속으로 늘린 데이터셋 복사본: 포즈, 집게 이벤트, 모든 카메라 프레임을 하나의 느린 시간축에 다시 샘플링, 행은 20 Hz 유지 | `tag_rig_unsplit.py --speed 0.3` |
 | 집게 라벨이 손목 영상에서 집게를 읽는 모델에서 나왔고, 실제 집게 열림과 달랐음 | 10-29부터 손에 끼는 집게에 서보가 있고, 새 시연의 집게 라벨 = 엔코더 값(take마다 재중심). 두 출처의 라벨은 따로 두고 한 비교 안에서 섞지 않음 | `scripts/pose/jaw_from_motor.py`, 예전 시연 재라벨 시도 `scripts/pose/jaw_motorlike.py` (적용 안 함) |
 | 로봇 손목 카메라가 손에 끼는 집게와 다른 위치에서 집게를 봄 | 테이블 마커로 측정: 로봇 카메라가 공구 축 쪽으로 11–13° 덜 기울고 25–44 mm 더 가까움. 다음은 손에 끼는 집게 형상에 맞춰 재장착 | — |
 
 함께 추가(진행 중, **로봇에서 아직 검증 안 됨**): 테이블 태그를 집게로 찍어 팔별 높이 평면을 맞추는 캘리브레이션
-(`scripts/processing/eval_deploy/height_calib.py`), 계획 사이 real-time chunking blend(`act_tagrig_core.py`, 오프라인 시험만),
-X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `scripts/processing/training/` (집게 BCE head, mask, 에피소드별 가중치가 있는 DiT
+(`src/garment_pipeline/eval_deploy/height_calib.py`), 계획 사이 real-time chunking blend(`act_tagrig_core.py`, 오프라인 시험만),
+X-VLA 정책 서버(`xvla_server.py`). 학습 코드: `src/garment_pipeline/training/` (집게 BCE head, mask, 에피소드별 가중치가 있는 DiT
 학습기, gradient clipping 끔).
 
 ### 연구 방향

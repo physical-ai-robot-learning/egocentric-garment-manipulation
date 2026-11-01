@@ -19,8 +19,8 @@ import scipy.sparse as sp
 from scipy.sparse.linalg import splu
 from scipy.spatial.transform import Rotation as R, Slerp
 
-HERE = Path(__file__).parent; sys.path.insert(0, str(HERE.parent))
-from core import FD, FC, load_segs_raw, calibrate, prep_seg, gyro_rel  # noqa: E402
+HERE = Path(__file__).parent
+from garment_pipeline.fusion_stack.core import FD, FC, load_segs_raw, calibrate, prep_seg, gyro_rel  # noqa: E402
 
 DT = 0.05; KNOT_S = 1.5
 SIG = dict(abs_prior=1e6, slam=0.003, tag2=0.004, tag1=0.008, acc_info=30.0, acc_gap=3.0, scale_prior=0.5, knot_rw=0.05, imu_acc=2.0, cauchy=3.0, rot_bad_w=0.1)

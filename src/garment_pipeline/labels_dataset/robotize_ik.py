@@ -26,7 +26,8 @@ import argparse, json, sys, time
 from pathlib import Path
 import numpy as np
 
-EGO = Path.home() / "ego_collector"; sys.path.insert(0, str(EGO))
+from egogarment import paths as egopaths  # noqa: E402
+EGO = egopaths.DATA_ROOT
 DT = 0.05
 ALIGN = {"right": EGO / "configs/calibration/umi_gripper_align_v001.json", "left": EGO / "configs/calibration/umi_gripper_align_left_v001.json"}
 

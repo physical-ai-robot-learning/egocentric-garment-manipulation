@@ -19,9 +19,8 @@ from types import SimpleNamespace
 import cv2
 import numpy as np
 
-HOME = pathlib.Path.home(); LDT = HOME / "laundry_dit_training"
-for p_ in (LDT / "training", LDT / "datasets", LDT / "evaluation", HOME / "laundry_system", HOME / "ego_collector"):
-    if str(p_) not in sys.path: sys.path.insert(0, str(p_))
+from egogarment import paths as egopaths  # noqa: E402
+LDT = egopaths.TRAIN_ROOT
 from contracts.action_contract import T_to_pose9, inv_T, make_T, pose9_to_T  # noqa: E402
 
 CKPT = LDT / "checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000"
@@ -32,10 +31,10 @@ SIDES = ("left", "right")
 SL = {"left": slice(0, 9), "right": slice(9, 18)}
 GI = {"left": 18, "right": 19}
 DT = 0.05
-ROBOT_CAM = HOME / "ego_collector/configs/calibration/robot_cam_v001.json"
+ROBOT_CAM = egopaths.DATA_CALIB / "robot_cam_v001.json"
 # 10-29: the Orbbec was raised on 10-26 -> the overlay extrinsic is v005 (fixed tags + table plane, 10-26 12:08; FK TCP lands on the
 # real jaw tips, checked on the live frame), intrinsics still from v001 (v002+ store no intrinsics).  Display only (UI + run video).
-ROBOT_CAM_EXT = HOME / "ego_collector/configs/calibration/robot_cam_v005.json"
+ROBOT_CAM_EXT = egopaths.DATA_CALIB / "robot_cam_v005.json"
 
 
 # ---------------------------------------------------------------- images
@@ -112,7 +111,7 @@ class PolicyRunner:
     torch.manual_seed(seed) before sampling, rows 1..32 of the 33; n_samples > 1 = mean of K batched samples (dit_serving style)."""
     def __init__(self, ckpt=CKPT, device="mps", n_samples=1):
         import torch
-        from tagrig_offline_eval import load
+        from garment_pipeline.eval_deploy.tagrig_offline_eval import load
         self.torch = torch; self.device = device; self.n_samples = int(n_samples)
         self.cfg, self.pol, self.pre, self.post = load(str(ckpt), device)
         self.kind = self.cfg.type; self.n_obs = int(self.cfg.n_obs_steps)
@@ -194,7 +193,7 @@ class XvlaRunner:
     state20 = RELCART20 task anchor = proprio[0:20] (episode-anchor poses + grippers) in those axes; chunk out (32, 20) contract rows
     with grippers = P(open).  Workspace = the TCP range of the GOLD train root (Exp 1 DiT checkpoint stats, same data)."""
     RY = np.array([[0., 0., -1.], [0., 1., 0.], [1., 0., 0.]])
-    WS_STATS = pathlib.Path("/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod1/DITFT-SFPRE300K-FLAT300-A-GOLD281-BS16-300K/checkpoints/300000/pretrained_model")
+    WS_STATS = (egopaths.CKPT_ROOT / "ckpts/runpod/pod1/DITFT-SFPRE300K-FLAT300-A-GOLD281-BS16-300K/checkpoints/300000/pretrained_model")
 
     def __init__(self, ckpt, url="http://127.0.0.1:8775"):
         import requests
@@ -317,7 +316,7 @@ ROBOTIZE_ARGS = dict(ik_step=7.5, ori_cost=0.1, table_z=0.003, tip_clear=0.005, 
 def make_arms(**over):
     """robotize_ik.Arm per side: Pink solver with the bridge joint limits (0.5 deg inside), joint/base/TCP overrides, orientation
     cost 0.1, 7.5 deg/step bound; corner_lift (finger-corner table floor); link-origin set for the 120 mm gap"""
-    from robotize_ik import Arm
+    from garment_pipeline.labels_dataset.robotize_ik import Arm
     a = SimpleNamespace(**{**ROBOTIZE_ARGS, **over})
     return {s: Arm(s, a) for s in SIDES}, a
 

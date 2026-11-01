@@ -14,7 +14,6 @@ import json, pathlib, sys
 import numpy as np
 import torch
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "datasets"))
 from xvla_core import relative_chunk_from_abs  # noqa: E402
 from contracts.action_contract import T_to_pose9  # noqa: E402
 

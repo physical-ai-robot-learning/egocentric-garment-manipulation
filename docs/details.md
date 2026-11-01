@@ -15,7 +15,7 @@
 ## 3. Current pipeline: policy training data (2026-10-26 / 27)
 
 For learning a policy (not open-loop replay) the pose source and the labels were rebuilt on top of the replay track's
-calibration, recorder and robot tools. Code and the 12-stage map: [scripts/processing/README.md](../scripts/processing/README.md).
+calibration, recorder and robot tools. Code and the 12-stage map: [src/garment_pipeline/README.md](../src/garment_pipeline/README.md).
 
 ### 3.1 Data: 300 flattening demonstrations
 

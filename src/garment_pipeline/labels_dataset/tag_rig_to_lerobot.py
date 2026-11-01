@@ -43,13 +43,13 @@ import argparse, csv, json, pathlib, shutil, subprocess, sys, time
 import cv2, numpy as np
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system"))
 from xvla_core import abs_action_rows, nearest_frame, resample_pose, valid_segments  # noqa: E402
 from umi_to_lerobot import ABS_NAMES, proprio_rows_lr  # noqa: E402
 from contracts.action_contract import ACTION_DT_S, T_to_pose9, make_T  # noqa: E402
 from contracts.observation_contract import PROPRIO_DIM, PROPRIO_NAMES  # noqa: E402
 
-EGO = pathlib.Path.home() / "ego_collector"
+from egogarment import paths as egopaths  # noqa: E402
+EGO = egopaths.DATA_ROOT
 EGO_PY = EGO / ".venv/bin/python"
 ALIGN = {"right": EGO / "configs/calibration/umi_gripper_align_v001.json", "left": EGO / "configs/calibration/umi_gripper_align_left_v001.json"}
 ROBOTIZE_ARGS = ["--clear", "0", "--sep", "0.06", "--min-reach", "0"]
@@ -163,7 +163,12 @@ GAP_KEYS = ("fused_valid", "valid", "ok")   # fused files: if one of these per-s
 
 
 IK_WORKERS = 6
-IK_PY = pathlib.Path.home() / "xvla-mac/bin/python"
+
+
+def _src_env():
+    import os
+    return {**os.environ, "PYTHONPATH": os.pathsep.join(p for p in (str(egopaths.SRC_ROOT), os.environ.get("PYTHONPATH", "")) if p)}
+IK_PY = egopaths.IK_PYTHON
 
 
 def prep_take(take, derived_root, force=False):
@@ -184,7 +189,8 @@ def prep_take(take, derived_root, force=False):
         if r.returncode: raise RuntimeError(f"robotize failed: {r.stderr[-500:]}")
         (d / "robotize.log").write_text(r.stdout)
     if ROBOTIZE == "ik_v1":                                  # datasets/robotize_ik.py per demo (skips demos already done)
-        r = subprocess.run([str(IK_PY), str(HERE / "robotize_ik.py"), str(take), str(d), "--workers", str(IK_WORKERS)], capture_output=True, text=True)
+        r = subprocess.run([str(IK_PY), str(HERE / "robotize_ik.py"), str(take), str(d), "--workers", str(IK_WORKERS)], capture_output=True, text=True,
+                           env=_src_env())   # src/ on PYTHONPATH: robotize_ik imports egogarment / visual_teleop / ego_teleop from this repo
         (d / "robotize_ik.log").open("a").write(r.stdout + r.stderr[-2000:])
         if r.returncode: raise RuntimeError(f"robotize_ik failed: {r.stderr[-500:]}")
     asg["robotize"] = ROBOTIZE; return asg

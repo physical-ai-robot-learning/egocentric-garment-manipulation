@@ -4,7 +4,8 @@ Writes ~/laundry_dit_training/reports/idle_trim.csv (all 10-22 takes + the two v
 import csv, json, pathlib
 import numpy as np
 
-TAG = pathlib.Path.home() / "ego_collector/datasets/tag_rig"; DER = pathlib.Path.home() / "laundry_dit_training/data/tag_rig_derived"
+from egogarment import paths as egopaths  # noqa: E402
+TAG = egopaths.TAG_RIG; DER = egopaths.DERIVED
 GYR, VEL, MARGIN, GAP_MERGE = 0.35, 0.03, 0.5, 2.0
 TAKES = sorted(p.name for p in TAG.glob("20261022_*") if (DER / f"{p.name}_fused/assignment.json").exists()) + ["20261023_113550", "20261023_114817"]
 
@@ -35,7 +36,7 @@ for take in TAKES:
         s0 = max(0.0, (grid[i0] - a0) / 1e9 - MARGIN); s1 = min((grid[-1] - a0) / 1e9, (grid[i1] - a0) / 1e9 + MARGIN)
         rows.append(dict(take=take, demo=di, demo_len_s=round((grid[-1] - a0) / 1e9, 1), keep_start_s=round(s0, 2), keep_end_s=round(s1, 2),
                          cut_head_s=round(s0, 1), cut_tail_s=round((grid[-1] - a0) / 1e9 - s1, 1), kept_s=round(s1 - s0, 1), pose_src="fused" if fused else "tag"))
-out = pathlib.Path.home() / "laundry_dit_training/reports/idle_trim.csv"
+out = egopaths.IDLE_TRIM_CSV
 with open(out, "w", newline="") as f: w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 h = np.array([r["cut_head_s"] for r in rows]); t = np.array([r["cut_tail_s"] for r in rows]); k = np.array([r["kept_s"] for r in rows])
 print(out, len(rows), "demos | head cut median", np.median(h), "max", h.max(), "| tail cut median", np.median(t), "max", t.max(), "| kept median", np.median(k))

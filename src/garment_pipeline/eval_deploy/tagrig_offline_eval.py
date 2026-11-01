@@ -13,8 +13,7 @@ import numpy as np
 import torch
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / "training")); sys.path.insert(0, str(HERE.parent / "datasets")); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system"))
-from tagrig_common import ActRelDataset, DitRelDataset  # noqa: E402
+from garment_pipeline.training.tagrig_common import ActRelDataset, DitRelDataset  # noqa: E402
 from contracts.action_contract import pose9_to_T  # noqa: E402
 
 KS = (1, 8, 16, 32)
@@ -32,7 +31,7 @@ def load(ckpt, device):
         from safetensors import safe_open
         with safe_open(str(pm / "model.safetensors"), "pt") as f_:
             if any(k.startswith("grip_head.") for k in f_.keys()):        # 10-29 GRIP_BCE checkpoint: build the jaw head before loading
-                import sys as _s; _s.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "training")); from tagrig_common import install_grip_bce; install_grip_bce(MD)
+                from garment_pipeline.training.tagrig_common import install_grip_bce; install_grip_bce(MD)
         P = MD.MultiTaskDiTPolicy
     pol = P.from_pretrained(str(pm), config=cfg).to(device).eval()
     pre, post = make_pre_post_processors(cfg, pretrained_path=str(pm), preprocessor_overrides={"device_processor": {"device": device}})

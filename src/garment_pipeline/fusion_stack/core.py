@@ -10,9 +10,8 @@ import pandas as pd
 from scipy.spatial.transform import Rotation as R, Slerp
 from scipy.ndimage import gaussian_filter1d
 
-sys.path.insert(0, str(Path.home() / "ego_collector/datasets/m3_runs/_fgo_1023/tools"))
-import fgo_data as FD  # noqa
-import fgo_core as FC  # noqa
+from garment_pipeline.fgo_tools import fgo_data as FD  # noqa
+from garment_pipeline.fgo_tools import fgo_core as FC  # noqa
 
 M3 = FD.M3; FR = FD.FR
 HZ = (0.1, 0.4, 0.8, 1.6)

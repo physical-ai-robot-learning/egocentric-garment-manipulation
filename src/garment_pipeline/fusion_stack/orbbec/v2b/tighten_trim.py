@@ -4,7 +4,8 @@ fused TCP speed (stitch/qa/fus_Cg_g) > V_MOVE. Only tightens (never widens); bac
     python tighten_trim.py <idle_audit.csv from idle_audit.py> [MARGIN=0.3]"""
 import csv, shutil, sys, time
 from pathlib import Path
-CSV = Path.home() / "laundry_dit_training/reports/idle_trim.csv"; MARGIN = float(sys.argv[2]) if len(sys.argv) > 2 else 0.3
+from egogarment import paths as egopaths  # noqa: E402
+CSV = egopaths.IDLE_TRIM_CSV; MARGIN = float(sys.argv[2]) if len(sys.argv) > 2 else 0.3
 aud = {(r["take"], int(r["demo"])): r for r in csv.DictReader(open(sys.argv[1]))}
 shutil.copy2(CSV, CSV.with_suffix(f".csv.bak_tight_{time.strftime('%m%d_%H%M%S')}"))
 rows = list(csv.DictReader(open(CSV))); fields = list(rows[0].keys()); n = 0

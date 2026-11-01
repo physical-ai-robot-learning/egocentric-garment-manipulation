@@ -27,11 +27,12 @@ import argparse, json, shutil, sys
 from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE)); sys.path.insert(1, str(HERE.parents[1]))
-import core as C  # noqa
-import imu_motion as IM  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b import imu_motion as IM  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD
-PROD = Path.home() / "laundry_dit_training/data/tag_rig_derived"
+PROD = egopaths.DERIVED
 HIGH_PTS, SHORT_S, UNRES_S, LAG_MIN_NCC = 120, 0.5, 1.0, 0.2
 from scipy.ndimage import gaussian_filter1d
 SRC = {"ORBBEC": 0, "TAG": 1, "INTERP": 2}

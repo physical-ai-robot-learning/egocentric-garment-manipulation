@@ -9,9 +9,9 @@ Seeds (tag-free): the v31speed tracker centre at the first tracked frame of the 
 import json, shutil, sys
 from pathlib import Path
 import cv2, numpy as np
-HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE.parent)); sys.path.insert(1, str(HERE.parents[2]))
-import core as C  # noqa
-import camcal  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
 FD = C.FD
 SEED_R, N_SEED, DARK, H_MIN = 0.06, 40, 40, 0.02
 RES_S, RES_R, N_RES = 1.0, 0.08, 20

@@ -10,7 +10,8 @@ import json, os, shutil, sys
 from pathlib import Path
 import numpy as np
 HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]; QA = ROOT / "stitch/qa"
-LDT = Path.home() / "laundry_dit_training"; SRC = LDT / "data" / os.environ.get("CGG_SRC", "tag_rig_derived_orbbec_v31speed"); DST = LDT / "data" / os.environ.get("CGG_DST", "tag_rig_derived_cgg")
+from egogarment import paths as egopaths  # noqa: E402
+LDT = egopaths.TRAIN_ROOT; SRC = LDT / "data" / os.environ.get("CGG_SRC", "tag_rig_derived_orbbec_v31speed"); DST = LDT / "data" / os.environ.get("CGG_DST", "tag_rig_derived_cgg")
 
 
 def main(packs):

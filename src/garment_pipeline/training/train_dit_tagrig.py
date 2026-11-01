@@ -6,11 +6,10 @@ NOTE: Multi-Task DiT has no BCE head; the gripper dims are denoised like the oth
 import pathlib, sys
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); sys.path.insert(0, str(pathlib.Path.home() / "laundry_system"))
 import lerobot.scripts.lerobot_train as LT  # noqa: E402
 import lerobot.policies.multi_task_dit.modeling_multi_task_dit as MD  # noqa: E402
-from rel_chunk import HORIZON  # noqa: E402
-from tagrig_common import install_masks, install_weights, install_metrics, install_stats, patch_dit_dataset  # noqa: E402
+from garment_pipeline.training.rel_chunk import HORIZON  # noqa: E402
+from garment_pipeline.training.tagrig_common import install_masks, install_weights, install_metrics, install_stats, patch_dit_dataset  # noqa: E402
 
 _make = LT.make_dataset
 
@@ -39,7 +38,7 @@ if os.environ.get("GRAD_CLIP") is not None:
         o = _preset(self); o.grad_clip_norm = float(os.environ["GRAD_CLIP"]); return o
     MC.MultiTaskDiTConfig.get_optimizer_preset = _preset_noclip
 install_metrics(LT, MD, "mse_loss")
-from tagrig_common import GRIP_BCE, install_grip_bce  # noqa: E402
+from garment_pipeline.training.tagrig_common import GRIP_BCE, install_grip_bce  # noqa: E402
 if GRIP_BCE: install_grip_bce(MD)                      # 10-29 UMI-style recipe: BCE jaw head
 
 if __name__ == "__main__":

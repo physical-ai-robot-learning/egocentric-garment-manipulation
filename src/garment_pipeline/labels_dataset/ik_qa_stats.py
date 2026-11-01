@@ -10,7 +10,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-TRIM = Path.home() / "laundry_dit_training/reports/idle_trim.csv"
+from egogarment import paths as egopaths  # noqa: E402
+TRIM = egopaths.IDLE_TRIM_CSV
 POS_T, ROT_T = (10, 20, 30, 50), (10, 20, 30)
 SHOULDER = {"left": np.array([0.013, 0.279, 0.132]), "right": np.array([0.020, -0.283, 0.140])}   # <arm>_link2 origin (pinocchio, base frame)
 BAD_MM, BAD_DEG, TABLE_Z, REACH = 30.0, 30.0, 0.04, 0.55

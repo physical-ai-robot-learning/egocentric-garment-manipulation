@@ -25,7 +25,7 @@
 
 > **10-27 incident:** a bridge restarted *without* `MIT_GRIP_OPEN_FRAC_LEFT=0.5` let the left jaw open to its full travel
 > during a policy run and broke the jaw holder. Always carry every environment option of the running bridge over to a restart
-> (read `/status` first: `grip_open_frac` must be `{left: 0.5, right: 1.0}`). `scripts/processing/eval_deploy/act_tagrig_deploy.py` now refuses GO
+> (read `/status` first: `grip_open_frac` must be `{left: 0.5, right: 1.0}`). `src/garment_pipeline/eval_deploy/act_tagrig_deploy.py` now refuses GO
 > otherwise. When the deploy tool opens the wrist cameras itself, start the bridge with `MIT_NO_CAMERAS=1`. A jaw that reads
 > non-zero while closed is fixed with `zero_left_gripper_only.py <port> --go` (the zero lives in the motor; a power cycle does not reset it).
 

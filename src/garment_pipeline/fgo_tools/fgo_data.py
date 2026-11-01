@@ -6,21 +6,21 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-HOME = Path.home(); EGO = HOME / "ego_collector"; TAG = EGO / "datasets/tag_rig"; DER = HOME / "laundry_dit_training/data/tag_rig_derived"
+from egogarment import paths as egopaths  # noqa: E402
+EGO = egopaths.DATA_ROOT; TAG = egopaths.TAG_RIG; DER = egopaths.DERIVED
 M3 = EGO / "datasets/m3_runs"; FR = EGO / "datasets/m3_frames"; FGO = M3 / "_fgo_1023"
-sys.path.insert(0, str(EGO))
 TAKES = ["20261022_121938", "20261022_123614", "20261022_124754", "20261022_130007", "20261022_134315", "20261022_143329",
          "20261022_144321", "20261022_160308", "20261022_161756", "20261022_170651", "20261023_113550", "20261023_114817", "20261023_123747"]
 RIGNAME = {"right": "UMI 오른손", "left": "UMI 왼손"}
 SLAM_DT = 20e6     # chain_v1 convention: SLAM pose at orbbec time t is the wrist pose at t + 20 ms
 
 
-ARCHIVE = Path("/Volumes/PortableSSD/laundry_dit/tag_rig_raw")
+ARCHIVE = egopaths.CKPT_ROOT / "tag_rig_raw"
 
 
 def trims():
     out = {}
-    for r in csv.DictReader(open(HOME / "laundry_dit_training/reports/idle_trim.csv")):
+    for r in csv.DictReader(open(egopaths.IDLE_TRIM_CSV)):
         out.setdefault(r["take"], []).append(r)
     res = {}
     for take, rows in out.items():

@@ -9,10 +9,9 @@ import cv2, numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 HERE = Path(__file__).resolve().parent; ROOT = HERE.parents[2]
-sys.path[:0] = [str(ROOT), str(ROOT / "stitch"), str(HERE)]
-import core as C  # noqa
-import camcal  # noqa
-from render_fusion_qa import interp, load  # noqa
+from garment_pipeline.fusion_stack import core as C  # noqa
+from garment_pipeline.fusion_stack import camcal  # noqa
+from garment_pipeline.fusion_stack.orbbec.v2b.fusion.render_fusion_qa import interp, load  # noqa
 FD = C.FD
 ARMS = ("left", "right")
 SRC_BGR = {0: (60, 200, 60), 1: (235, 140, 50), 2: (30, 140, 255)}            # marker / CoTracker only / IMU in gap

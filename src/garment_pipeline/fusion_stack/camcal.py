@@ -8,7 +8,8 @@ import json
 from pathlib import Path
 import numpy as np
 
-CAL = Path.home() / "ego_collector/configs/calibration"
+from egogarment import paths as egopaths  # noqa: E402
+CAL = egopaths.DATA_CALIB
 RAISED = "20261026_111328"
 SEGMENTS = [("00000000_000000", "robot_cam_v001.json"),     # 10-20 robot calibration
             ("20261026_111328", "robot_cam_v002.json"),     # raised once (6 cm 401 + table plane)

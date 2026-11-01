@@ -6,9 +6,9 @@ the run stops (bridge /estop = hold the measured pose).  All safety checks of ru
     DEPLOY_FAKE_WRIST=right .venv-mac/bin/python deploy/run_n_steps.py --ckpt <dir> --n 3 [--commit 4 --speed 0.5]"""
 import argparse, pathlib, sys, threading, time
 
-HERE = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
-import act_tagrig_deploy as dep  # noqa: E402
-from act_tagrig_ui import dep_parser  # noqa: E402
+HERE = pathlib.Path(__file__).resolve().parent
+from garment_pipeline.eval_deploy import act_tagrig_deploy as dep  # noqa: E402
+from garment_pipeline.eval_deploy.act_tagrig_ui import dep_parser  # noqa: E402
 
 
 class Ctl:

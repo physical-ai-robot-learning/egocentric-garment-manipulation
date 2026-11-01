@@ -4,7 +4,7 @@ Human → robot mapping for the open-loop replay track: UMI gripper frame ↔ re
 robotization of a two-hand demo into a reBot-feasible trajectory.
 
 **Status:** current for calibration (`umi_align.py`); replay track only for `umi_robotize_bi.py` (training labels are
-built by `scripts/processing/labels_dataset/robotize_ik.py`)
+built by `src/garment_pipeline/labels_dataset/robotize_ik.py`)
 
 ## Inputs → Outputs
 `umi_traj_{right,left}.npz` from `scripts/pose/umi_tcp_traj.py` → `umi_traj_<arm>_robot.npz` (robotized path, per-frame

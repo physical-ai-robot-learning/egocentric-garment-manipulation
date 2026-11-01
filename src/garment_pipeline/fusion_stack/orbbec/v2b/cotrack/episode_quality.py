@@ -12,10 +12,11 @@ in_130 = the episode is in the v31speed fullmask set (Desktop/orbbec_v31speed_QA
 import json, sys
 from pathlib import Path
 import numpy as np, pandas as pd
-HERE = Path(__file__).resolve().parent; sys.path[:0] = [str(HERE.parent), str(HERE.parents[2])]
-import core as C  # noqa
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD
-STATS = Path.home() / "Desktop/orbbec_v31speed_QA_all/episode_stats.csv"
+STATS = egopaths.DESKTOP / "orbbec_v31speed_QA_all/episode_stats.csv"
 
 
 def runs_s(b, t, dt):
@@ -47,13 +48,13 @@ def arm_row(d, take, W, arm, asg):
 
 
 def main(out, packs):
-    alt = Path.home() / "laundry_dit_training/reports/orbbec_v31speed_episode_stats.csv"; src = STATS if STATS.exists() else alt
+    alt = egopaths.REPORTS / "orbbec_v31speed_episode_stats.csv"; src = STATS if STATS.exists() else alt
     st = pd.read_csv(src, dtype={"take": str}) if src.exists() else pd.DataFrame(columns=["take", "demo"]); in130 = set(zip(st["take"], st["demo"].astype(int))); rows = []
     for p in packs:
         for d in sorted(Path(p).iterdir()):
             if not (d / "solve3_left.npz").exists(): continue
             meta = json.loads((d / "meta.json").read_text()); take, demo = meta["take"], int(meta["demo"]); W = {w["demo"]: w for w in FD.trims()[take]}[demo]
-            asg = json.loads((Path.home() / "laundry_dit_training/data/tag_rig_derived" / take / "assignment.json").read_text())
+            asg = json.loads((egopaths.DERIVED / take / "assignment.json").read_text())
             row = dict(take=take, demo=demo, in_130=(take, demo) in in130, dur_s=round((W["w1"] - W["w0"]) / 1e9, 1))
             A = {a: arm_row(d, take, W, a, asg) for a in ("left", "right")}
             for a in A:

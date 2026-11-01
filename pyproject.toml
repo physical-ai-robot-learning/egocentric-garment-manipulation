@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "PolyForm-Noncommercial-1.0.0" }
 authors = [{ name = "Jeong Hwan Lee" }]
 requires-python = ">=3.10"
-# Base = what the importable packages need at import time (egogarment, visual_teleop, rebot_prep).
+# Base = what the importable packages need at import time (egogarment, visual_teleop, rebot_prep, most of garment_pipeline).
 # Hardware / GPU pieces are extras.
 dependencies = [
     "numpy>=1.24",
@@ -23,6 +23,7 @@ dependencies = [
 test = ["pytest>=7"]
 dev = ["pytest>=7"]
 vision = ["opencv-python<5"]                 # <5: cv2.calibrateRobotWorldHandEye is gone in 5.0; AprilTag / ArUco pose, wrist + Orbbec video (rebot_prep.parity, scripts/pose)
+pipeline = ["pandas", "opencv-python<5"]    # garment_pipeline fusion / labels / dataset stages (training + deploy need the LeRobot env: torch, lerobot, diffusers)
 robot = ["pin", "pin-pink", "requests"]       # Pink IK + HTTP bridge client (visual_teleop.robot, replay tools)
 jaw = ["torch", "ultralytics", "flask"]       # jaw classifier / jaw-tip keypoint training + labelling UI
 

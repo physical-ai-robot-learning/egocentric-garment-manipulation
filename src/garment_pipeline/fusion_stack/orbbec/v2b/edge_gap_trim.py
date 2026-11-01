@@ -7,10 +7,11 @@ import csv, shutil, sys, time
 from pathlib import Path
 import numpy as np
 
-HERE = Path(__file__).resolve().parent; sys.path[:0] = [str(HERE.parents[1])]
-import core as C  # noqa: E402
+HERE = Path(__file__).resolve().parent
+from garment_pipeline.fusion_stack import core as C  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
 FD = C.FD
-CSV = Path.home() / "laundry_dit_training/reports/idle_trim.csv"
+CSV = egopaths.IDLE_TRIM_CSV
 MIN_S, EDGE_S, KEEP_MIN_S, PAD_S = 0.8, 0.5, 8.0, 0.1
 
 
