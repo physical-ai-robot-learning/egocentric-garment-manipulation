@@ -13,7 +13,12 @@ policy is trained on it.
 > 300 successful T-shirt flattening demonstrations, a new pose source (fixed-camera point tracking anchored by the
 > markers), quality grades and Cartesian labels taken *before* inverse kinematics. See
 > [From replay to policy training data](#from-replay-to-policy-training-data-october-2627). Parts of the original
-> pipeline that are no longer used are marked ~~struck through~~. No policy result is reported yet.
+> pipeline that are no longer used are marked ~~struck through~~.
+>
+> **Update, 1 November 2026.** First policies fine-tuned on these demos run on the robot but stop short of the cloth.
+> The causes were traced to the data (a label clamp, demonstration speed, jaw labels, wrist-camera placement); see
+> [First policies on the robot](#first-policies-on-the-robot-and-what-they-exposed-in-the-data-october-28--november-1).
+> No success rate is reported yet.
 
 > **Note.** This repository contains a sanitized research overview and selected reproducible components of an ongoing
 > bimanual garment-manipulation project. Proprietary code, internal datasets, calibration parameters, robot-specific
@@ -43,7 +48,10 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.
 * **Replay result.** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and grasp height matches the
   human; folding by replay does **not** succeed.
 * **Training data.** 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels,
-  with a fixed-camera point-tracking pose source that replaced wrist-camera SLAM. No policy has been trained on them yet.
+  with a fixed-camera point-tracking pose source that replaced wrist-camera SLAM.
+* **First policies on the robot.** Two policies fine-tuned on the GOLD demos reach toward the cloth but stop short;
+  the causes were traced to the data (a label clamp, demonstration speed, jaw labels, wrist-camera placement); the
+  first three are changed, the camera re-mount is next. No success rate is reported yet.
 
 ### Motivation and research question
 
@@ -345,7 +353,7 @@ contain. The pipeline was rebuilt for learning, on the same calibration, recorde
 | camera ↔ robot | re-solved after every camera move from two fixed table markers plus the table plane; camera raised so both hands stay in view | one robot-held-marker calibration |
 | arm assignment | by the gripper's side of the table | by marker label (the labels were found swapped) |
 | episode window | still start and end cut (both hands below 10 cm/s), short one-hand tracking gaps at the edges cut | operator-marked windows |
-| label | **Cartesian jaw-tip pose before inverse kinematics**, smoothed and kept above the table | robotized path after IK → FK |
+| label | **Cartesian jaw-tip pose before inverse kinematics**, smoothed; ~~kept above the table~~ (removed Oct 29, see below) | robotized path after IK → FK |
 | execution | receding horizon: forward kinematics gives the current pose, the predicted relative motion is composed onto it, then limiter → IK → safety checks, a few steps committed per plan | whole-demo open-loop replay |
 
 ![GOLD demo, jaw-tip paths by source](media/flatten_gold_trajectory_sources.gif)
@@ -372,6 +380,19 @@ counted trials.
 
 **Safety lesson.** A bridge restart without the jaw-opening limit let one jaw open to the end of its travel and break
 its holder. Deployment now refuses to send commands unless the bridge reports the jaw limits.
+
+### First policies on the robot, and what they exposed in the data (October 28 – November 1)
+
+Both planned policies were fine-tuned on the 281 GOLD demos and run on the robot. No success rate is reported yet.
+The arms reach toward the cloth but stop short of it and close the jaws early. Tracing this back pointed at the data rather
+than the models:
+
+| finding | change |
+|---|---|
+| The "kept above the table" step lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Labels are now the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. |
+| Human demonstrations are faster than the robot can follow (p95 ≈ 0.93 m/s, 127 °/s). | A time-stretched copy of the data set (0.3× speed): pose, jaw events and every camera frame are resampled on one common slower timeline. |
+| The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading. Labels from the two sources are kept apart and never mixed in one comparison. |
+| The robot's wrist cameras look at the jaws from a different place than the hand-worn ones. | Measured with the table markers: the robot cameras are tilted 11–13° less toward the tool axis and sit 25–44 mm closer to it. Next: re-mount them to the hand-worn geometry. |
 
 ### Research directions
 
@@ -400,8 +421,11 @@ its holder. Deployment now refuses to send commands unless the bridge reports th
 
 * **Status (Oct 27):** replay runs end to end and is deterministic; grasp height matches the human; folding by replay
   does not succeed. 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels.
-* **Next:** fine-tune the two pretrained policies (§8) on the GOLD demos and evaluate them on the robot with counted
-  trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
+* **Status (Nov 1):** both policies are fine-tuned on the GOLD demos and run on the robot; they stop short of the cloth
+  and close early. Four causes were traced to the data; three are changed and the wrist-camera re-mount is next (§8);
+  no success rate yet.
+* **Next:** re-mount the robot wrist cameras, retrain on the corrected labels and the servo-labelled demos, and evaluate
+  on the robot with counted trials. ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for
   tag-hidden phases~~ — replay-track items, parked.
 
 ## 9. Hardware and attribution
