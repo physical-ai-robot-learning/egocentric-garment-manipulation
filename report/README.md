@@ -1,33 +1,43 @@
 # report
 
-Technical Report v0.1 (10-27, current) and v0 (10-21), and the short technical note: PDF, LaTeX source and figures.
+The technical report of the project, status of 1 November 2026: one document in English and Korean, with LaTeX source
+and figures. Earlier versions are in [`archive/`](archive/).
 
-**Status:** current (v0.1); v0 kept for reference
+**Status:** current (`report_en`, `report_ko`); `archive/` kept for reference
 
 ## Inputs → Outputs
-`report_v0.1_en.tex` + `figures/` → `report_v0.1_en.pdf`; `technical_note.tex` + `figures/` → `technical_note.pdf`
-(the report PDFs were built before the 11-01 layout refactor and were not rebuilt).
+`report_en.tex` + `figures/` → `report_en.pdf`; `report_ko.tex` + `figures/` → `report_ko.pdf` (same content in Korean).
+Build from this folder with `tectonic report_en.tex` and `tectonic report_ko.tex` (the Korean version uses xeCJK with the
+macOS AppleMyungjo / Apple SD Gothic Neo fonts).
 
-## Entry points
-`make_fig_robotize.py` (figure script). LaTeX: `report_v0.1_en.tex`, `report_v0_en.tex`, `technical_note.tex`; figure paths are relative to this folder.
+## Checking the numbers
+Every number in `report_en.tex` is mapped to the repository file it was taken from (README, `docs/results.md`,
+`docs/details.md`, `docs/status_2026-11-01.md` or `archive/report_v0.1_en.tex`) and checked by
+[`../analysis/verify_claims.py`](../analysis/verify_claims.py) (run from the repository root; prints
+`N claims checked, 0 failed`; also run in CI). The Korean version may print no number the English one lacks.
 
 ## Layout
-- `report_v0.1_en.{tex,pdf}`, `report_v0_en.{tex,pdf}`, `technical_note.{tex,pdf}`, `figures/` (shared; the technical
-  report's figures are the `fig_*` files), `make_fig_robotize.py`
-- Moved 11-01 (refactor v3) from `docs/technical_report/` to this top-level folder, next to the technical note.
+- `report_en.{tex,pdf}`, `report_ko.{tex,pdf}` — the current report.
+- `figures/` — figures of the current report (`fig_scene`, `fig_umi`, `fig_start_markers`, `fig_fusion_qa`,
+  `fig_sidebyside`, `fig_close_height`, `fig_deploy_ui`, `fig_pinching_cg`) and of the archived versions; `make_fig_robotize.py`
+  is the script of the archived `fig_robotize.pdf`.
+- `archive/` — Technical Report v0.1 (10-27, "Egocentric Laundry Folding"), v0 (10-21) and the short technical note,
+  each as LaTeX source + PDF. They were built from this folder (figure paths `figures/...`), so to rebuild one, copy it
+  next to `figures/` first.
 
-## Provenance — repository paths cited in the report
-The reports were written in the project's former working repository, `egocentric-laundry-folding` (merged into this
-repository on 11-01), and name it on the title page. They name repository paths as they were before the 11-01 refactor. Current locations:
+## Provenance — repository paths cited in the archived reports
+The archived reports were written in the project's former working repository, `egocentric-laundry-folding` (merged into
+this repository on 11-01), and name it on the title page. They name repository paths as they were before the 11-01
+refactor. Current locations:
 
-| path in the report | current path |
+| path in the archived reports | current path |
 |---|---|
-| `technical_report/` | `report/` (was `docs/technical_report/` from 11-01 until refactor v3) |
+| `technical_report/` | `report/archive/` |
 | `scripts/robot_cam_from_anchors.py`, `scripts/robot_cam_solve.py`, `scripts/tag_rig_{solve,pivot,pivot_joint,touch_tcp}.py`, `scripts/umi_tcp_traj.py`, `scripts/jaw_*.py` | `scripts/pose/` (same file names) |
 | `scripts/tag_rig_{pose,fuse,corners,imu}.py` | `src/rebot_prep/parity/` |
 | `scripts/umi_robotize_bi.py`, `scripts/umi_align.py` | `scripts/retarget/` |
 | `scripts/replay_parity.py`, `scripts/replay_side_by_side.py`, `scripts/regress_replay_plan.py` | `scripts/evaluation/` |
-| `processing/` | `src/garment_pipeline/` (moved whole to `scripts/processing/` 11-01, then made an importable package in refactor v3) |
+| `processing/` | `src/garment_pipeline/` |
 | `robot_bridge/` | `scripts/deploy/robot_bridge/` |
 | `visual_teleop/` | `src/visual_teleop/` |
 | `configs/` | `configs/` (unchanged; `configs/laundry/` → `legacy/configs/laundry/`) |

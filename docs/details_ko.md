@@ -122,7 +122,7 @@ pod에서 돌리고, 결과는 노트북과 SSD 보관소로 가져옵니다.
 
 *재생 트랙의 출처별 복원 궤적: 마커 + 깊이(초록), MASt3R-SLAM(파랑, 지금은 안 씀), 마커가 가려진 동안의 IMU(주황).*
 
-자세한 내용: [테크니컬 리포트 v0.1](../report/report_v0.1_en.pdf) · 단계별 코드: [pipeline_replay_track.md](pipeline_replay_track.md)
+자세한 내용: [테크니컬 리포트](../report/report_ko.pdf) (재생 트랙 전체: [v0.1, 보관본](../report/archive/report_v0.1_en.pdf)) · 단계별 코드: [pipeline_replay_track.md](pipeline_replay_track.md)
 
 ## 5. 배운 것과 재생 결과
 
