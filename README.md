@@ -8,8 +8,8 @@ Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the 
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report v0.1 (PDF)](report/report_v0.1_en.pdf)** · [v0 (10-21)](report/report_v0_en.pdf)
-· [Technical note (PDF)](report/technical_note.pdf) · [Detailed results](docs/results.md) · [Project details](docs/details.md)
+· **[Technical Report (PDF, 11-01)](report/report_en.pdf)** ([한국어](report/report_ko.pdf)) · [earlier versions](report/archive/)
+· [Detailed results](docs/results.md) · [Project details](docs/details.md)
 · [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-01
 
 > **Update, 27 October 2026.** The replay stage is finished and the project has moved on to **policy training data**:
@@ -164,8 +164,7 @@ What is in this repository, by pipeline stage (see [§5](#5-pipeline)).
 | egogarment: viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | current | figure of a processed trajectory (`plot_example`) |
 | egogarment wrappers | [`scripts/*.py`](scripts/) | – | current | thin wrappers: `python scripts/<module>.py` works without installing |
 | Examples | [`examples/`](examples/README.md) | – | current | SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator |
-| Technical report | [`report/`](report/README.md) | — | current (v0.1) | PDF + LaTeX + figures; old → new path map for paths cited in the report |
-| Technical note | [`report/`](report/) | – | current | short technical note (LaTeX source + PDF) |
+| Technical report | [`report/`](report/README.md) | — | current (11-01) | one report, English + Korean (PDF + LaTeX + figures); v0, v0.1 and the technical note in `report/archive/` with an old → new path map |
 | Docs | [`docs/`](docs/) | — | current | [project details](docs/details.md), [results and metric definitions](docs/results.md), [replay-track stage map](docs/pipeline_replay_track.md), [records](docs/records/README.md), data-flow figure and its generator, synthetic example figure |
 | Media | [`media/`](media/README.md) | – | current | GIFs, videos and photos of the real setup ([media/README.md](media/README.md)) |
 | Tests | [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | – | current | egogarment regression on the synthetic example; import / config-path smoke tests and the scripts' synthetic self-tests (run in CI) |
@@ -328,7 +327,7 @@ python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed
 python scripts/evaluation/replay_parity.py <take> <run>/right                                         # compare human / command / robot
 ```
 
-Full command list, options and safety rules: Technical Report v0.1, Appendix A.
+Full command list, options and safety rules: [Technical Report v0.1](report/archive/report_v0.1_en.pdf) (archived), Appendix A.
 
 ### Reproducible commands (synthetic data)
 
@@ -511,13 +510,14 @@ camera, aligned on one clock (33 s demo replayed in 94 s; shown at robot speed).
 ### How to verify (this repository)
 
 The real-system numbers above come from recorded data that is not in this repository; the method and measurements are
-in the [technical report](report/report_v0.1_en.pdf). What can be checked from the code alone:
+in the [technical report](report/report_en.pdf). What can be checked from the code alone:
 
 ```bash
 python -m pytest -q                                      # egogarment regression on the synthetic example; imports, config paths,
                                                          # synthetic self-tests (robot_cam_solve skipped without OpenCV)
 python scripts/evaluation/replay_parity.py --synthetic   # parity scorer self-test; ends with "합성 시험 PASS"
 python scripts/pose/robot_cam_solve.py --synthetic       # camera ↔ robot solver on simulated data (needs OpenCV < 5); ends with "합성 시험 PASS"
+python analysis/verify_claims.py                         # every number in the technical report vs. the repo file it comes from; "N claims checked, 0 failed"
 ```
 
 `python -m pytest -q tests` checks every `egogarment` module against outputs recorded before the code was packaged
@@ -731,8 +731,7 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 * **CoTracker3**: point tracking on the fixed camera.
 * **Pink** on **Pinocchio**: differential IK; **ResNet-18** / **ImageNet**: jaw classifier backbone.
 
-Full references are in the [technical note](report/technical_note.pdf) and the
-[technical report](report/report_v0.1_en.pdf); licences and credits in [ATTRIBUTION.md](ATTRIBUTION.md).
+Full references are in the [technical report](report/report_en.pdf); licences and credits in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## 10. License, acknowledgements, citation
 
@@ -749,8 +748,8 @@ following UMI (Chi et al., RSS 2024); see [§9](#9-hardware-and-attribution) and
 Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot UMI (CC BY-SA 4.0).
 
 **Provenance.** Until 1 November 2026 the full code and detailed notes lived in a separate working repository,
-`egocentric-laundry-folding`, and this repository held the public write-up; the two were merged here. The technical
-reports in `report/` still name that repository and its pre-refactor paths
+`egocentric-laundry-folding`, and this repository held the public write-up; the two were merged here. The archived technical
+reports in `report/archive/` still name that repository and its pre-refactor paths
 ([path map](report/README.md)).
 
 **Citation.** See [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").

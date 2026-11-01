@@ -5,7 +5,7 @@
 The 10-26/27 training-data pipeline lives in [`src/garment_pipeline/`](../src/garment_pipeline/README.md); it reuses the calibration, tag pose and
 jaw scripts below. Rows marked *replay track* are only used for open-loop replay. ~~Struck~~ rows moved to `legacy/`.
 
-Labels D0–D7 are the data stages of the technical report (Fig. 2); README steps 1–6 group them.
+Labels D0–D7 are the data stages of the archived Technical Report v0.1 (`report/archive/report_v0.1_en.tex`, Fig. 2); README steps 1–6 group them.
 
 | stage | script |
 |---|---|

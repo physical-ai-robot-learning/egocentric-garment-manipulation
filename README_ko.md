@@ -7,8 +7,8 @@
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report v0.1 (PDF)](report/report_v0.1_en.pdf)** · [v0 (10-21)](report/report_v0_en.pdf)
-· [Technical note (PDF)](report/technical_note.pdf) · [자세한 결과](docs/results.md) · [세부 내용](docs/details_ko.md)
+· **[테크니컬 리포트 (PDF, 11-01)](report/report_ko.pdf)** ([English](report/report_en.pdf)) · [이전 버전](report/archive/)
+· [자세한 결과](docs/results.md) · [세부 내용](docs/details_ko.md)
 · [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-01
 
 > **2026-10-27 업데이트.** 재생 단계는 끝났고 프로젝트는 **정책 학습 데이터**로 넘어갔습니다. 티셔츠 펴기 성공 시연 300개,
@@ -149,8 +149,7 @@ flowchart LR
 | egogarment: viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | 현재 | 처리한 궤적의 그림 (`plot_example`) |
 | egogarment wrapper | [`scripts/*.py`](scripts/) | – | 현재 | 얇은 wrapper: 설치 없이 `python scripts/<module>.py` |
 | 예제 | [`examples/`](examples/README.md) | – | 현재 | 합성(SYNTHETIC) 양손 시연 + 시뮬레이션 재생(CSV/NPZ)과 생성기 |
-| 테크니컬 리포트 | [`report/`](report/README.md) | — | 현재 (v0.1) | PDF + LaTeX + 그림, 리포트에 적힌 옛 경로 → 새 경로 표 |
-| 테크니컬 노트 | [`report/`](report/) | – | 현재 | 짧은 테크니컬 노트 (LaTeX 소스 + PDF) |
+| 테크니컬 리포트 | [`report/`](report/README.md) | — | 현재 (11-01) | 하나의 리포트, 영어 + 한국어 (PDF + LaTeX + 그림); v0, v0.1, 테크니컬 노트는 `report/archive/`, 옛 경로 → 새 경로 표 |
 | 문서 | [`docs/`](docs/) | — | 현재 | [세부 내용](docs/details_ko.md), [결과와 지표 정의](docs/results.md), [재생 트랙 단계 표](docs/pipeline_replay_track.md), [기록](docs/records/README.md), 데이터 흐름 그림과 생성기, 합성 예제 그림 |
 | 미디어 | [`media/`](media/README.md) | – | 현재 | 실제 장치의 GIF, 영상, 사진 ([media/README.md](media/README.md)) |
 | 테스트 | [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | – | 현재 | 합성 예제에 대한 egogarment 회귀 검사, import·설정 경로 smoke test와 script의 합성 자체 시험 (CI에서 실행) |
@@ -302,7 +301,7 @@ python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed
 python scripts/evaluation/replay_parity.py <take> <run>/right                                         # 사람·명령·로봇 비교
 ```
 
-전체 명령, 옵션, 안전 규칙은 테크니컬 리포트 v0.1 부록 A에 있습니다.
+전체 명령, 옵션, 안전 규칙은 [테크니컬 리포트 v0.1](report/archive/report_v0.1_en.pdf)(보관본) 부록 A에 있습니다.
 
 ### 재현 가능한 명령 (합성 데이터)
 
@@ -468,7 +467,7 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 
 ### 확인 방법 (이 저장소)
 
-위 숫자는 이 저장소에 없는 녹화 데이터에서 나왔고, 방법과 측정은 [테크니컬 리포트](report/report_v0.1_en.pdf)에
+위 숫자는 이 저장소에 없는 녹화 데이터에서 나왔고, 방법과 측정은 [테크니컬 리포트](report/report_ko.pdf)에
 있습니다. 코드만으로 확인할 수 있는 것:
 
 ```bash
@@ -476,6 +475,7 @@ python -m pytest -q                                      # 합성 예제에 대�
                                                          # 합성 자체 시험 (OpenCV가 없으면 robot_cam_solve는 건너뜀)
 python scripts/evaluation/replay_parity.py --synthetic   # 비교 채점기 자체 시험, 마지막 줄 "합성 시험 PASS"
 python scripts/pose/robot_cam_solve.py --synthetic       # 시뮬레이션 데이터로 카메라 ↔ 로봇 풀이 (OpenCV < 5 필요), 마지막 줄 "합성 시험 PASS"
+python analysis/verify_claims.py                         # 테크니컬 리포트의 모든 숫자를 출처 파일과 대조, "N claims checked, 0 failed"
 ```
 
 `python -m pytest -q tests`는 모든 `egogarment` 모듈을 패키지로 묶기 전에 기록한 출력([`tests/expected_synthetic.json`](tests/expected_synthetic.json))과
@@ -670,7 +670,7 @@ HandUMI 자체는 Universal Manipulation Interface(UMI, Chi et al., RSS 2024)를
 * **CoTracker3**: 고정 카메라의 점 추적.
 * **Pink** on **Pinocchio**: 미분 IK. **ResNet-18** / **ImageNet**: 집게 분류기 backbone.
 
-전체 참고 문헌은 [테크니컬 노트](report/technical_note.pdf)와 [테크니컬 리포트](report/report_v0.1_en.pdf)에,
+전체 참고 문헌은 [테크니컬 리포트](report/report_ko.pdf)에,
 라이선스와 출처는 [ATTRIBUTION.md](ATTRIBUTION.md)에 있습니다.
 
 ## 10. 라이선스 · 감사의 말 · 인용
@@ -687,7 +687,7 @@ Apache-2.0)이고 UMI(Chi et al., RSS 2024)를 따릅니다. [9절](#9-하드웨
 학습 계획에 적힌 pretrain 데이터: Soft-Fold, iPhUMI(MIT), PrimeBot UMI(CC BY-SA 4.0).
 
 **출처 이력.** 2026-11-01까지 전체 코드와 세부 문서는 별도 작업 저장소 `egocentric-laundry-folding`에 있었고, 이 저장소는 공개용
-정리본이었습니다. 두 저장소를 여기로 합쳤습니다. `report/`의 테크니컬 리포트는 여전히 그 저장소 이름과 정리 이전
+정리본이었습니다. 두 저장소를 여기로 합쳤습니다. `report/archive/`에 보관한 테크니컬 리포트는 여전히 그 저장소 이름과 정리 이전
 경로를 적고 있습니다([경로 표](report/README.md)).
 
 **인용.** [CITATION.cff](CITATION.cff)를 보세요(GitHub의 "Cite this repository").
