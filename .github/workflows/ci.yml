@@ -19,6 +19,8 @@ jobs:
           python -m pip install "opencv-python-headless<5"   # camera <-> robot solver self-test (needs calibrateRobotWorldHandEye, gone in 5.0)
       - name: Compile (whole repository)
         run: python -m compileall -q .
+      - name: Claims check (every number in report/report_en.tex vs. the repository file it comes from)
+        run: python analysis/verify_claims.py
       - name: Test (egogarment synthetic regression, layout smoke tests, import smoke test of every module under src/)
         run: python -m pytest -q -rs
       - name: Self-test, replay parity scorer (synthetic)
