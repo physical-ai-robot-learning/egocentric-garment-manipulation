@@ -62,9 +62,8 @@ SOURCES = {
     "0.4": STATUS, "4.1": V01, "5.9": V01, "2.3": V01, "3.2": V01, "2.9": V01, "3.5": V01, "3.1": V01,
     "4.9": STATUS, "0.7": V01, "0.6": V01, "44": README, "65": README, "0.93": README, "127": README,
     # policies
-    "1524": V01, "1572": V01,
     # pinching (status 2026-11-01)
-    "74": STATUS, "56": STATUS, "147": STATUS, "200": STATUS, "6207": STATUS, "19.89": STATUS, "19.13": STATUS,
+    "74": STATUS, "56": STATUS, "147": STATUS, "197": STATUS, "144": STATUS, "62160": STATUS, "55": STATUS, "46": STATUS, "4.7": STATUS, "31": README, "6207": STATUS, "19.89": STATUS, "19.13": STATUS,
     "17.1": STATUS, "17.7": STATUS, "150": STATUS, "500": STATUS, "2.6": STATUS,
 }
 
@@ -85,7 +84,7 @@ NUM = re.compile(r"(?<![A-Za-z0-9.])(\d+(?:\.\d+)?)(?![0-9])")
 
 def numbers_in(tex):
     """Return (numbers in the text, numbers printed inside TikZ figures)."""
-    b = body_of(tex)
+    b = norm_source(body_of(tex))                                  # 62,160 -> 62160 (thousands separators)
     tikz = "".join(re.findall(r"\\begin\{tikzpicture\}(.*?)\\end\{tikzpicture\}", b, re.S))
     b = re.sub(r"\\begin\{tikzpicture\}.*?\\end\{tikzpicture\}", " ", b, flags=re.S)
     for cmd in ("label", "ref", "cite", "code", "texttt", "url", "includegraphics", "bibitem", "hypersetup"):
