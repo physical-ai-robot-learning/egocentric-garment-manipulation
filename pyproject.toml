@@ -37,7 +37,12 @@ egogarment-robotize = "egogarment.cli:robotize"
 egogarment-parity-metrics = "egogarment.cli:parity_metrics"
 egogarment-plot-example = "egogarment.cli:plot_example"
 
-# src layout: finds egogarment, visual_teleop and rebot_prep.
+# src layout: finds egogarment, garment_pipeline, visual_teleop, rebot_prep and the vendored packages
+# (contracts, umi, ego_collector, ego_teleop, handumi_collector; see docs/provenance.md).
+[tool.setuptools]
+package-dir = { "" = "src" }
+py-modules = ["xvla_core", "umi_to_lerobot"]   # vendored single-file modules (docs/provenance.md)
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
