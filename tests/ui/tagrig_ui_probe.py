@@ -11,6 +11,7 @@ TMP = os.path.realpath(tempfile.mkdtemp())
 os.environ["HOME"] = TMP
 for k in ("EGO_DATA_ROOT", "EGO_TRAIN_ROOT", "EGO_CKPT_ROOT", "EGO_COCKPIT_ROOT", "EGO_DESKTOP"):
     os.environ[k] = os.path.join(TMP, k.lower())
+os.environ.pop("TAGRIG_STATE_DIR", None)       # default state folder (eval_deploy/), as in the golden record
 os.makedirs(os.environ["EGO_DESKTOP"], exist_ok=True)
 SRC = os.path.realpath(os.path.join(repo, "src"))
 sys.path.insert(0, SRC)

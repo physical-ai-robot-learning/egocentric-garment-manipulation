@@ -1,5 +1,5 @@
-"""Persisted UI settings (act_tagrig_ui_settings.json in the eval_deploy folder, same file, keys and defaults as before the
-split), the checkpoint folders per policy and the heartbeat timeout.
+"""Persisted UI settings (act_tagrig_ui_settings.json in the eval_deploy folder -- or in $TAGRIG_STATE_DIR, egogarment.paths --
+same file, keys and defaults as before the split), the checkpoint folders per policy and the heartbeat timeout.
 """
 from __future__ import annotations
 import json
@@ -10,7 +10,7 @@ from garment_pipeline.eval_deploy import act_tagrig_core as core
 
 
 HERE = pathlib.Path(__file__).resolve().parent.parent     # eval_deploy/ (the folder of the old single file)
-SETTINGS = HERE / "act_tagrig_ui_settings.json"
+SETTINGS = egopaths.TAGRIG_STATE_DIR / "act_tagrig_ui_settings.json"   # default: HERE
 XVLA_FT = (egopaths.CKPT_ROOT / "ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints")
 DEFAULTS = dict(policy="act", ckpt_act=str(core.CKPT), ckpt_dit=str(core.DIT_CKPT), ckpt_xvla=str(XVLA_FT / "100000"), commit_act=1, commit_dit=4, commit_xvla=8,
                 speed=0.5, slow_start_speed=0.25, active_arms="both", grip_fake_open=False, rtc="blend", z_offset_mm=0.0, height_calib=False, tens=False, grip_cont=True, grip_mode="linear", grip_gain=10.0,

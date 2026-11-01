@@ -80,3 +80,25 @@ def test_routes_settings_cli_and_helpers(probe):
                 assert set(names) <= set(probe[k][mod]), f"{mod}: missing {sorted(set(names) - set(probe[k][mod]))}"
         else:
             _same(probe[k], g[k], k)
+
+
+def test_state_dir_override(tmp_path):
+    """TAGRIG_STATE_DIR (egogarment.paths) moves every working-state file of the deploy tools, nothing else"""
+    if not _usable(PY):
+        pytest.skip(f"{PY}: needs flask, cv2, numpy, scipy (set UI_TEST_PYTHON)")
+    code = (
+        "import json, sys; sys.path.insert(0, sys.argv[1])\n"
+        "from garment_pipeline.eval_deploy import act_tagrig_ui as U, act_tagrig_deploy as D, height_calib as HC\n"
+        "print(json.dumps(dict(settings=str(U.SETTINGS), cams=str(D.CAMS_CFG), start=str(D.START_FILE), hc=str(HC.OUT),\n"
+        "                      pending=str(HC.PENDING), here_ui=str(U.HERE), here_dep=str(D.HERE), out=str(D.OUT))))\n")
+    env = dict(os.environ, TAGRIG_STATE_DIR=str(tmp_path))
+    r = subprocess.run([PY, "-c", code, str(REPO / "src")], capture_output=True, text=True, timeout=300, env=env)
+    assert r.returncode == 0, r.stderr[-3000:]
+    got = json.loads(r.stdout.strip().splitlines()[-1])
+    names = dict(settings="act_tagrig_ui_settings.json", cams="act_tagrig_cams.json", start="start_pose.json",
+                 hc="height_calib.json", pending="height_calib_pending.json")
+    for k, n in names.items():
+        assert got[k] == str(tmp_path / n), (k, got[k])
+    ed = str(REPO / "src/garment_pipeline/eval_deploy")
+    assert got["here_ui"] == ed and got["here_dep"] == ed          # module folders unchanged
+    assert not got["out"].startswith(str(tmp_path))                 # run outputs are not state

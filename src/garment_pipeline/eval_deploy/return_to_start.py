@@ -10,6 +10,7 @@ import numpy as np
 
 HERE = pathlib.Path(__file__).resolve().parent
 from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
+from egogarment import paths as egopaths  # noqa: E402
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
     a = ap.parse_args()
     from visual_teleop.robot.bridge import HttpBridge
     from visual_teleop.tools.robot_moves import unpark
-    sp = json.loads((HERE / "start_pose.json").read_text()); qs = {s: np.asarray(sp["q"][s], float) for s in core.SIDES}
+    sp = json.loads((egopaths.TAGRIG_STATE_DIR / "start_pose.json").read_text()); qs = {s: np.asarray(sp["q"][s], float) for s in core.SIDES}
     arms, ra = core.make_arms(); col = core.Collision(arms)
     br = HttpBridge(a.url, live=a.go, timeout_s=0.5); o = br.observe(); q0 = {s: o.q[s].copy() for s in core.SIDES}
     d = {s: qs[s] - q0[s] for s in core.SIDES}; mx = max(float(np.degrees(np.abs(d[s])).max()) for s in core.SIDES)

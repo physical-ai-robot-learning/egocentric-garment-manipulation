@@ -43,6 +43,14 @@ written next to the module, as in the original tree.
 - `training/` — DiT trainer (masks, per-episode weights; optional jaw BCE head `GRIP_BCE=1`, jaw-state masking `GRIP_STATE_MASK=1`, gradient clipping at norm 10 by default, `GRAD_CLIP=0` turns it off) and its configs (added 11-01)
 - `eval_deploy/` — offline policy eval, receding-horizon deploy core + UI, X-VLA server, height calibration, camera tools
   (the deploy, its core and its UI are the packages `tagrig_deploy/`, `tagrig_core/`, `tagrig_ui/` since 2026-11-01; `act_tagrig_deploy.py`, `act_tagrig_core.py`, `act_tagrig_ui.py` stay the entry points / import names)
+  Working state of the deploy tools — `act_tagrig_ui_settings.json`, `act_tagrig_cams.json` (+ `.bak_auto`), `start_pose.json`,
+  `height_calib.json` (+ `.prev`, `height_calib_pending*.json`) — lives in `eval_deploy/` by default; `TAGRIG_STATE_DIR`
+  ([`egogarment.paths`](../egogarment/paths.py)) moves it. The robot Mac points it at its old deploy folder through small
+  launchers there, so the repository code reads and writes the same files the single-file deploy did:
+  ```bash
+  TAGRIG_STATE_DIR=~/laundry_dit_training/deploy python -m garment_pipeline.eval_deploy.act_tagrig_ui   # :8770
+  ```
+  Run outputs are not state: `reports/act_deploy/<run>` under `EGO_TRAIN_ROOT`, videos on `EGO_DESKTOP`.
 
 ## Provenance
 Moved whole from `processing/` in the 11-01 layout refactor to `scripts/processing/`, synced 11-01 with the 10-28 → 11-01 code (`training/` and the new `eval_deploy/` files added), and made the importable package `src/garment_pipeline/` in refactor v3 (11-01): `sys.path` edits replaced by package imports, home / SSD paths by `egogarment.paths` (same defaults), modules it imported from other working folders copied into `src/` ([docs/provenance.md](../../docs/provenance.md)). Algorithms, constants and defaults are unchanged.

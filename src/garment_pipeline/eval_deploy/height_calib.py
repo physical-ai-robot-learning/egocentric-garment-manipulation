@@ -16,7 +16,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 from garment_pipeline.eval_deploy import act_tagrig_core as core  # noqa: E402
 from egogarment import paths as egopaths  # noqa: E402
 
-OUT = HERE / "height_calib.json"
+OUT = egopaths.TAGRIG_STATE_DIR / "height_calib.json"          # default: HERE (egogarment.paths)
 ANCHORS = egopaths.DATA_CALIB / "start_anchors_v003_70mm.json"
 TABLE_Z = 0.001        # anchors file: tags lie on the table -> z = 0.001 m in B
 
@@ -137,7 +137,7 @@ def measure(a):
     OUT.write_text(json.dumps(cal, indent=1)); show(cal)
 
 
-PENDING = HERE / "height_calib_pending.json"
+PENDING = egopaths.TAGRIG_STATE_DIR / "height_calib_pending.json"
 
 
 def point(arm, tgt):
