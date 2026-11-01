@@ -649,7 +649,7 @@ the robot base frame. The left hand does the pinch; the right hand rests on its 
 | labels | **Cg** everywhere (CoTracker + marker anchors + constant bias; IMU only inside tracking gaps); jaw from the servo encoder; 0.5× time-stretched for the robot. An earlier label variant left gaps at demo starts, so all sets were rebuilt with Cg; the two are never mixed. |
 | training data | 10-30: 53 kept of 74 demonstrations · 11-01: 56 of 60, 33 of 35, 10 of 10 and 48 of 50 (147 kept; the 11-01 training set is built from 141 of them), ≈194 in total. Kept = quality grade GOLD or SILVER. |
 | test sets (never trained on) | 19 demonstrations from two held-out takes (10-30 and 11-01) for arm + gripper; every rejected 11-01 demonstration is kept for gripper timing only (its jaw label is valid, its arm label is not). |
-| model | the diffusion-transformer policy fine-tuned on the 10-30 set is the starting point and the baseline on the 19 test demonstrations; fine-tuning on the ≈200 demonstrations (with train-time image augmentation) starts on 1 November. |
+| model | the diffusion-transformer policy fine-tuned on the 10-30 set is the starting point and the baseline on the 19 test demonstrations; fine-tuning on the ≈194 demonstrations (with train-time image augmentation) starts on 1 November. |
 | status | **no robot result yet.** Robot trials will be reported here with the number of trials and successes, whether the outcome is success or failure. |
 
 Robot-side changes made for this test: per-arm table-height calibration from jaw-tip touches on the table tags, the fixed
