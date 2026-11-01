@@ -1,0 +1,97 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>세탁 정책 추론</title>
+<style>
+body{margin:0;background:#15171a;color:#e6e6e6;font:14px -apple-system,'Apple SD Gothic Neo',sans-serif}
+.top{display:flex;gap:8px;padding:8px;align-items:flex-start}.col{display:flex;flex-direction:column;gap:8px}
+img{background:#000;border-radius:6px;display:block}
+.card{background:#202328;border-radius:8px;padding:10px}
+.bar{display:flex;flex-wrap:wrap;gap:14px;padding:6px 10px;background:#202328;border-radius:8px}
+.k{color:#9aa}.ok{color:#5d5}.bad{color:#f66;font-weight:600}.warn{color:#fb4}
+button{font-size:15px;padding:9px 14px;border-radius:7px;border:0;cursor:pointer;margin:3px;background:#3a4048;color:#fff}
+button:disabled{opacity:.35;cursor:default}
+#hold{background:#c21d1d;font-size:22px;padding:16px 30px;font-weight:700}
+#go{background:#1f6f3a}#dry{background:#2b5aa6}#gostep{background:#5a3fa0}#step{background:#7a52d0;font-size:20px;padding:14px 26px;font-weight:700}
+select,input{background:#2b2f35;color:#eee;border:1px solid #444;border-radius:5px;padding:4px;margin:2px}
+canvas{background:#111;border-radius:6px}
+#flags span{display:inline-block;margin:2px 4px;padding:1px 6px;border-radius:4px;background:#3a2222}
+table{border-collapse:collapse}td{padding:2px 8px;border-bottom:1px solid #333}
+a{color:#8cf}
+</style></head><body>
+<div class="bar" id="status"></div>
+<div class="top">
+ <div class="col"><img id="g" src="/stream/global" width="848" height="480"><div class="card" id="flagsbox"><b>안전 플래그</b> <span class="k">(최근 사이클)</span><div id="flags"></div><div id="lims" class="k"></div></div>
+  <div class="card"><b>집게 출력 (원시값, 1 = 열림, 기준선 0.5)</b><br><canvas id="strip" width="820" height="120"></canvas><canvas id="hist" width="820" height="160"></canvas></div></div>
+ <div class="col"><img id="wl" src="/stream/left" width="560"><img id="wr" src="/stream/right" width="560">
+  <div class="card"><b>설정</b> <span class="k">(파일에 저장됨)</span><br>
+   정책 <select id="policy"><option value="act">ACT</option><option value="dit">DiT</option><option value="xvla">X-VLA (서버 :8775)</option></select>
+   체크포인트 <select id="ckpt" style="max-width:320px"></select><br>
+   커밋 스텝 <select id="commit"></select> 속도 <input id="speed" type="number" step="0.05" min="0.05" max="2" style="width:60px">
+   처음 2초 속도 <input id="slow" type="number" step="0.05" min="0.05" max="1" style="width:60px"><br>
+   최대 시간(초, 0 = 무제한) <input id="secs" type="number" step="5" min="0" max="100000" style="width:70px">
+   DiT 샘플러 스텝 <input id="dsteps" type="number" step="1" min="2" max="100" style="width:50px">
+   <label><input id="umi" type="checkbox"> UMI 학습 기준 영상 + 집게 수치</label><br>
+   움직일 팔 <select id="arms"><option value="both">두 팔</option><option value="left">왼팔만 (오른팔은 계획만)</option><option value="right">오른팔만 (왼팔은 계획만)</option></select>
+   <label title="진단용: 모델이 상태 입력의 집게 값을 따라 하므로(copycat), 항상 '열림'으로 넣어 청크 중간의 닫힘 시점을 씀"><input type="checkbox" id="gfo"> 집게 상태를 항상 열림으로 입력 (진단)</label>
+   <label title="Real-Time Chunking: 다음 청크를 이미 실행 중인 계획에 이어지게 생성 (GO에서만). DiT=유도(guided), X-VLA는 항상 혼합(blend)">RTC <select id="rtc"><option value="blend">켜기 (blend)</option><option value="guided">guided (실험, 효과 약함)</option><option value="off">끄기</option><option value="nolook">미리 추론 끔 (청크 다 실행 후 추론)</option></select></label> <label title="이진: 0.5 기준 열림/닫힘 | 연속: 열림 확률 그대로 | 시그모이드: 1/(1+exp(-기울기(p-0.5))) | ReLU: clip(기울기(p-0.5),0,1) (0.5 아래 닫힘, 기울기 2 = 0.5~1 을 0~1 로)">집게 <select id="gmode"><option value="binary">이진 (0/1)</option><option value="linear">연속 (확률 그대로)</option><option value="sigmoid">시그모이드</option><option value="relu">ReLU</option></select></label> <label title="시그모이드/ReLU 기울기 (클수록 이진에 가까움; ReLU 는 2 권장)">기울기 <input type="number" id="ggain" step="1" style="width:46px"></label> <label title="이전 계획들을 평균 (켜면 뒤처진 실제 위치로 끌려가 뒤로 가는 동작이 생김)"><input type="checkbox" id="tens"> 시간 앙상블</label> <label title="궤적 전체 높이 보정 (첫 청크에서 한 번만 더함, + = 위로). 제한이 아님">높이 보정 mm <input type="number" id="zoff" step="5" style="width:60px"> <label title="deploy/height_calib.py measure 로 로봇이 잰 테이블 태그 높이 차이를 팔마다 자동으로 더함 (위 mm 값과 합산)"><input type="checkbox" id="hcal"> 로봇 높이 캘리브</label><select style="display:none"></select></label></div>
+  <div class="card"><button id="dry" onclick="act('dry')">DRY-RUN 시작</button><button id="go" onclick="goRun()">실행 시작 (GO)</button>
+   <button id="gostep" onclick="goStep()">스텝 모드로 시작 (GO)</button><br>
+   <button id="step" onclick="stepOnce()">한 스텝 실행 ▶ (N)</button> <span id="stepinfo" class="k"></span><br>
+   <button id="hold" onclick="hold()">정지 (부드럽게, Space)</button> <button id="estopbtn" onclick="fetch('/api/estop',{method:'POST'})" style="background:#c62828;color:#fff">E-STOP (즉시)</button> <button id="clrestop" onclick="conf('clear_estop','E-STOP 을 해제합니다 (팔은 현재 자세 유지, 움직이지 않음). 진행할까요?')">E-STOP 해제</button><br>
+   <button id="ready" onclick="conf('ready','READY 자세로 천천히 이동합니다. 주변을 비웠나요?')">READY로 이동</button>
+   <button id="startpose" onclick="conf('start','READY 에서 학습 시작 자세(테이블 위 약 3 cm)로 천천히 이동합니다. 두 팔이 READY 이고 천이 비켜 있나요?')">시작 자세로 이동</button>
+   <button id="park" onclick="conf('park','휴식(park) 자세로 이동 후 토크를 끕니다. 진행할까요?')">휴식(park)</button>
+   <div id="msg" style="margin-top:6px"></div></div>
+  <div class="card"><b>지난 실행</b><div id="runs" style="max-height:220px;overflow:auto"></div></div>
+ </div></div>
+<script>
+let S=null, hbOn=false;
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});return r.json()}
+function hold(){post('/api/hold')}
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();hold()} else if(e.code==='KeyN'&&S&&S.mode==='go'&&S.step_mode){e.preventDefault();stepOnce()}});
+async function act(m){const r=await post('/api/'+m);document.getElementById('msg').textContent=r.msg}
+function goRun(){if(confirm('실제 로봇이 움직입니다 (GO). 사람이 옆에 있고, 두 팔이 READY 이고, 천이 놓였나요?\n정지 = 빨간 버튼 / Space'))act('go')}
+function goStep(){if(confirm('스텝 모드 (GO): 로봇은 [한 스텝 실행] 을 누를 때만, 그때의 최신 계획 한 구간(커밋 스텝 수)만큼 움직입니다.\n사람이 옆에 있고, 두 팔이 READY 이고, 천이 놓였나요?\n정지 = 빨간 버튼 / Space'))act('gostep')}
+async function stepOnce(){const r=await post('/api/step');document.getElementById('msg').textContent=r.msg}
+function conf(m,t){if(confirm(t))act(m)}
+setInterval(()=>{if(S&&S.mode==='go')post('/api/hb')},250);
+function setv(id,v){const e=document.getElementById(id);if(document.activeElement!==e)e.value=v}
+let inited=false;
+async function save(){const p=document.getElementById('policy').value;const b={policy:p,speed:+speed.value,slow_start_speed:+slow.value,secs:+secs.value,dit_steps:+dsteps.value,show_umi_ref:umi.checked,active_arms:arms.value,grip_fake_open:gfo.checked,tens:document.getElementById('tens').checked,grip_mode:document.getElementById('gmode').value,grip_gain:+document.getElementById('ggain').value,z_offset_mm:+document.getElementById('zoff').value,height_calib:document.getElementById('hcal').checked,rtc:document.getElementById('rtc').value};
+ b['ckpt_'+p]=ckpt.value;b['commit_'+p]=+commit.value;await post('/api/settings',b);inited=false}
+['policy','ckpt','commit','speed','slow','secs','dsteps','umi','arms','gfo','rtc','tens','zoff','hcal','gmode','ggain'].forEach(i=>document.getElementById(i).addEventListener('change',save));
+function fill(){const s=S.settings,p=s.policy;setv('policy',p);const ck=document.getElementById('ckpt');ck.innerHTML='';
+ (S.ckpts[p]||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c.split('/').slice(-3).join('/');ck.appendChild(o)});
+ if(![...ck.options].some(o=>o.value===s['ckpt_'+p])){const o=document.createElement('option');o.value=s['ckpt_'+p];o.textContent=s['ckpt_'+p].split('/').slice(-3).join('/');ck.appendChild(o)}
+ ck.value=s['ckpt_'+p];const cm=document.getElementById('commit');cm.innerHTML='';[1,2,4,8,12,16,24,32].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;cm.appendChild(o)});
+ cm.value=s['commit_'+p];setv('speed',s.speed);setv('slow',s.slow_start_speed);setv('secs',s.secs);setv('dsteps',s.dit_steps);umi.checked=!!s.show_umi_ref;setv('arms',s.active_arms||'both');gfo.checked=!!s.grip_fake_open;document.getElementById('tens').checked=!!s.tens;document.getElementById('gmode').value=s.grip_mode||(s.grip_cont===false?'binary':'linear');document.getElementById('ggain').value=s.grip_gain||10;document.getElementById('zoff').value=s.z_offset_mm||0;document.getElementById('hcal').checked=!!s.height_calib;document.getElementById('rtc').value=s.rtc||'blend';inited=true}
+function c(v,good){return v?'<span class="'+(good?'ok':'bad')+'">':'<span class="'+(good?'bad':'ok')+'">'}
+function strip(g){const cv=document.getElementById('strip'),x=cv.getContext('2d');x.clearRect(0,0,820,120);if(!g)return;
+ ['L','R'].forEach((n,j)=>{x.fillStyle='#ccc';x.fillText(n,4,30+j*55);for(let k=0;k<32;k++){const v=g[k][j];const y=8+j*55;
+  x.fillStyle=v>0.5?'#3c3':'rgb('+Math.round(40+180*Math.max(0,Math.min(1,v)))+',60,60)';x.fillRect(20+k*25,y,22,40);x.fillStyle='#fff';x.font='10px sans-serif';x.fillText(v.toFixed(2),21+k*25,y+25)}})}
+function hist(h){const cv=document.getElementById('hist'),x=cv.getContext('2d');x.clearRect(0,0,820,160);if(!h||h.length<2)return;
+ const t0=h[0][0],t1=h[h.length-1][0]||1;const X=t=>30+(t-t0)/Math.max(t1-t0,1e-3)*780,Y=v=>150-Math.max(-0.2,Math.min(1.2,v))/1.4*140-0.2/1.4*140*0;
+ x.strokeStyle='#666';x.beginPath();x.moveTo(30,Y(0.5));x.lineTo(810,Y(0.5));x.stroke();x.fillStyle='#999';x.fillText('0.5',4,Y(0.5)+4);x.fillText('k1 이력',4,12);
+ [['#4af',1],['#fa4',2]].forEach(([col,i])=>{x.strokeStyle=col;x.beginPath();h.forEach((p,n)=>{n?x.lineTo(X(p[0]),Y(p[i])):x.moveTo(X(p[0]),Y(p[i]))});x.stroke()})}
+async function tick(){try{S=await (await fetch('/api/status')).json()}catch(e){return}
+ if(!inited)fill();const b=S.bridge,m=S.mode;
+ const ra=b.read_age_ms||{},mo=b.motors_ok||{};
+ document.getElementById('status').innerHTML=
+  '<span><span class="k">모드</span> <b>'+({idle:'대기',dry:'DRY-RUN',go:(S.step_mode?'실행(GO, 스텝)':'실행(GO)'),hold:'HOLD'}[m]||m)+'</b>'+(S.busy?' ('+S.busy+')':'')+'</span>'+
+  '<span><span class="k">계획 Hz</span> '+(S.hz??'-')+'</span><span><span class="k">정책 지연</span> '+(S.lat_pol_ms??'-')+' ms</span><span><span class="k">루프</span> '+(S.lat_total_ms??'-')+' ms</span>'+
+  '<span><span class="k">브리지</span> '+c(b.connected,true)+(b.connected?'연결':'끊김')+'</span> E-STOP '+c(b.estop,false)+(b.estop?'걸림':'없음')+'</span> park '+(b.parked&&b.parked.length?'<span class="warn">'+b.parked.join(',')+'</span>':'없음')+'</span>'+
+  '<span><span class="k">읽기 지연</span> L '+(ra.left??'-')+' / R '+(ra.right??'-')+' ms</span>'+
+  '<span><span class="k">모터</span> '+Object.entries(mo).map(([k,v])=>c(v,true)+k.replace('_arm','')+(v?' OK':' 이상')+'</span>').join(' ')+'</span>'+
+  '<span><span class="k">TCP</span> L '+(S.tcp?S.tcp.left.join(', '):'-')+' | R '+(S.tcp?S.tcp.right.join(', '):'-')+'</span>'+
+  (S.xvla?(S.xvla.up?'<span class="ok">X-VLA 서버 OK</span>':'<span class="bad">X-VLA 서버 꺼짐 (:8775)</span>'):'')+(S.replay?'<span class="bad">녹화 프레임(replay) 모드: GO 불가</span>':'')+(S.dry_only?'<span class="warn">DRY 전용 UI</span>':'')+(S.wave_ok?'':'<span class="bad">wave 미확인</span>');
+ document.getElementById('flags').innerHTML=(S.flags||[]).map(f=>'<span>'+f+'</span>').join('')||'<span style="background:#223a22">없음</span>';
+ document.getElementById('lims').textContent=(S.lims&&S.lims.length)?'제한기: '+S.lims.join(' '):'';
+ document.getElementById('msg').textContent=S.msg;strip(S.grip);hist(S.k1);
+ const running=m==='dry'||m==='go',idle=!running&&!S.busy;
+ document.getElementById('dry').disabled=!idle;document.getElementById('go').disabled=!idle||S.dry_only||S.replay||!S.wave_ok;
+ document.getElementById('gostep').disabled=!idle||S.dry_only||S.replay||!S.wave_ok;
+ document.getElementById('step').disabled=!(m==='go'&&S.step_mode)||S.step_pending;
+ document.getElementById('stepinfo').textContent=(m==='go'&&S.step_mode)?((S.step_pending?'실행 대기 중... ':'다음 스텝 대기 ')+'(실행한 스텝 '+S.steps_done+')'):'';
+ document.getElementById('ready').disabled=!idle||S.dry_only;document.getElementById('park').disabled=!idle||S.dry_only;document.getElementById('startpose').disabled=!idle||S.dry_only;
+ ['policy','ckpt','commit','speed','slow','secs','dsteps','arms'].forEach(i=>document.getElementById(i).disabled=running)}
+async function runs(){const r=await (await fetch('/api/runs')).json();document.getElementById('runs').innerHTML='<table>'+r.map(x=>'<tr><td>'+x.name+'</td><td>'+(x.stop||'')+'</td><td><a href="/file?p='+encodeURIComponent(x.summary)+'" target=_blank>요약</a></td><td>'+(x.video?'<a href="/file?p='+encodeURIComponent(x.video)+'" target=_blank>영상</a>':'')+'</td></tr>').join('')+'</table>'}
+setInterval(tick,300);setInterval(runs,5000);tick();runs();
+</script></body></html>
