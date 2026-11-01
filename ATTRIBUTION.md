@@ -8,7 +8,7 @@ following work, which keeps its own licence and credit.
 * **HandUMI** — hand-worn parallel-jaw gripper for robot-free bimanual data capture. **Designed and published by
   BrikHMP18 (murobotics-ai), Apache-2.0: <https://github.com/murobotics-ai/handumi-hw>. It is not our design.** The
   project uses a build of the upstream design with small modifications (wrist IMU instead of VR tracking, several
-  AprilTags per hand, jaw servo removed). No HandUMI files are redistributed here.
+  AprilTags per hand, jaw servo removed 20–28 Oct and reinstalled 29 Oct as a torque-off jaw encoder). No HandUMI files are redistributed here.
   B. Meza et al., "HandUMI: A modular hand-worn parallel-jaw interface for robot-free bimanual data capture," 2026,
   <https://murobotics.ai/research/handumi>.
 * **Universal Manipulation Interface (UMI)** — C. Chi, Z. Xu, C. Pan, E. Cousineau, B. Burchfiel, S. Feng, R. Tedrake,
