@@ -6,6 +6,7 @@ Kept for reference; not used by the current pipeline. Why each was dropped is de
 |---|---|---|---|
 | `laundry_collector/`, `tests/` | bare-hand collector + virtual gripper renderer | 10-08 | mock-tested, parked |
 | `configs/laundry/` | config files of `laundry_collector/` (read as `legacy/configs/laundry` by its `config.py`; moved from `configs/laundry/` 11-01) | 10-08 | parked with the collector |
+| `configs/handumi/*.bak*` | backup copies of HandUMI collector / task configs taken before edits (`.bak_pre_<change>`); the live files stay in `configs/handumi/` (moved here in refactor v3, 11-01) | – | backups only |
 | `umialign_pipeline/` | MASt3R + Orbbec body tracking + IMU smoother and exporter (UMIalign data) | 10-13 … 10-16 | labels only 4–6 cm accurate → replaced by the AprilTag rig |
 | `scripts/umi_fusion/` | red-tape jaw detection, QA, Orbbec tag check/gate, MASt3R restart runner (old) | 10-12 … 10-15 | tape removed 10-20 |
 | `scripts/handumi_*` | Orbbec body / canonical tracking of the UMI | 10-12 | replaced by tags |

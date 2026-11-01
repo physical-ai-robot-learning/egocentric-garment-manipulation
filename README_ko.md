@@ -7,7 +7,7 @@
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report v0.1 (PDF)](docs/technical_report/report_v0.1_en.pdf)** · [v0 (10-21)](docs/technical_report/report_v0_en.pdf)
+· **[Technical Report v0.1 (PDF)](report/report_v0.1_en.pdf)** · [v0 (10-21)](report/report_v0_en.pdf)
 · [Technical note (PDF)](report/technical_note.pdf) · [자세한 결과](docs/results.md) · [세부 내용](docs/details_ko.md)
 · [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-01
 
@@ -147,7 +147,7 @@ flowchart LR
 | egogarment: viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | 현재 | 처리한 궤적의 그림 (`plot_example`) |
 | egogarment wrapper | [`scripts/*.py`](scripts/) | – | 현재 | 얇은 wrapper: 설치 없이 `python scripts/<module>.py` |
 | 예제 | [`examples/`](examples/README.md) | – | 현재 | 합성(SYNTHETIC) 양손 시연 + 시뮬레이션 재생(CSV/NPZ)과 생성기 |
-| 테크니컬 리포트 | [`docs/technical_report/`](docs/technical_report/README.md) | — | 현재 (v0.1) | PDF + LaTeX + 그림, 리포트에 적힌 옛 경로 → 새 경로 표 |
+| 테크니컬 리포트 | [`report/`](report/README.md) | — | 현재 (v0.1) | PDF + LaTeX + 그림, 리포트에 적힌 옛 경로 → 새 경로 표 |
 | 테크니컬 노트 | [`report/`](report/) | – | 현재 | 짧은 테크니컬 노트 (LaTeX 소스 + PDF) |
 | 문서 | [`docs/`](docs/) | — | 현재 | [세부 내용](docs/details_ko.md), [결과와 지표 정의](docs/results.md), [재생 트랙 단계 표](docs/pipeline_replay_track.md), [기록](docs/records/README.md), 데이터 흐름 그림과 생성기, 합성 예제 그림 |
 | 미디어 | [`media/`](media/README.md) | – | 현재 | 실제 장치의 GIF, 영상, 사진 ([media/README.md](media/README.md)) |
@@ -457,7 +457,7 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 
 ### 확인 방법 (이 저장소)
 
-위 숫자는 이 저장소에 없는 녹화 데이터에서 나왔고, 방법과 측정은 [테크니컬 리포트](docs/technical_report/report_v0.1_en.pdf)에
+위 숫자는 이 저장소에 없는 녹화 데이터에서 나왔고, 방법과 측정은 [테크니컬 리포트](report/report_v0.1_en.pdf)에
 있습니다. 코드만으로 확인할 수 있는 것:
 
 ```bash
@@ -642,7 +642,7 @@ HandUMI 자체는 Universal Manipulation Interface(UMI, Chi et al., RSS 2024)를
 * **CoTracker3**: 고정 카메라의 점 추적.
 * **Pink** on **Pinocchio**: 미분 IK. **ResNet-18** / **ImageNet**: 집게 분류기 backbone.
 
-전체 참고 문헌은 [테크니컬 노트](report/technical_note.pdf)와 [테크니컬 리포트](docs/technical_report/report_v0.1_en.pdf)에,
+전체 참고 문헌은 [테크니컬 노트](report/technical_note.pdf)와 [테크니컬 리포트](report/report_v0.1_en.pdf)에,
 라이선스와 출처는 [ATTRIBUTION.md](ATTRIBUTION.md)에 있습니다.
 
 ## 10. 라이선스 · 감사의 말 · 인용
@@ -659,8 +659,8 @@ Apache-2.0)이고 UMI(Chi et al., RSS 2024)를 따릅니다. [9절](#9-하드웨
 학습 계획에 적힌 pretrain 데이터: Soft-Fold, iPhUMI(MIT), PrimeBot UMI(CC BY-SA 4.0).
 
 **출처 이력.** 2026-11-01까지 전체 코드와 세부 문서는 별도 작업 저장소 `egocentric-laundry-folding`에 있었고, 이 저장소는 공개용
-정리본이었습니다. 두 저장소를 여기로 합쳤습니다. `docs/technical_report/`의 테크니컬 리포트는 여전히 그 저장소 이름과 정리 이전
-경로를 적고 있습니다([경로 표](docs/technical_report/README.md)).
+정리본이었습니다. 두 저장소를 여기로 합쳤습니다. `report/`의 테크니컬 리포트는 여전히 그 저장소 이름과 정리 이전
+경로를 적고 있습니다([경로 표](report/README.md)).
 
 **인용.** [CITATION.cff](CITATION.cff)를 보세요(GitHub의 "Cite this repository").
 

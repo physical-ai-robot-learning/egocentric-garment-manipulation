@@ -8,7 +8,7 @@ Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the 
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report v0.1 (PDF)](docs/technical_report/report_v0.1_en.pdf)** · [v0 (10-21)](docs/technical_report/report_v0_en.pdf)
+· **[Technical Report v0.1 (PDF)](report/report_v0.1_en.pdf)** · [v0 (10-21)](report/report_v0_en.pdf)
 · [Technical note (PDF)](report/technical_note.pdf) · [Detailed results](docs/results.md) · [Project details](docs/details.md)
 · [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-01
 
@@ -163,7 +163,7 @@ What is in this repository, by pipeline stage (see [§5](#5-pipeline)).
 | egogarment: viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | current | figure of a processed trajectory (`plot_example`) |
 | egogarment wrappers | [`scripts/*.py`](scripts/) | – | current | thin wrappers: `python scripts/<module>.py` works without installing |
 | Examples | [`examples/`](examples/README.md) | – | current | SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator |
-| Technical report | [`docs/technical_report/`](docs/technical_report/README.md) | — | current (v0.1) | PDF + LaTeX + figures; old → new path map for paths cited in the report |
+| Technical report | [`report/`](report/README.md) | — | current (v0.1) | PDF + LaTeX + figures; old → new path map for paths cited in the report |
 | Technical note | [`report/`](report/) | – | current | short technical note (LaTeX source + PDF) |
 | Docs | [`docs/`](docs/) | — | current | [project details](docs/details.md), [results and metric definitions](docs/results.md), [replay-track stage map](docs/pipeline_replay_track.md), [records](docs/records/README.md), data-flow figure and its generator, synthetic example figure |
 | Media | [`media/`](media/README.md) | – | current | GIFs, videos and photos of the real setup ([media/README.md](media/README.md)) |
@@ -500,7 +500,7 @@ camera, aligned on one clock (33 s demo replayed in 94 s; shown at robot speed).
 ### How to verify (this repository)
 
 The real-system numbers above come from recorded data that is not in this repository; the method and measurements are
-in the [technical report](docs/technical_report/report_v0.1_en.pdf). What can be checked from the code alone:
+in the [technical report](report/report_v0.1_en.pdf). What can be checked from the code alone:
 
 ```bash
 python -m pytest -q                                      # egogarment regression on the synthetic example; imports, config paths,
@@ -702,7 +702,7 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 * **Pink** on **Pinocchio**: differential IK; **ResNet-18** / **ImageNet**: jaw classifier backbone.
 
 Full references are in the [technical note](report/technical_note.pdf) and the
-[technical report](docs/technical_report/report_v0.1_en.pdf); licences and credits in [ATTRIBUTION.md](ATTRIBUTION.md).
+[technical report](report/report_v0.1_en.pdf); licences and credits in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## 10. License, acknowledgements, citation
 
@@ -720,8 +720,8 @@ Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot U
 
 **Provenance.** Until 1 November 2026 the full code and detailed notes lived in a separate working repository,
 `egocentric-laundry-folding`, and this repository held the public write-up; the two were merged here. The technical
-reports in `docs/technical_report/` still name that repository and its pre-refactor paths
-([path map](docs/technical_report/README.md)).
+reports in `report/` still name that repository and its pre-refactor paths
+([path map](report/README.md)).
 
 **Citation.** See [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").
 

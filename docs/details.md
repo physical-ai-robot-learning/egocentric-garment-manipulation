@@ -132,7 +132,7 @@ recorder, jaw model and robot safety tools reused above; its pose and label step
 
 *Reconstructed jaw-tip paths of the replay track, coloured by source: markers + depth (green), MASt3R-SLAM (blue, no longer used), IMU while markers are hidden (orange).*
 
-Details: [Technical Report v0.1](technical_report/report_v0.1_en.pdf) · code per stage: [pipeline_replay_track.md](pipeline_replay_track.md).
+Details: [Technical Report v0.1](../report/report_v0.1_en.pdf) · code per stage: [pipeline_replay_track.md](pipeline_replay_track.md).
 
 ## 5. What we learned and replay results
 
