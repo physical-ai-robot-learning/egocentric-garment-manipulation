@@ -37,7 +37,7 @@ def start_cmd(a):
     tgt = {}
     hc = None
     if getattr(a, "height_calib", False):          # 11-01 user "xy 도 맞추어줘": land the start TCP where the label frame has it (robot FK = B - shift)
-        import height_calib as HC; hc = HC.load()
+        from garment_pipeline.eval_deploy import height_calib as HC; hc = HC.load()
     for s in core.SIDES:
         T = P0[s].copy(); T[2, 3] += a.start_lift
         if hc is not None and "xy_B_minus_robot" in hc["fit"].get(s, {}): T[:2, 3] -= np.asarray(hc["fit"][s]["xy_B_minus_robot"])

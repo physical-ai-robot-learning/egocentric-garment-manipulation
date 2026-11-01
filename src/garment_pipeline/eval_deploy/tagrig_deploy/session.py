@@ -81,7 +81,7 @@ def run_session(a, rig, ctl):
     # already carries (z_base); the first chunk ramps in over 16 rows like the manual offset
     hcal = None; z_off = {s: z_off_m for s in core.SIDES}; z_base = {s: 0.0 for s in core.SIDES}
     if getattr(a, "height_calib", False):
-        import height_calib as HC; hcal = HC.load(); z_off_done = False
+        from garment_pipeline.eval_deploy import height_calib as HC; hcal = HC.load(); z_off_done = False
         if hcal is None: raise SystemExit("deploy/height_calib.json 없음 -- 먼저 `python deploy/height_calib.py measure`")
         say("높이 캘리브레이션 " + hcal["created"] + ": " + ", ".join(f"{s} {f['dz_mean_mm']:+.1f} mm" for s, f in hcal["fit"].items()))
     look = retimed and a.go and not step and not getattr(a, "no_lookahead", False); lat_hist = collections.deque(maxlen=5); n_dropped = n_blend = 0
