@@ -637,6 +637,13 @@ The flattening policies stop short of the cloth. To separate "the pipeline canno
 hard for this amount of data", the first robot feasibility test was reduced to one sub-skill: **pinch one sleeve with
 the left hand** (right arm idle in all data; deployed with the left arm only).
 
+![Pinching demos, jaw-tip paths by source](media/pinching_cg_gold_trajectory_sources.gif)
+
+*Three GOLD pinching demonstrations from 1 November ([MP4](media/pinching_cg_gold_trajectory_sources.mp4)): Cg-fused
+jaw-tip paths coloured by the source of each frame — a gripper marker visible (green), point tracking only while the
+markers are hidden (blue), IMU inside a tracking gap (orange). Left: projected into the fixed camera; right: both hands in
+the robot base frame. The left hand does the pinch; the right hand rests on its start markers.*
+
 | | |
 |---|---|
 | labels | **Cg** everywhere (CoTracker + marker anchors + constant bias; IMU only inside tracking gaps); jaw from the servo encoder; 0.5× time-stretched for the robot. An earlier label variant left gaps at demo starts, so all sets were rebuilt with Cg; the two are never mixed. |

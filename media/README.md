@@ -27,3 +27,4 @@ shown at the replay speed (94 s at 0.35×).
 
 Raw recordings are not included. `media/umi_hand_current.jpg` of the former `egocentric-laundry-folding` repository was
 byte-identical to `umi_hands.jpg` and was not kept.
+| `pinching_cg_gold_trajectory_sources.gif` / `.mp4` | three GOLD left-hand pinching demonstrations (11-01), Cg-fused jaw-tip paths coloured by pose source; rendered with `garment_pipeline.fusion_stack.orbbec.v2b.fusion.render_traj_sources` |
