@@ -15,7 +15,8 @@ refactor and were not rebuilt).
 - `report_v0.1_en.{tex,pdf}`, `report_v0_en.{tex,pdf}`, `figures/`, `make_fig_robotize.py`
 
 ## Provenance — repository paths cited in the report
-The reports name repository paths as they were before the 11-01 refactor. Current locations:
+The reports were written in the project's former working repository, `egocentric-laundry-folding` (merged into this
+repository on 11-01), and name it on the title page. They name repository paths as they were before the 11-01 refactor. Current locations:
 
 | path in the report | current path |
 |---|---|

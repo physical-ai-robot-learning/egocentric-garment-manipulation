@@ -1,32 +1,41 @@
 # Egocentric Human Demonstrations for Bimanual Garment Manipulation
 
 Human garment-manipulation demonstrations, recorded with hand-worn parallel-jaw grippers, are converted into
-robot-feasible end-effector trajectories and replayed on a two-arm robot, as an end-to-end test of the data before any
-policy is trained on it.
+robot-feasible end-effector trajectories and training labels, replayed on a two-arm robot (**reBot B601-DM**) as an
+end-to-end test of the data, and then used to train policies for T-shirt flattening and folding.
 
 Part of **[egocentric](https://github.com/physical-ai-vla/egocentric)** — the entry point to all egocentric-demonstration projects.
 
 [![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical note (PDF)](report/technical_note.pdf)** · [Detailed results](docs/results.md) ·
-[Attribution](ATTRIBUTION.md)
+· **[Technical Report v0.1 (PDF)](docs/technical_report/report_v0.1_en.pdf)** · [v0 (10-21)](docs/technical_report/report_v0_en.pdf)
+· [Technical note (PDF)](report/technical_note.pdf) · [Detailed results](docs/results.md) · [Project details](docs/details.md)
+· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-01
 
 > **Update, 27 October 2026.** The replay stage is finished and the project has moved on to **policy training data**:
 > 300 successful T-shirt flattening demonstrations, a new pose source (fixed-camera point tracking anchored by the
 > markers), quality grades and Cartesian labels taken *before* inverse kinematics. See
-> [From replay to policy training data](#from-replay-to-policy-training-data-october-2627). Parts of the original
-> pipeline that are no longer used are marked ~~struck through~~.
+> [From replay to policy training data](#from-replay-to-policy-training-data-october-2627). The open-loop replay track
+> (10-08 → 10-22) is kept as the base the new pipeline builds on. Parts of the original pipeline that are no longer used
+> are marked ~~struck through~~; their code is in [`legacy/`](legacy/README.md).
 >
-> **Update, 1 November 2026.** First policies fine-tuned on these demos run on the robot but stop short of the cloth.
-> The causes were traced to the data (a label clamp, demonstration speed, jaw labels, wrist-camera placement); see
+> **Update, 1 November 2026.** First policies fine-tuned on these demos run on the robot but stop short of the cloth
+> and close the jaws early. Four causes were traced to the data (a label clamp, demonstration speed, jaw labels,
+> wrist-camera placement); see
 > [First policies on the robot](#first-policies-on-the-robot-and-what-they-exposed-in-the-data-october-28--november-1).
 > No success rate is reported yet.
 
-> **Note.** This repository contains a sanitized research overview and selected reproducible components of an ongoing
-> bimanual garment-manipulation project. Proprietary code, internal datasets, calibration parameters, robot-specific
-> configurations, raw logs and model checkpoints are not included. All data in `examples/` is synthetic. The utilities
-> in `src/egogarment/` (command wrappers in `scripts/`) were written for this repository and are generic
-> re-implementations of ideas described below, not the project's production code.
+> **What is in this repository.** The full project code as it ran: the recorder and robot-side package
+> ([`src/visual_teleop/`](src/visual_teleop/README.md)), the tag-rig pose modules ([`src/rebot_prep/`](src/rebot_prep/README.md)),
+> calibration, pose, retargeting, evaluation and robot-bridge scripts, the training-data pipeline, the DiT trainer and
+> the deploy loop ([`scripts/`](#3-components)), calibration results and robot settings ([`configs/`](configs/README.md)),
+> the HandUMI build copy ([`hardware/umihand/`](hardware/umihand/README.md)), superseded code ([`legacy/`](legacy/README.md)),
+> the technical reports, detailed notes and media. [`src/egogarment/`](src/egogarment/README.md) is a separate set of
+> small standalone re-implementations of the trajectory stages that run on the synthetic data in [`examples/`](examples/README.md).
+> Two limits: [`scripts/processing/`](scripts/processing/README.md) is a snapshot of the code as it ran — its imports and
+> paths point at the original machine layout, so it is **not runnable from this repository alone**; and raw
+> recordings, trained checkpoints, the reBot vendor plugin and URDF are not included. The X-VLA fine-tuning code is not
+> in this repository.
 
 **Human demonstration (left) vs. robot replay of the converted trajectory (right).** Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.
@@ -43,17 +52,26 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.
 
 ## 1. Overview
 
+* **Goal.** A robot folds a T-shirt learned from human demonstrations: no teleoperation, no robot data collection.
 * **Replay as an end-to-end test of the data.** Converted human motion is replayed open loop on the robot, on one clock
   and in one frame, so errors can be attributed to a stage (conversion vs. planning vs. tracking).
-* **One world frame, one clock.** Every pose, human or robot, is expressed in the robot base frame, and every stream
-  carries host timestamps; no per-recording alignment is needed.
-* **Replay result.** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and grasp height matches the
-  human; folding by replay does **not** succeed.
-* **Training data.** 300 flattening demonstrations are converted into graded, Cartesian-before-IK training labels,
-  with a fixed-camera point-tracking pose source that replaced wrist-camera SLAM.
-* **First policies on the robot.** Two policies fine-tuned on the GOLD demos reach toward the cloth but stop short;
+* **One world frame (the robot base), one clock.** The fixed camera is calibrated to the robot and every take starts
+  with the grippers at markers whose positions in robot coordinates are known, so no per-take alignment is needed;
+  every stream carries host timestamps.
+* **Pose from the fixed camera, not wrist SLAM.** Point tracking + AprilTags + depth + IMU. Wrist-camera SLAM lost
+  tracking exactly at grasps (MASt3R kept 19–48 % of frames; ORB-SLAM3 scale diverged).
+* **Labels are Cartesian targets before IK;** IK and safety checks run online before anything moves. IK → FK labels had
+  moved the target by p95 ≈ 58 mm at grasps.
+* **Replay result.** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and the jaws close at the
+  human's height and time; the robot grasps and drags the cloth, but folding by replay does **not** succeed.
+* **Training data.** 300 successful flattening demonstrations are converted into graded, Cartesian-before-IK training
+  labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs.
+* **First policies on the robot.** Fine-tuned DiT and X-VLA policies (10-28 →) reach toward the cloth but stop short;
   the causes were traced to the data (a label clamp, demonstration speed, jaw labels, wrist-camera placement); the
-  first three are changed, the camera re-mount is next. No success rate is reported yet.
+  first three are changed, the camera re-mount is next. **No policy success rate yet.**
+
+Long-form write-up (data, training plan, deploy loop, decision log, replay track, open problems):
+[docs/details.md](docs/details.md). Metric definitions and full result tables: [docs/results.md](docs/results.md).
 
 ### Motivation and research question
 
@@ -91,71 +109,122 @@ kinematics. A policy pretrained on public cloth data is fine-tuned on the best-g
 robot in a receding-horizon loop with online IK and safety checks. The grey box lists parts of the earlier replay
 pipeline that are no longer used.* (Figure generated by [`docs/make_architecture.py`](docs/make_architecture.py).)
 
-| component | role |
+The same flow by stage, with the code for each stage:
+
+```mermaid
+flowchart LR
+  A["Stage 0<br/>calibrate<br/>scripts/pose"] --> B["Stage 1<br/>record<br/>visual_teleop.tools.tag_rig_record"]
+  B --> C["Stage 2<br/>tag pose + jaw state<br/>scripts/pose · rebot_prep.parity"]
+  C --> D["Stage 3–4<br/>CoTracker + marker + IMU fusion,<br/>trims, GOLD/SILVER/REJECT<br/>scripts/processing/fusion_stack"]
+  D --> E["Stage 5<br/>labels + LeRobot dataset<br/>scripts/processing/labels_dataset"]
+  E --> F["Stage 6<br/>train<br/>scripts/processing/training (DiT)"]
+  F --> G["Stage 7<br/>deploy + evaluate<br/>scripts/processing/eval_deploy · scripts/deploy"]
+  C -. replay track .-> R["robotize → plan → replay → compare<br/>scripts/retarget · visual_teleop.tools.umi_replay_bi · scripts/evaluation"]
+```
+
+| unit | role |
 |---|---|
-| 2 × hand-worn gripper (HandUMI) | demonstration tool; each carries four fiducial markers (AprilTags; the fourth, on the back of the wrist camera, since Oct 23), a wrist fisheye camera, an IMU and a **jaw servo** (Feetech STS3215) read with torque off as a passive jaw encoder at ≈100 Hz on the host clock (back since Oct 29; ~~no jaw motor~~ Oct 20–28) |
-| Fixed RGB-D camera (Orbbec Gemini 336) | above the table, raised to 113 cm so both hands stay in view; sees the markers and the grippers for point tracking; colour + aligned depth |
-| 2 × low-cost 6-DoF arm with parallel jaw (reBot B601-DM) | executes the policy (earlier: open-loop replay target); jaw-opening limit enforced by the robot bridge |
-| Host computer | records all streams on one monotonic clock; robot control and online IK |
-| Rented GPUs | point tracking, the jaw model and policy training; ~~only for the optional visual-SLAM gap filler~~ |
+| **2× HandUMI** (hand-worn gripper) | demonstration tool; parallel jaws with **four AprilTag markers** (printed square codes whose 3D pose a camera can measure): three 48 mm tags plus, since 10-23, a 30 mm tag on the back of the wrist camera (IDs 220 / 221, rig `umi_tag_rig_v002`; a lone 30 mm tag is accepted only with an IMU check against its pose flip); a wrist fisheye camera (30 Hz), a small IMU (motion sensor) and a **jaw servo** (Feetech STS3215) read with torque off as a passive jaw encoder at ≈100 Hz on the host clock (back since 10-29; ~~no jaw motor~~ 10-13 → 10-28) |
+| **Orbbec Gemini 336** (fixed RGB-D camera) | colour + aligned depth, fixed above the table (15 Hz), raised to 113 cm (10-25) so both hands stay in view; the **pose source** (point tracking + markers + depth); sees both grippers, the two **start markers** and two fixed table tags used to re-calibrate after a camera move (~~the wrist calibration marker~~, first calibration only) |
+| **2× reBot B601-DM** | low-cost 6-DoF arms with parallel jaws, driven by our MIT-mode bridge (100 Hz, auto re-enable, USB reconnect, jaw-opening limit enforced); run the policy (earlier: open-loop replay target) |
+| **Robot corrections** | measured with tape and camera instead of trusting the robot's CAD model: gripper-tip position (model was 89 mm off), left-arm mounting position (70 mm and 3° off), left arm's 2nd joint zero (−8.4°) |
+| **Host computer** | records all streams on one monotonic clock; robot control and online IK |
+| **Rented GPUs** | RTX 5090 pods: point tracking, the jaw model, 3-D solve and policy training; ~~only for the optional visual-SLAM gap filler~~ |
 
 Two principles run through the system:
 
 * **One world frame.** Every pose, human or robot, is expressed in the robot base frame. The fixed camera is calibrated
-  to the robot (again after every camera move, from two fixed table markers and the table plane), and every recording starts with the grippers placed on start markers whose positions in the robot
-  frame were measured once. No per-recording alignment (~~no SLAM map~~, no point-cloud registration) is needed.
+  to the robot (again after every camera move, from two fixed table markers and the table plane), and every recording
+  starts with the grippers placed on start markers whose positions in the robot frame were measured once. No
+  per-recording alignment (~~no SLAM map~~, no point-cloud registration) is needed. Details in [§5, Stage 0](#stage-0--one-world-frame-for-human-and-robot).
 * **One clock.** Camera frames, IMU samples, the robot's commanded and measured joints all carry host timestamps, so
   human, command and robot can be compared sample by sample and filmed side by side by the same camera without
   synchronization hardware.
 
 ## 3. Components
 
-What is in this repository, by pipeline stage (see [§5](#5-pipeline)). Hardware, recorder, real pose fusion, IK, robot
-bridge and training code are not included (see the note above).
+What is in this repository, by pipeline stage (see [§5](#5-pipeline)).
 
 | Component | Path | Stage | Status | Description |
 |---|---|---|---|---|
-| io | [`src/egogarment/io/`](src/egogarment/io/) | all | current | trajectory CSV format helpers (`trajio`) |
-| pose | [`src/egogarment/pose/`](src/egogarment/pose/) | 3; learning contract | current (generic baseline) | gap filling with per-frame flags (`gap_fill`); relative SE(3) contract and round trip (`relative_se3`) |
-| retarget | [`src/egogarment/retarget/`](src/egogarment/retarget/) | 5 | current (illustrative defaults) | continuous warps + per-frame displacement / quality (`robotize`) |
-| evaluation | [`src/egogarment/evaluation/`](src/egogarment/evaluation/) | 9 | current | RMSE / p95 / rotation error between two trajectories with lag search (`parity_metrics`) |
-| viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | current | figure of a processed trajectory (`plot_example`) |
-| scripts | [`scripts/`](scripts/) | – | current | thin wrappers: `python scripts/<module>.py` works without installing |
-| examples | [`examples/`](examples/) | – | current | SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator |
-| tests | [`tests/`](tests/) | – | current | pytest checks on the synthetic example (run in CI) |
-| docs | [`docs/`](docs/) | – | current | data-flow figure and its generator, [results and metric definitions](docs/results.md), synthetic example figure |
-| report | [`report/`](report/) | – | current | short technical note (LaTeX source + PDF) |
-| media | [`media/`](media/) | – | current | short clips and photos of the real setup ([media/README.md](media/README.md)) |
+| HandUMI build | [`hardware/umihand/`](hardware/umihand/README.md) | 1 | current | HandUMI build copy + our modified parts, AprilTag sheets, IMU firmware (upstream design by BrikHMP18, Apache-2.0) |
+| Configs | [`configs/`](configs/README.md) | 0 | current | calibration results, robot settings and overrides, jaw classifier weights, regression baseline |
+| Robot-side package | [`src/visual_teleop/`](src/visual_teleop/README.md) | 1, 2, replay, 7 | current (live teleop parked) | recorder, jaw classifier, reBot IK / limits / safety, bridge start, replay planner |
+| Tag-rig modules | [`src/rebot_prep/`](src/rebot_prep/README.md) | 2 | current | shared tag pose / fusion code (`rebot_prep.parity`) |
+| Pose + calibration | [`scripts/pose/`](scripts/pose/README.md) | 0, 2 | current | camera ↔ robot, tag rig → jaw tip, tags → jaw-tip path, jaw aperture, jaw state from the servo |
+| Training-data pipeline | [`scripts/processing/`](scripts/processing/README.md) | 3–5, 6 (DiT), 7 | current (snapshot record, not runnable from this repo alone) | CoTracker + marker + IMU fusion, gates, trims, quality grades, labels, LeRobot dataset, DiT trainer, offline eval, deploy |
+| Retarget | [`scripts/retarget/`](scripts/retarget/README.md) | replay | current (replay track) | UMI ↔ reBot EEF alignment, robotization of a two-hand demo |
+| Evaluation | [`scripts/evaluation/`](scripts/evaluation/README.md) | replay | current (replay track) | human / command / robot parity, side-by-side video, planner regression test |
+| Robot bridge | [`scripts/deploy/`](scripts/deploy/README.md) | 7 | current | reBot MIT bridge + gripper / joint zero tools |
+| egogarment: io | [`src/egogarment/io/`](src/egogarment/io/) | all | current (standalone re-implementation) | trajectory CSV format helpers (`trajio`) |
+| egogarment: pose | [`src/egogarment/pose/`](src/egogarment/pose/) | 3; learning contract | current (generic baseline) | gap filling with per-frame flags (`gap_fill`); relative SE(3) contract and round trip (`relative_se3`) |
+| egogarment: retarget | [`src/egogarment/retarget/`](src/egogarment/retarget/) | 5 | current (illustrative defaults) | continuous warps + per-frame displacement / quality (`robotize`) |
+| egogarment: evaluation | [`src/egogarment/evaluation/`](src/egogarment/evaluation/) | 9 | current | RMSE / p95 / rotation error between two trajectories with lag search (`parity_metrics`) |
+| egogarment: viz | [`src/egogarment/viz/`](src/egogarment/viz/) | 9 | current | figure of a processed trajectory (`plot_example`) |
+| egogarment wrappers | [`scripts/*.py`](scripts/) | – | current | thin wrappers: `python scripts/<module>.py` works without installing |
+| Examples | [`examples/`](examples/README.md) | – | current | SYNTHETIC bimanual demo + simulated replay (CSV/NPZ) and their generator |
+| Technical report | [`docs/technical_report/`](docs/technical_report/README.md) | — | current (v0.1) | PDF + LaTeX + figures; old → new path map for paths cited in the report |
+| Technical note | [`report/`](report/) | – | current | short technical note (LaTeX source + PDF) |
+| Docs | [`docs/`](docs/) | — | current | [project details](docs/details.md), [results and metric definitions](docs/results.md), [replay-track stage map](docs/pipeline_replay_track.md), [records](docs/records/README.md), data-flow figure and its generator, synthetic example figure |
+| Media | [`media/`](media/README.md) | – | current | GIFs, videos and photos of the real setup ([media/README.md](media/README.md)) |
+| Tests | [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | – | current | egogarment regression on the synthetic example; import / config-path smoke tests and the scripts' synthetic self-tests (run in CI) |
+| Legacy | [`legacy/`](legacy/README.md) | — | ~~superseded~~ | MASt3R gap filling and runner (moved 10-27), ORB-SLAM3, UMIalign, stereo VIO, red-tape jaw, bare-hand collector |
 
-Per-module inputs, outputs and entry points: [`src/egogarment/README.md`](src/egogarment/README.md).
+Per-module inputs, outputs and entry points: each component folder has its own README; for the re-implementations,
+[`src/egogarment/README.md`](src/egogarment/README.md).
 
 ## 4. Installation
 
 ```bash
-python -m pip install -e ".[test]"     # package + console commands (Python >= 3.10)
-# or, without installing the package:
+python -m pip install -e ".[test]"   # numpy, scipy, matplotlib, pyyaml; packages egogarment, visual_teleop, rebot_prep
+                                     # from src/; egogarment-* console commands; pytest (Python >= 3.10)
+pip install -e ".[vision]"           # + OpenCV < 5 (tag pose, video)
+pip install -e ".[robot]"            # + Pink / pinocchio IK, HTTP bridge client
+pip install -e ".[jaw]"              # + torch / ultralytics / flask (jaw classifier and keypoints)
+python -m pytest -q
+# or, for the egogarment utilities only, without installing the package:
 python -m pip install -r requirements.txt
 ```
 
-The only dependencies are numpy, scipy and matplotlib (pytest for the tests).
+Without installing, put `src/` on the path: `PYTHONPATH=src python -m visual_teleop.tools.<tool>`. Scripts under
+`scripts/pose`, `scripts/retarget`, `scripts/evaluation` add `src/` themselves.
+
+Notes:
+- The original runs used several interpreters: the repo `.venv` for the recorder (`sudo` for the Orbbec on macOS), an
+  X-VLA environment with Pink / pinocchio for IK, bridge start and replay, and a separate ultralytics environment for the
+  jaw keypoint scripts. Some modules import packages that are not in this repository (`ego_teleop`, `ego_collector`,
+  `handumi_collector`, the vendor reBot LeRobot plugin).
+- `scripts/processing/` is a snapshot of code as it ran; its imports point at the original machine layout
+  (see its [README](scripts/processing/README.md)), so it is not runnable from this repository alone.
+- Not included: raw data, trained checkpoints, the reBot vendor plugin and URDF, ORB-SLAM3 source.
 
 ## 5. Pipeline
 
-The real pipeline as stages, with the reproducible re-implementation in this repository where one exists. The commands
-run on the synthetic example; real-data stages that are not in this repository have no command.
-
 ### Stage 0 — One world frame for human and robot
 
-![start markers](media/world_frame_start_markers.jpg)
+![start markers](media/start_markers.jpg)
 
-*(a) Start markers on the table, measured once in robot coordinates. (b) Every take starts with the grippers there.*
+*(a) Start markers on the table (IDs 400 / 401), measured once in robot coordinates. (b) Every take starts with the
+grippers there.*
 
-1. **Camera → robot.** The robot moves a marker on its wrist through many poses in front of the fixed camera; this gives the camera pose in the robot base frame. From then on, anything the camera measures is in robot coordinates.
-2. **Start markers.** Two AprilTags on the table are measured once with the calibrated camera.
-3. **Gripper markers → jaw tip.** A one-time rig calibration relates each gripper's markers to its jaw tip, so the camera gives the jaw-tip pose directly in robot coordinates.
-4. **Every take starts at the start markers**, so every demonstration begins at known robot coordinates. No per-take alignment (SLAM map, point-cloud registration) is needed.
+Everything is expressed in the **robot's base coordinates**. This is set up once:
+
+1. **Camera → robot.** First calibration: the robot moves a marker on its wrist through 32 poses in front of the fixed
+   Orbbec (18 of them used in the solve; 0.98 px held-out); this gives the camera pose in the robot base frame. Since
+   the camera was moved (10-25/26), it is re-solved after every move from two fixed 70 mm table tags with known robot
+   coordinates plus the table plane (`robot_cam_v002…v005`). From then on, anything the camera measures is in robot
+   coordinates.
+2. **Start markers.** Two AprilTags taped on the table are measured once with the calibrated camera (photo a):
+   left (225, 166, −4) mm, right (243, −194, 6) mm.
+3. **Gripper markers → jaw tip.** A one-time rig calibration relates the four markers on each gripper to its jaw tip
+   (1–4 mm), so the camera gives the jaw-tip pose directly in robot coordinates.
+4. **Every take starts at the start markers** (photo b), so every demonstration begins at the same known robot
+   coordinates. No per-take alignment (~~no SLAM map~~, no point-cloud registration) is needed.
 
 ### Stages 1–9 — From human motion to robot motion
+
+The method as conceptual stages (the replay track); the command stages in the next subsection follow the code layout
+(0–7) instead.
 
 1. **Record** both hands from a fixed start pose on the start markers, with a spoken protocol marking demo windows.
 2. **Reconstruct** the jaw-tip trajectory of each hand in the robot base frame from markers + depth.
@@ -164,7 +233,8 @@ run on the synthetic example; real-data stages that are not in this repository h
    jaw servo's encoder instead (§8).
 5. **Robotize** with continuous warps only, never clipping: lateral compression toward each arm's own side with a
    softplus ceiling at the midline, and a softplus floor above the table. Store displacement and quality per frame
-   ([`src/egogarment/retarget/robotize.py`](src/egogarment/retarget/robotize.py) shows the idea).
+   ([`src/egogarment/retarget/robotize.py`](src/egogarment/retarget/robotize.py) shows the idea; the version that ran
+   is [`scripts/retarget/umi_robotize_bi.py`](scripts/retarget/umi_robotize_bi.py)).
 6. **Plan** with joint-limit-aware differential IK (position prioritised over orientation, bounded joint change per
    frame, wrist-roll relaxation about the tool axis, use of the jaw's 180° symmetry, finger-corner clearance), and issue
    jaw commands early by the measured jaw actuation latency.
@@ -173,12 +243,91 @@ run on the synthetic example; real-data stages that are not in this repository h
 8. **Replay** open loop and log commanded and measured joints on the host clock.
 9. **Compare** three levels: A = human (markers), B = robot command (FK of commanded joints), C = robot (FK of
    encoders), plus a side-by-side video from the same camera
-   ([`src/egogarment/evaluation/parity_metrics.py`](src/egogarment/evaluation/parity_metrics.py) shows the metric definitions).
+   ([`src/egogarment/evaluation/parity_metrics.py`](src/egogarment/evaluation/parity_metrics.py) shows the metric
+   definitions; the scorer that ran is [`scripts/evaluation/replay_parity.py`](scripts/evaluation/replay_parity.py)).
 
 Since 26–27 October the stages after pose reconstruction produce **policy training data** instead of a replay (see
 [§8](#from-replay-to-policy-training-data-october-2627)).
 
+### Commands on real data (stages 0–7)
+
+Commands run from the repo root; they need the recorded takes, which are not in this repository. Per-stage detail:
+[scripts/processing/README.md](scripts/processing/README.md) (12-stage map of the training-data pipeline) and
+[docs/pipeline_replay_track.md](docs/pipeline_replay_track.md) (replay track).
+
+**Stage 0 · calibrate** (once, and the camera ↔ robot part after every camera move)
+```bash
+python scripts/pose/robot_cam_solve.py datasets/tag_rig/<take> datasets/robot_cam/<run> --write      # first camera ↔ robot solve
+python scripts/pose/robot_cam_from_anchors.py datasets/tag_rig/<take> --frames 2400:2828:4            # re-solve from the fixed table tags
+python scripts/pose/tag_rig_solve.py datasets/tag_rig/<ts>                                           # tag rig; then tag_rig_pivot / tag_rig_touch_tcp
+python scripts/retarget/umi_align.py datasets/tag_rig/<align take> --write                           # UMI TCP frame → reBot EEF frame
+```
+
+**Stage 1 · record**
+```bash
+python -m visual_teleop.tools.bridge_start --sides left,right --go          # robot bridge
+sudo .venv/bin/python -m visual_teleop.tools.tag_rig_record --proto task --wrist
+```
+
+**Stage 2 · tag pose + jaw state**
+```bash
+python scripts/pose/umi_tcp_traj.py <take> --hand <hand> --depth --imu-fill
+python -m visual_teleop.tools.umi_jaw infer <take>/wrist                    # again for <take>/wrist_left
+python scripts/pose/jaw_aperture.py <take>/wrist                            # YOLO-pose jaw tips → aperture g
+# demos from 10-29: jaw state from the servo instead of the video (same umi_jaw.npz format)
+python scripts/pose/jaw_from_motor.py <take>                                # gripper_motor_{left,right}.npz → <take>/<wrist dir>/umi_jaw.npz
+```
+The recorder (`python -m visual_teleop.tools.tag_rig_record`) logs both jaw servos with torque off (`--no-motor` to skip),
+and warns aloud when a servo reads outside its calibrated range. `jaw_from_motor.py` maps motor ticks through a per-hand
+calibration (closed … open) to `g_cont`, adds open/close events with hysteresis + dwell, and re-centres each take because a
+re-plug or power cycle shifts the whole reading.
+
+**Stage 3 · CoTracker + marker + IMU fusion** (paths below relative to `scripts/processing/`)
+```bash
+python fusion_stack/orbbec/v2b/new_take_prep.py <take>                          # arm assignment, idle trim, start seeds
+python fusion_stack/orbbec/v2b/cotrack/make_pack2.py <pack> <take>:<demo> ...    # CoTracker query points (40 per rig)
+python fusion_stack/orbbec/v2b/cotrack/run_cotracker.py <pack>                   # GPU
+python fusion_stack/orbbec/v2b/cotrack/solve2.py <pack> && python fusion_stack/orbbec/v2b/cotrack/gate.py <pack>
+python fusion_stack/orbbec/v2b/fusion/trajectory_fusion_v1.py <pack> Cg --ct solve3
+```
+
+**Stage 4 · trims + quality grade**
+```bash
+python fusion_stack/orbbec/v2b/tighten_trim.py <idle_audit.csv> 0.3 && python fusion_stack/orbbec/v2b/edge_gap_trim.py <pack> ...
+python fusion_stack/orbbec/v2b/cotrack/episode_quality.py <quality.csv> <pack> ...   # GOLD / SILVER / REJECT
+```
+
+**Stage 5 · labels + dataset**
+```bash
+python labels_dataset/robotize_ik.py <raw take> <derived take> --demos 0,1,... --workers 8   # labels A + B + IK diagnostics
+python labels_dataset/tag_rig_unsplit.py --label rob --mask-mode stitched --out <dataset> --takes <take> ...
+# since 10-29: label F (measured jaw tip, no clamp/lift), optionally on the 0.3× time-stretched copy
+python labels_dataset/tag_rig_unsplit.py --label fused --mask-mode stitched --speed 0.3 --out <dataset> --takes <take> ...
+```
+
+**Stage 6 · train** — the DiT trainer (jaw BCE head, masks, per-episode weights, gradient clipping off) and its configs
+are in `scripts/processing/training/` (added 11-01); the X-VLA fine-tuning code is not in this repository. The plan
+(DiT and X-VLA fine-tuned on GOLD) is in [docs/details.md §3.2](docs/details.md#32-training-plan).
+
+**Stage 7 · deploy + evaluate**
+```bash
+python eval_deploy/act_tagrig_deploy.py run --policy dit --secs 30                # dry run; add --go only with a person at the robot
+python eval_deploy/tagrig_offline_eval.py --ckpt <run>/checkpoints/last --data <val dataset> --out <report dir>   # k16/k32, zero-motion baseline, grasp / free breakdown
+```
+
+**Earlier track: open-loop replay** (stages 1–2 as above, then)
+```bash
+python scripts/retarget/umi_robotize_bi.py <take> --clear 0 --sep 0.06 --min-reach 0                   # robotize
+python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed 0.35 --q-smooth 9 --max-ik-mm 15 --tip-clear -0.01 --tip-clear-left-extra 0 --link-margin 0.015 --max-rot-dev 25 --offline   # plan + check
+python -m visual_teleop.tools.umi_replay_bi <take> --rep 1 --traj _robot --speed 0.35 --q-smooth 9 --max-ik-mm 15 --tip-clear -0.01 --tip-clear-left-extra 0 --link-margin 0.015 --max-rot-dev 25 --go        # replay
+python scripts/evaluation/replay_parity.py <take> <run>/right                                         # compare human / command / robot
+```
+
+Full command list, options and safety rules: Technical Report v0.1, Appendix A.
+
 ### Reproducible commands (synthetic data)
+
+The standalone re-implementations in `src/egogarment/` run on the synthetic example without any recording or hardware.
 
 | stage | command (wrapper; same as `python -m egogarment.…` or the `egogarment-…` console command) |
 |---|---|
@@ -245,18 +394,44 @@ workspace corner).
 
 ### The split
 
-* **`src/egogarment/`** — one subpackage per pipeline component: `io` (format), `pose` (gap filling, relative SE(3)),
-  `retarget` (robotization), `evaluation` (parity metrics), `viz` (plots). Every tool is a module with a library API
-  plus a `main()` command; details in [`src/egogarment/README.md`](src/egogarment/README.md).
-* **`scripts/`** — one thin wrapper per module, so the commands above work from a plain checkout.
-* **`examples/`** — the synthetic data and its deterministic generator; **`tests/`** — checks on that data.
-* **`docs/`, `report/`, `media/`** — results, technical note, figures and clips of the real setup.
+* **`src/`** holds importable code:
+  * `visual_teleop` — robot-side tools and libraries (recorder, jaw classifier, reBot IK / limits / safety, bridge
+    start, replay planner);
+  * `rebot_prep.parity` — tag-rig pose modules that several scripts import;
+  * `egogarment` — standalone re-implementations, one subpackage per trajectory component: `io` (format), `pose` (gap
+    filling, relative SE(3)), `retarget` (robotization), `evaluation` (parity metrics), `viz` (plots). Every tool is a
+    module with a library API plus a `main()` command; details in [`src/egogarment/README.md`](src/egogarment/README.md).
+* **`scripts/<stage>/`** holds the project's entry scripts grouped by pipeline stage (`pose`, `retarget`, `evaluation`,
+  `deploy`, `processing`); `scripts/processing/` is the training-data pipeline kept as one tree because its files find
+  each other by relative path. The flat **`scripts/*.py`** files are one thin wrapper per `egogarment` module, so the
+  synthetic commands work from a plain checkout.
+* **`configs/`** stays at the top level because code addresses it as `<repo root>/configs/...`
+  (`Path(__file__).parents[n] / "configs/..."`).
+* **`examples/`** — the synthetic data and its deterministic generator; **`tests/`** — checks on that data plus import /
+  path smoke tests and the scripts' synthetic self-tests.
+* **`docs/`, `report/`, `media/`** — details, results, technical reports, figures and clips of the real setup;
+  **`hardware/`** — HandUMI build copy; **`legacy/`** — superseded code.
 
-### The interface: trajectory CSV
+### The interfaces of the real pipeline
 
-All tools exchange one wide CSV, defined in [`src/egogarment/io/trajio.py`](src/egogarment/io/trajio.py) and documented
-with the example data in [`examples/README.md`](examples/README.md). One row per frame, `t` in seconds, then per hand
-(`R_` right, `L_` left):
+From the code that defines them:
+
+| interface | definition | where |
+|---|---|---|
+| world frame | reBot base frame B; camera → base `T_B_C` from `configs/calibration/robot_cam_v00N.json` (per take by date) | `scripts/processing/fusion_stack/camcal.py`, `scripts/pose/umi_tcp_traj.py` |
+| jaw-tip path per take | `umi_traj_{right,left}.npz`: jaw-tip TCP `p_B`, rig rotation `R_B_tcp`, `ntags` | `scripts/pose/umi_tcp_traj.py` |
+| jaw state | `umi_jaw.npz`: `g_cont` 0 = closed … 1 = open, `valid`, `ev_t`; binary `state` 1 = open, 0 = closed; servo-derived files also keep `motor_pos` and set `model = feetech_sts3215_motor` | video: `src/visual_teleop/tools/umi_jaw.py`, `scripts/pose/jaw_aperture.py`; servo (Feetech STS3215, torque-off encoder, 10-29 →): `scripts/pose/jaw_from_motor.py` |
+| training label | **F** (10-29 →) = measured human jaw-tip pose before IK, no clamp or lift (`--label fused`); ~~**A** = Cartesian jaw-tip pose in reBot gripper axes before IK (0.25 s smoothing + table clearance)~~; **B** = IK → FK (QA) | `scripts/processing/labels_dataset/robotize_ik.py` (`--label rob` / `ikfk` / `fused` in `tag_rig_unsplit.py`) |
+| dataset | LeRobot v3, 20 Hz, 3 cameras, `observation.state` 30-D, `action` 20-D absolute = per arm xyz + rot6d + gripper, with a per-dim `action_mask[20]` | `scripts/processing/labels_dataset/tag_rig_unsplit.py`, `tag_rig_to_lerobot.py` |
+| chunk | relative motion `inv(T_t)·T_{t+k}`, k = 1…32 at 20 Hz, built in the training loader; deploy commits the first 4 steps, then re-plans | [docs/details.md §3.2–3.3](docs/details.md#33-running-a-trained-policy-on-the-robot) |
+| robot model corrections | TCP offset, per-arm joint zero offsets, left base pose: `configs/robot/{tcp_override,joint_offset,base_override}_v001.json` | applied in `src/visual_teleop/robot/ik_pink.py` |
+| units | code stores metres and seconds (e.g. tag size 0.048 m); README / report quote mm | — |
+
+### The egogarment interface: trajectory CSV
+
+All `egogarment` tools exchange one wide CSV, defined in [`src/egogarment/io/trajio.py`](src/egogarment/io/trajio.py)
+and documented with the example data in [`examples/README.md`](examples/README.md). One row per frame, `t` in seconds,
+then per hand (`R_` right, `L_` left):
 
 | column | unit | meaning |
 |---|---|---|
@@ -295,26 +470,46 @@ Columns appended by the tools and carried along unchanged by later ones:
 ## 7. Results
 
 Measured in October 2026 on one setup with one demonstrator. Full tables and metric definitions:
-[docs/results.md](docs/results.md).
+[docs/results.md](docs/results.md); what we learned, the replay result videos and the open problems:
+[docs/details.md §5–6](docs/details.md#5-what-we-learned-and-replay-results).
+
+![human demo (left) vs robot replay (right), robot speed](media/replay3_200335_robot_time_94s_large.gif)
+
+*Left: human demonstration with two UMI grippers. Right: the two arms replaying the converted trajectory. Same fixed
+camera, aligned on one clock (33 s demo replayed in 94 s; shown at robot speed).*
 
 | milestone | result |
 |---|---|
-| Calibration | camera ↔ robot: 0.98 px held-out reprojection (≈1.3 mm lateral); marker rig → jaw tip: 1–4 mm static (leave-one-out 1.8–4.8 mm) |
-| Single-arm replay parity | 16/18 translation strokes pass; median per-axis RMSE 5.5–11.6 mm; rotation strokes 0.3–1.6° median error; command vs. human ≤ 3.4 mm, so the residual was robot tracking |
-| First cloth grasp from human data | one arm replayed a grasp window of a demonstration and picked up and lifted the T-shirt |
-| Full two-arm replay of one 33 s demo | four runs with one unchanged plan repeat within ≈1 mm; whole-demo position RMSE ≈17 mm (right) / ≈30 mm (left) against the robotized path, ≈22 / 32–34 mm against the raw human path |
+| Calibration | camera ↔ robot: 0.98 px held-out reprojection (≈1.3 mm lateral); UMI marker rig → jaw tip: 1–4 mm static (leave-one-out 1.8–4.8 mm) |
+| Single-arm replay parity | 16/18 translation strokes pass; median per-axis RMSE 5.5–11.6 mm; rotation strokes pass, 0.3–1.6° median error; command vs. human ≤ 3.4 mm, so the residual was robot tracking |
+| First cloth grasp from human data | the right arm replayed a grasp window of a demonstration and picked up and lifted the T-shirt |
+| Full two-arm replay of one 33 s demo (94 s at 0.35× speed) | four runs with one unchanged plan repeat within ≈1 mm; robot within 2–8 mm (xy) of its command at grasps |
+| Error vs. the human | whole-demo position RMSE ≈17 mm (right) / ≈30 mm (left) against the replayed (robotized) human path; ≈22 / 32–34 mm against the raw human path |
 | Jaw height at grasp | after allowing finger contact, jaws close 14–16 mm (right) / 5–19 mm (left) above the table (human ≈10 mm), within 2–8 mm of the commanded position |
-| Folding like the human | **not achieved.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
+| Folding like the human | **not achieved / not yet.** In the best run the jaws caught the shirt edge and dragged it; no success rate is reported |
 | Wrist-camera SLAM as pose source | **rejected.** MASt3R-SLAM kept 19–48 % of frames (0–38 % around grasps); ORB-SLAM3 mono-inertial scale diverged |
-| Point tracking + markers + IMU (Oct 24–25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
-| Flattening dataset (Oct 26–27) | 300 successful of 318 demonstrations; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
-| Labels before vs after IK | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1 % of frames truly unreachable |
-| Policy | **not yet trained on our data**; a pretrained-only diffusion policy ran on the robot in dry runs without safety violations |
+| Point tracking (CoTracker) + markers + IMU (10-24/25) | hidden-marker error on held-out takes: median 16 mm (left) / 19 mm (right); markers alone ≈ 42 mm |
+| Flattening dataset (10-26/27) | 300 successful demos of 318; of the first 139 graded, 133 GOLD / 5 SILVER / 1 REJECT |
+| Labels before vs after IK (10-26) | IK → FK moves the target by p95 ≈ 58 mm at grasps (53 mm overall); ≈ 1–2 % of frames are truly unreachable (≈ 1 % in the 10-27 write-up) |
+| Label table clearance (10-29) | lifted 44 % of label frames, median 27 mm (max 65) — removed; labels are now the measured human jaw tip |
+| Demonstration speed (10-29) | human jaw tip p95 0.93 m/s, 127 °/s — too fast for the arms → 0.3× time-stretched data set |
+| Wrist-camera placement (10-29) | robot wrist cameras tilt 11–13° less toward the tool axis and sit 25–44 mm closer than the UMI ones (table-tag PnP) |
+| Policy, as of 10-27 | not yet trained on our data; a pretrained-only diffusion policy (Soft-Fold-pretrained DiT) ran on the robot in dry runs without safety violations |
+| Policies on the robot (10-28 →) | DiT and X-VLA fine-tuned on the 281 GOLD demos reach toward the cloth, stop short, close early — **no success rate yet** |
 
 ### How to verify (this repository)
 
-The real-system numbers above come from data that is not published. What can be re-run here is the synthetic example:
-`python -m pytest -q tests` checks every module against outputs recorded before the code was packaged
+The real-system numbers above come from recorded data that is not in this repository; the method and measurements are
+in the [technical report](docs/technical_report/report_v0.1_en.pdf). What can be checked from the code alone:
+
+```bash
+python -m pytest -q                                      # egogarment regression on the synthetic example; imports, config paths,
+                                                         # synthetic self-tests (robot_cam_solve skipped without OpenCV)
+python scripts/evaluation/replay_parity.py --synthetic   # parity scorer self-test; ends with "합성 시험 PASS"
+python scripts/pose/robot_cam_solve.py --synthetic       # camera ↔ robot solver on simulated data (needs OpenCV < 5); ends with "합성 시험 PASS"
+```
+
+`python -m pytest -q tests` checks every `egogarment` module against outputs recorded before the code was packaged
 ([`tests/expected_synthetic.json`](tests/expected_synthetic.json)) and that `examples/make_synthetic.py` reproduces the
 committed example files; the synthetic numbers are listed in
 [docs/results.md §8](docs/results.md#8-synthetic-example-this-repository).
@@ -350,7 +545,19 @@ committed example files; the synthetic numbers are listed in
 
 ## 8. Current vs. superseded
 
-Superseded parts are kept in the text and marked ~~struck through~~ rather than deleted.
+Superseded parts are kept in the text and marked ~~struck through~~ rather than deleted; their code and why each item
+was dropped: [legacy/README.md](legacy/README.md).
+
+| part | current (11-01) | ~~no longer used~~ |
+|---|---|---|
+| pose source | CoTracker3 points on the fixed camera + AprilTag anchors + constant bias, IMU acceleration only inside gaps (`scripts/processing/`) | ~~MASt3R wrist SLAM gap filling~~ (breaks at grasps, 10-23) · ~~ORB-SLAM3~~ (scale diverged, 10-21) · tags + IMU fill alone (replay track only) |
+| camera ↔ robot | re-solved after every camera move from two fixed table tags + the table plane (`robot_cam_v002…v005`) | wrist-marker 32-pose solve (`v001`, still valid for the old camera position) |
+| jaw state | demos from 10-29: Feetech servo reading on the UMI (`scripts/pose/jaw_from_motor.py`); earlier demos (incl. GOLD-281): ResNet18 classifier v003 → YOLO-pose jaw tips → aperture g. The two sources are never mixed in one comparison | ~~red-tape jaw detector~~ (tape removed 10-20) |
+| arm assignment | by the gripper's side of the table | ~~by rig label~~ (labels swapped since 10-22) |
+| label | **F** = measured human jaw-tip pose before IK, no clamp or lift (`tag_rig_unsplit.py --label fused`, 10-29); relative motion built in the loader | ~~**A** = same + table clearance~~ (lifted 44 % of frames) · **B** = IK → FK (kept for QA only) |
+| data speed | 0.3× time-stretched copy (`--speed 0.3`): pose, jaw events and camera frames on one slower timeline | human speed (p95 0.93 m/s) |
+| execution | receding-horizon deploy: FK → compose → limiter → IK → safety, 4 steps per plan | open-loop whole-demo replay (`umi_replay_bi`, replay track) |
+| compute | rented RTX 5090 pods (point tracking, jaw classifier, 3-D solve); everything archived to the SSD | company 4090s (busy) |
 
 ### From replay to policy training data (October 26–27)
 
@@ -361,7 +568,7 @@ contain. The pipeline was rebuilt for learning, on the same calibration, recorde
 
 | part | now | ~~before~~ |
 |---|---|---|
-| pose source | point tracking (CoTracker3) on the fixed RGB-D camera, lifted by depth, fitted to a rigid gripper model, anchored by the markers; IMU acceleration only inside gaps | markers + IMU interpolation; ~~wrist-camera SLAM filler~~ |
+| pose source | point tracking (CoTracker3, Oct 24–25) on the fixed RGB-D camera, lifted by depth, fitted to a rigid gripper model, anchored by the markers; IMU acceleration only inside gaps | markers + IMU interpolation; ~~wrist-camera SLAM filler~~ |
 | camera ↔ robot | re-solved after every camera move from two fixed table markers plus the table plane; camera raised so both hands stay in view | one robot-held-marker calibration |
 | arm assignment | by the gripper's side of the table | by marker label (the labels were found swapped) |
 | episode window | still start and end cut (both hands below 10 cm/s), short one-hand tracking gaps at the edges cut | operator-marked windows |
@@ -381,30 +588,37 @@ fraction of large hidden-marker errors and gaps at grasps; fine-tuning uses GOLD
 
 **Why the label is taken before IK.** IK → FK labels contained execution decisions (wrist-roll relaxation, a tool
 flip near joint limits, pushes that keep the arms apart) and moved the target most exactly where it matters: at grasps
-the IK → FK label differs from the Cartesian one by p95 ≈ 58 mm. Only about 1 % of frames are truly out of reach
-(hands lifted far above the table). The IK result and its per-frame diagnostics are kept for QA; IK becomes a checker
-offline and the executor online. Labels are stored absolute; the policy learns relative motion inv(T_t)·T_{t+k}.
+the IK → FK label differs from the Cartesian one by p95 ≈ 58 mm. Only about 1–2 % of frames are truly out of reach
+(hands lifted far above the table; ≈ 1 % in the 10-27 write-up). The IK result and its per-frame diagnostics are kept
+for QA; IK becomes a checker offline and the executor online. Labels are stored absolute; the policy learns relative
+motion inv(T_t)·T_{t+k}.
 
-**Planned training.** (1) A diffusion-transformer policy pretrained on a public robot cloth-folding dataset, then
-fine-tuned on the GOLD demos. (2) A VLA base model pretrained on an equal mix of that dataset and two public UMI-style
-garment datasets (one domain prompt per source), then fine-tuned the same way. Both are evaluated on the robot with
-counted trials.
+**Planned training.** (1) A diffusion-transformer policy (DiT) pretrained on a public robot cloth-folding dataset
+(Soft-Fold), then fine-tuned on the GOLD demos. (2) A VLA base model (X-VLA) pretrained on an equal mix of that
+dataset and two public UMI-style garment datasets (iPhUMI, PrimeBot UMI; one domain prompt per source), then
+fine-tuned the same way. Both are evaluated on the robot with counted trials. Details:
+[docs/details.md §3.2](docs/details.md#32-training-plan).
 
 **Safety lesson.** A bridge restart without the jaw-opening limit let one jaw open to the end of its travel and break
 its holder. Deployment now refuses to send commands unless the bridge reports the jaw limits.
 
 ### First policies on the robot, and what they exposed in the data (October 28 – November 1)
 
-Both planned policies were fine-tuned on the 281 GOLD demos and run on the robot. No success rate is reported yet.
-The arms reach toward the cloth but stop short of it and close the jaws early. Tracing this back pointed at the data rather
-than the models:
+The DiT (Soft-Fold-pretrained) and X-VLA policies were fine-tuned on the 281 GOLD demos and run on the robot with the
+receding-horizon deploy. No success rate is reported yet. The arms reach toward the cloth but stop short of it and
+close the jaws early. Tracing this back pointed at the data rather than the models:
 
-| finding | change |
-|---|---|
-| The "kept above the table" step lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Labels are now the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. |
-| Human demonstrations are faster than the robot can follow (p95 ≈ 0.93 m/s, 127 °/s). | A time-stretched copy of the data set (0.3× speed): pose, jaw events and every camera frame are resampled on one common slower timeline. |
-| The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading. Labels from the two sources are kept apart and never mixed in one comparison. |
-| The robot's wrist cameras look at the jaws from a different place than the hand-worn ones. | Measured with the table markers: the robot cameras are tilted 11–13° less toward the tool axis and sit 25–44 mm closer to it. Next: re-mount them to the hand-worn geometry. |
+| finding | change | code |
+|---|---|---|
+| The "kept above the table" step (table clearance in label A) lifted 44 % of label frames, by 27 mm at the median, so the policy never learned to go down to the cloth. | Label F: the human jaw-tip pose as measured, with no clamp, lift or feasibility edit. Limits belong to deployment, not to training labels. | `scripts/processing/labels_dataset/tag_rig_unsplit.py --label fused` |
+| Human demonstrations are faster than the robot can follow (p95 ≈ 0.93 m/s, 127 °/s). | A time-stretched copy of the data set (0.3× speed): pose, jaw events and every camera frame are resampled on one common slower timeline; rows stay 20 Hz. | `tag_rig_unsplit.py --speed 0.3` |
+| The jaw label came from a model reading the jaw in the wrist video; it disagreed with the true jaw aperture. | From October 29 the hand-worn grippers carry a servo, and the jaw label of new demonstrations is its encoder reading, re-centred per take. Labels from the two sources are kept apart and never mixed in one comparison. | `scripts/pose/jaw_from_motor.py`; relabel attempt for older demos `scripts/pose/jaw_motorlike.py` (not applied) |
+| The robot's wrist cameras look at the jaws from a different place than the hand-worn ones. | Measured with the table markers: the robot cameras are tilted 11–13° less toward the tool axis and sit 25–44 mm closer to it. Next: re-mount them to the hand-worn geometry. | — |
+
+Also added (in progress, **not yet validated on the robot**): per-arm table-height calibration by touching the table
+tags (`scripts/processing/eval_deploy/height_calib.py`), real-time chunking blend between plans (`act_tagrig_core.py`,
+offline test only), X-VLA policy server (`xvla_server.py`). Training code: `scripts/processing/training/`
+(DiT trainer with jaw BCE head, masks and per-episode weights; gradient clipping off).
 
 ### Research directions
 
@@ -417,7 +631,8 @@ than the models:
    targets: what to keep absolute, what to make relative, how to warp an infeasible path without destroying its intent,
    and how to grade each frame.
 4. **Long-horizon garment policy learning.** Comparing an end-to-end policy with a stage-conditioned one (grasp, lift,
-   fold, release) trained on the converted labels. *This project has not started policy training yet.*
+   fold, release) trained on the converted labels. *Policy training started on 28 October (end-to-end DiT and X-VLA,
+   above); no success rate yet, and the stage-conditioned comparison has not started.*
 
 ### Open questions
 
@@ -442,18 +657,24 @@ than the models:
 
 ## 9. Hardware and attribution
 
+> **HandUMI is not our design.** It was designed and published by **BrikHMP18** (murobotics-ai, Apache-2.0):
+> [murobotics-ai/handumi-hw](https://github.com/murobotics-ai/handumi-hw). [`hardware/umihand/`](hardware/umihand/README.md)
+> is our build copy of the upstream files plus our changes.
+
 ![UMI hands](media/umi_hands.jpg)
 
-*The two hand-worn grippers (left / right), each with three fiducial markers (photo from before 23 October; since then
-a fourth, smaller marker sits on the back of each wrist camera).*
+*The two hand-worn grippers (left / right), each with three fiducial markers (photo from 10-21, before 23 October;
+since then a fourth, smaller 30 mm marker sits on the back of each wrist camera).*
 
-The hand-worn gripper is **HandUMI**, designed and published by **BrikHMP18** (murobotics-ai) under Apache-2.0:
-<https://github.com/murobotics-ai/handumi-hw>. **It is not our design.** We printed and assembled the upstream parts and
-made small changes for our use: a wrist IMU instead of VR tracking, several AprilTags per hand on different faces (so at
-least one tends to face the external camera; a fourth, smaller one on the back of the wrist camera since 23 October,
-whose single-tag planar pose flip is resolved with the IMU), and, between 20 and 28 October, removal of the jaw servo (jaw state was inferred from the wrist video). On 29 October
-the servo was put back as a torque-off encoder that records the jaw opening (§5, Pose reconstruction, step 5). HandUMI itself follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See
-[ATTRIBUTION.md](ATTRIBUTION.md).
+We printed and assembled the upstream parts and made small changes for our use: a wrist IMU instead of VR tracking,
+several AprilTags per hand on different faces (so at least one tends to face the external camera; a fourth, smaller one
+on the back of the wrist camera since 23 October, whose single-tag planar pose flip is resolved with the IMU), modified
+controller-support connector, camera mount and servo cover (`hardware/umihand/mods/`), and, between 13 and 28 October,
+removal of the jaw servo (jaw state was inferred from the wrist video). On 29 October the servo was put back as a
+torque-off encoder that records the jaw opening (Feetech STS3215; §5, Pose reconstruction, step 5). HandUMI itself
+follows the Universal Manipulation Interface (UMI, Chi et al., RSS 2024). See [ATTRIBUTION.md](ATTRIBUTION.md).
+
+The robot is the reBot B601-DM; its vendor LeRobot plugin and URDF are not included.
 
 ### Visual observations
 
@@ -477,22 +698,30 @@ Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, an
 * **ALOHA**: low-cost bimanual manipulation (teleoperated); **SpeedFolding**, **FlingBot**: learned cloth primitives.
 * **AprilTag** (Olson; Wang & Olson), **IPPE**, **SQPnP**, **OpenCV**: fiducial detection and pose.
 * **MASt3R-SLAM**, **ORB-SLAM3** (and Basalt, OpenVINS, AirSLAM in an earlier stereo setup): evaluated as pose sources.
+* **CoTracker3**: point tracking on the fixed camera.
 * **Pink** on **Pinocchio**: differential IK; **ResNet-18** / **ImageNet**: jaw classifier backbone.
 
-Full references are in the [technical note](report/technical_note.pdf); licences and credits in
-[ATTRIBUTION.md](ATTRIBUTION.md).
+Full references are in the [technical note](report/technical_note.pdf) and the
+[technical report](docs/technical_report/report_v0.1_en.pdf); licences and credits in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## 10. License, acknowledgements, citation
 
-**License.** This is a research overview of work in progress, not a product. Numbers are from one setup, one
-demonstrator and a small number of runs, and are reported as measured, including failures. Code, documentation and media in this
-repository are licensed under the **PolyForm Noncommercial License 1.0.0** ([LICENSE](LICENSE)): free for research,
-teaching, personal and other noncommercial use; **commercial use is not permitted** without a separate written
-agreement with the author. Third-party designs and methods remain under their own licences
-([ATTRIBUTION.md](ATTRIBUTION.md)).
+**License.** This is a research project in progress, not a product. Numbers are from one setup, one demonstrator and a
+small number of runs, and are reported as measured, including failures. Code, configurations, documentation and media
+in this repository are licensed under the **PolyForm Noncommercial License 1.0.0** ([LICENSE](LICENSE)): free for
+research, teaching, personal and other noncommercial use; **commercial use is not permitted** without a separate
+written agreement with the author. Exception: `hardware/umihand/` keeps the upstream HandUMI Apache-2.0 licence
+([LICENSE](hardware/umihand/LICENSE), [NOTICE](hardware/umihand/NOTICE.md)). Third-party designs and methods remain
+under their own licences ([ATTRIBUTION.md](ATTRIBUTION.md)).
 
-**Acknowledgements.** The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI
-(Chi et al., RSS 2024); see [§9](#9-hardware-and-attribution) and [ATTRIBUTION.md](ATTRIBUTION.md).
+**Acknowledgements.** The hand-worn gripper is HandUMI by BrikHMP18 ([murobotics-ai/handumi-hw](https://github.com/murobotics-ai/handumi-hw), Apache-2.0),
+following UMI (Chi et al., RSS 2024); see [§9](#9-hardware-and-attribution) and [ATTRIBUTION.md](ATTRIBUTION.md).
+Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot UMI (CC BY-SA 4.0).
+
+**Provenance.** Until 1 November 2026 the full code and detailed notes lived in a separate working repository,
+`egocentric-laundry-folding`, and this repository held the public write-up; the two were merged here. The technical
+reports in `docs/technical_report/` still name that repository and its pre-refactor paths
+([path map](docs/technical_report/README.md)).
 
 **Citation.** See [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").
 

@@ -146,7 +146,7 @@ Details: [Technical Report v0.1](technical_report/report_v0.1_en.pdf) · code pe
 4. **Open-loop replay needs the same scene.** The cloth must start where the human's did.
 
 **Replay results** (take 171057 demo 2, run 195745; left: human, right: robot; same camera, human speed). In this run the
-shirt lay 15–20 cm farther away than in the demo, so the jaws closed on the empty table; in run 200335 (top GIF) they
+shirt lay 15–20 cm farther away than in the demo, so the jaws closed on the empty table; in run 200335 (robot-speed GIF in [README §7](../README.md#7-results)) they
 caught the shirt edge and dragged it.
 
 ![Replay run 195745](../media/replay2_195745_human_time_33s_large.gif)

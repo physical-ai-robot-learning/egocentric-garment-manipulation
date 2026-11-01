@@ -9,7 +9,8 @@ Submodules (one per pipeline component):
 * ``egogarment.evaluation.parity_metrics``   - RMSE / p95 / rotation error between two trajectories with lag search
 * ``egogarment.viz.plot_example``            - figure of a processed trajectory
 
-These are generic re-implementations written for this repository, not the project's production code.
+These are small standalone re-implementations written for this repository; the code that ran on the real system is
+in ``visual_teleop``, ``rebot_prep`` and ``scripts/``.
 """
 
 __version__ = "0.1.0"

@@ -2,7 +2,8 @@
 
 Generic, sensor-free re-implementations of the trajectory stages of the pipeline (format, gap filling, relative SE(3),
 robotization, parity metrics, plotting), runnable on the synthetic data in [`../../examples/`](../../examples).
-They were written for this repository and are not the project's production code.
+They were written for this repository as small standalone versions; the code that ran on the real system is in
+[`../visual_teleop/`](../visual_teleop/README.md), [`../rebot_prep/`](../rebot_prep/README.md) and [`../../scripts/`](../../README.md#3-components).
 
 **Status:** current (reference implementations; numbers they produce describe the synthetic generator, not the real system)
 
