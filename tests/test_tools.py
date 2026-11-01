@@ -13,13 +13,12 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "src"))  # also done by conftest.py; kept for `python tests/test_tools.py`
 
-import gap_fill  # noqa: E402
-import parity_metrics  # noqa: E402
-import relative_se3  # noqa: E402
-import robotize  # noqa: E402
-import trajio  # noqa: E402
+from egogarment.evaluation import parity_metrics  # noqa: E402
+from egogarment.io import trajio  # noqa: E402
+from egogarment.pose import gap_fill, relative_se3  # noqa: E402
+from egogarment.retarget import robotize  # noqa: E402
 
 DEMO = ROOT / "examples" / "synthetic_bimanual_demo.csv"
 REPLAY = ROOT / "examples" / "synthetic_robot_replay.csv"
@@ -28,7 +27,7 @@ REPLAY = ROOT / "examples" / "synthetic_robot_replay.csv"
 def test_gap_fill_flags_and_slerp():
     t = np.arange(0, 2, 0.1)
     p = np.stack([t, 0 * t, 0 * t], 1)
-    q = Rotation.from_euler("z", 90 * t / 2, degrees=True).as_quat()
+    q = Rotation.from_euler("z", (90 * t / 2)[:, None], degrees=True).as_quat()  # (N, 1): scipy>=1.18 rejects 1-D
     vis = np.ones_like(t)
     vis[5:9] = 0          # 0.5 s gap  -> filled
     vis[12:19] = 0        # 0.8 s gap  -> too long for max_gap 0.5
@@ -79,6 +78,7 @@ def test_parity_recovers_lag_and_identity():
 
 
 def test_cli_end_to_end():
+    """The documented ``python scripts/<tool>.py`` commands (thin wrappers around the package)."""
     with tempfile.TemporaryDirectory() as tmp:
         cmds = [
             ["scripts/gap_fill.py", str(DEMO), f"{tmp}/f.csv"],
