@@ -16,7 +16,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[test]"
-      - name: Compile
-        run: python -m compileall -q src scripts examples docs tests
-      - name: Test
+          python -m pip install "opencv-python-headless<5"   # camera <-> robot solver self-test (needs calibrateRobotWorldHandEye, gone in 5.0)
+      - name: Compile (whole repository)
+        run: python -m compileall -q .
+      - name: Test (egogarment synthetic regression + layout smoke tests)
         run: python -m pytest -q
+      - name: Self-test, replay parity scorer (synthetic)
+        run: python scripts/evaluation/replay_parity.py --synthetic | tee /dev/stderr | grep -q PASS
+      - name: Self-test, camera <-> robot solver (synthetic)
+        run: python scripts/pose/robot_cam_solve.py --synthetic | tee /dev/stderr | grep -q PASS

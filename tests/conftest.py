@@ -1,4 +1,5 @@
-"""Make ``import egogarment`` work from a plain checkout (no ``pip install -e .`` needed)."""
+"""Make the src/ packages (egogarment, visual_teleop, rebot_prep) importable from a plain checkout,
+without ``pip install -e .``."""
 import sys
 from pathlib import Path
 

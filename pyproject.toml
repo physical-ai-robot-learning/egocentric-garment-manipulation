@@ -1,28 +1,35 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "egogarment"
-version = "0.1.0"
-description = "Generic utilities for bimanual jaw-tip trajectories from egocentric human garment demonstrations (synthetic examples only)"
+name = "egocentric-garment-manipulation"
+version = "0.2.0"
+description = "Hand-worn-gripper (UMI-style) T-shirt demonstrations -> robot-feasible trajectories and training labels for two reBot B601-DM arms"
 readme = "README.md"
 license = { text = "PolyForm-Noncommercial-1.0.0" }
 authors = [{ name = "Jeong Hwan Lee" }]
 requires-python = ">=3.10"
+# Base = what the importable packages need at import time (egogarment, visual_teleop, rebot_prep).
+# Hardware / GPU pieces are extras.
 dependencies = [
     "numpy>=1.24",
     "scipy>=1.10",
     "matplotlib>=3.7",
+    "pyyaml",
 ]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+dev = ["pytest>=7"]
+vision = ["opencv-python<5"]                 # <5: cv2.calibrateRobotWorldHandEye is gone in 5.0; AprilTag / ArUco pose, wrist + Orbbec video (rebot_prep.parity, scripts/pose)
+robot = ["pin", "pin-pink", "requests"]       # Pink IK + HTTP bridge client (visual_teleop.robot, replay tools)
+jaw = ["torch", "ultralytics", "flask"]       # jaw classifier / jaw-tip keypoint training + labelling UI
 
 [project.urls]
 Repository = "https://github.com/physical-ai-vla/egocentric-garment-manipulation"
 
-# Console commands for the modules that already have a command-line interface (main()).
+# Console commands for the egogarment modules that have a command-line interface (main()).
 [project.scripts]
 egogarment-gap-fill = "egogarment.cli:gap_fill"
 egogarment-relative-se3 = "egogarment.cli:relative_se3"
@@ -30,8 +37,13 @@ egogarment-robotize = "egogarment.cli:robotize"
 egogarment-parity-metrics = "egogarment.cli:parity_metrics"
 egogarment-plot-example = "egogarment.cli:plot_example"
 
+# src layout: finds egogarment, visual_teleop and rebot_prep.
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+visual_teleop = ["config/*.yaml", "config/*.jsonl", "assets/*.png"]
+
 [tool.pytest.ini_options]
+# Only tests/ is collected. Files named *_test.py under src/ and legacy/ are hardware tools, not pytest tests.
 testpaths = ["tests"]
