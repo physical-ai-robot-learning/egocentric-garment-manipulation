@@ -1,5 +1,7 @@
 # Project details
 
+> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [README §8](../README.md#8-current-vs-superseded) and [docs/status_2026-11-01.md](status_2026-11-01.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
+
 *Long-form sections moved out of the top-level [README](../README.md) in the 11-01 layout refactor (text unchanged, only paths updated). Section numbers follow the old README so the § references inside the text still match.*
 
 ## 1. Overview
@@ -10,7 +12,7 @@
 | **Input** | A human folds the shirt wearing two HandUMI grippers with AprilTags; a fixed RGB-D camera, wrist cameras and IMUs record it |
 | **Output** | Two reBot B601-DM arms: first by replaying the converted motion (done), now by running a policy trained on it |
 | **Key idea** | **One world frame** (the robot base): the camera is calibrated to the robot and every take starts with the grippers at markers whose positions in robot coordinates are known. Pose from the fixed camera (**point tracking + AprilTags + depth + IMU**), not wrist SLAM. Labels are Cartesian targets before IK; IK and safety checks run online before anything moves. |
-| **Where we are** | Replay: both arms replay reliably and the jaws close at the human's height and time; the robot grasps and drags the cloth but does not fold. Policy: 300 successful flattening demos recorded (10-26/27) and converted into training labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs; fine-tuning on our GOLD demos is next. **No policy success rate yet.** |
+| **Where we are** | Replay: both arms replay reliably and the jaws close at the human's height and time; the robot grasps and drags the cloth but does not fold. Policy: 300 successful flattening demos recorded (10-26/27) and converted into training labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs; fine-tuning on our GOLD demos is next *(11-01: fine-tunes ran from 10-28; see README §8)*. **No policy success rate yet.** |
 
 ## 3. Current pipeline: policy training data (2026-10-26 / 27)
 
@@ -59,10 +61,10 @@ one-hand tracking gap that touches the start or end is cut instead of downgradin
 **GOLD / SILVER / REJECT** from coverage, gap length, large-error fraction and gaps at grasps (first 139 demos:
 133 / 5 / 1). **Fine-tuning uses GOLD only.**
 
-**Labels: Cartesian before IK.** The training target **A** is the fused jaw-tip pose in reBot gripper axes after 0.25 s
+**Labels: Cartesian before IK.** *(11-01: A was replaced on 10-29 by label F = the same pose without the table clearance; with F and A, IK masks no frame.)* The training target **A** is the fused jaw-tip pose in reBot gripper axes after 0.25 s
 smoothing and table clearance — *before* inverse kinematics. The old label (**B**, IK → FK) baked execution choices into
 the data (wrist-roll relaxation, a 180° tool flip, arm-separation pushes) and moved the target most exactly at grasps
-(p95 ≈ 58 mm at grasps, 53 mm overall). B and all IK diagnostics are kept for QA; only ≈ 1–2 % of frames are truly unreachable (hands lifted
+(p95 ≈ 58 mm at grasps, 53 mm overall). B and all IK diagnostics are kept for QA; only ≈ 1–2 % of frames are truly unreachable *(11-01: 0.8 % on the first 139 demos, IK-check table of the report)* (hands lifted
 45–75 cm above the table). The policy learns relative motion `inv(T_t)·T_{t+k}`, k = 1…32 at 20 Hz; at run time the
 current TCP comes from forward kinematics, the predicted motion is composed onto it and an online IK executes it.
 
@@ -71,7 +73,7 @@ CPU-heavy 3-D solve run on rented RTX 5090 pods; results come back to the laptop
 
 ### 3.2 Training plan
 
-No policy result is reported yet. Two experiments run first, both fine-tuned on **our GOLD demos only** with label A:
+*(11-01: both were fine-tuned from 10-28 and observed in uncounted robot trials; the 4090 DiT fine-tunes start from a DiT pretrained 100k steps on a Soft-Fold / iPhUMI / PrimeBot mix; Exp 1's initialisation is not recorded here. See README §8.)* No policy result is reported yet. Two experiments run first, both fine-tuned on **our GOLD demos only** with label A:
 
 | | pretrain | fine-tune | checkpoints |
 |---|---|---|---|
@@ -97,7 +99,7 @@ gap).*
 
 - **Loop:** fresh images + measured joints → FK gives the current TCP → the policy predicts 32 relative steps → the newest
   TCP re-anchors the chunk (latency) → limiter (speed, table floor) → IK → safety (workspace, link-to-link capsules,
-  table, joint limits) → only the first 4 steps are committed, then re-plan (≈ 7 Hz).
+  table, joint limits) → only the first 4 steps are committed, then re-plan (≈ 7 Hz). *(11-01: the re-plan rate was not measured in a recorded run; the commit length is UI-selectable — DiT 4, ACT 1, X-VLA 8 by default.)*
 - **Gripper safety (10-27):** after a restart without the left-jaw opening limit, the left jaw opened to the end of its
   travel and broke the holder. Deploy now refuses GO unless the bridge limits each jaw (left ≤ 0.5 of −270°), and a
   jaw-only re-zero tool fixes a jaw that reads −43° while closed (`scripts/deploy/robot_bridge/`).
@@ -158,6 +160,6 @@ caught the shirt edge and dragged it.
 | 17–30 mm RMSE vs the replayed human path over the demo; the error at the grasp itself is not yet measured | per-grasp xy error table: a constant bias means calibration; a varying one needs visual correction at the grasp |
 | cloth position differs from the demo | placement reference before each replay |
 | ~~tag-hidden grasp phases~~ | ~~offline smoother (tags + IMU + depth + gated MASt3R)~~ → solved by CoTracker + marker fusion (10-24, §3.1) |
-| no policy yet | Exp 1 (DiT) and Exp 3 (X-VLA mixture) fine-tuned on GOLD (§3.2), then real-robot evaluation |
-| ≈ 18–24 % of label frames need a large IK correction (wrist roll, tool flip, right j4 at its limit) | report per cause, no mask for now; check how often the online IK hits them during deploy |
+| no policy yet *(11-01: policies fine-tuned from 10-28, README §8)* | Exp 1 (DiT) and Exp 3 (X-VLA mixture) fine-tuned on GOLD (§3.2), then real-robot evaluation |
+| ≈ 18–24 % of label frames need a large IK correction (wrist roll, tool flip, right j4 at its limit) | report per cause, no mask for now *(11-01: with F, IK never masks; code `tag_rig_unsplit.py`, `if LABEL in ("rob", "fused")`; on the first 139 demos the large-correction share is 20.3 %)*; check how often the online IK hits them during deploy |
 | replay-track items above (grasp error, cloth placement) | parked; open-loop replay is no longer the main path |

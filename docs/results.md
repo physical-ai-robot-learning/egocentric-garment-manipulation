@@ -1,5 +1,7 @@
 # Results
 
+> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [README §8](../README.md#8-current-vs-superseded) and [docs/status_2026-11-01.md](status_2026-11-01.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
+
 All results are from one physical setup (two low-cost 6-DoF arms, one fixed RGB-D camera, two hand-worn grippers) and
 one demonstrator, measured in October 2026. They are reported as measured, including failures. No success rate is
 reported, because no counted trials were run.
@@ -80,7 +82,7 @@ Plan: IK error ≤ 6.3 mm / 11.5° (right) and ≤ 10.3 mm / 21° (left); the tw
 | arm | pos. RMSE | pos. p95 | rot. median | rot. p95 | C − B | B − A |
 |---|---|---|---|---|---|---|
 | right | 17.2–17.4 mm | 35–37 mm | 8.1° | 12.6–12.7° | 12.1–12.3 mm | 8.6 mm |
-| left | 29.0–30.3 mm | 50–51 mm | 12.3–12.7° | 17.1–17.2° | 14.5–15.5 mm | 22.6 mm |
+| left | 29.0–30.3 mm | 50–51 mm | 12.3–12.7° | 17.0–17.2° | 14.5–15.5 mm | 22.6 mm |
 
 * The runs agree within ≈1 mm: the robot is deterministic and the remaining error is systematic.
 * The left command already deviates more from the replayed path (B − A 22.6 mm vs 8.6 mm): the left IK gives up more
@@ -111,7 +113,7 @@ The markers are hidden exactly when the hand grasps, palm down, so wrist-camera 
 | ORB-SLAM3 monocular-inertial | initialised with good rotation, but **translation scale diverged by 30–1000×**; hand accelerations (median 0.07–0.16 m/s²) were below the accelerometer bias (0.25–0.43 m/s²), so scale was not observable |
 | Stereo VIO (earlier stereo wrist camera) | stereo-inertial diverged; stereo VO alone ran but the camera was dropped |
 
-Consequence: SLAM is kept only as an optional filler, accepted per segment where it agrees with the markers.
+Consequence: SLAM is kept only as an optional filler, accepted per segment where it agrees with the markers. *(11-01: SLAM moved to `legacy/` on 10-27 and is not used.)*
 
 An earlier label pipeline (SLAM + external body tracking + IMU) passed all of its own quality checks yet was 4–6 cm from
 the jaw position seen by the external camera, because of three calibration/anchoring errors that internal residuals
@@ -135,7 +137,7 @@ no gap at a grasp).
 and ≈ 58 mm at grasps. About 20 % of frames need a large IK correction; by cause: wrist-roll relaxation (mostly left),
 tool flip (mostly right), one joint at its limit, and ≈ 1 % truly out of reach.
 
-**Policy.** Not yet trained on these labels.
+**Policy.** ~~Not yet trained on these labels~~ (10-27). *(11-01: fine-tuned from 10-28; see README §8.)*
 
 ## 8. Synthetic example (this repository)
 
