@@ -4,6 +4,7 @@ Kept for reference; not used by the current pipeline. Why each was dropped is de
 
 | folder | what | period | status |
 |---|---|---|---|
+| [`from_cube/`](from_cube/README.md) | laundry-era files that existed only in the cube repository (UMIalign drivers, parity/Kalibr helpers, visual-teleop tests, 10-20 update notes) | 10-13 → 10-20 | records, moved 11-01 |
 | `laundry_collector/`, `tests/` | bare-hand collector + virtual gripper renderer | 10-08 | mock-tested, parked |
 | `configs/laundry/` | config files of `laundry_collector/` (read as `legacy/configs/laundry` by its `config.py`; moved from `configs/laundry/` 11-01) | 10-08 | parked with the collector |
 | `configs/handumi/*.bak*` | backup copies of HandUMI collector / task configs taken before edits (`.bak_pre_<change>`); the live files stay in `configs/handumi/` (moved here in refactor v3, 11-01) | – | backups only |
