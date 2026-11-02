@@ -70,5 +70,7 @@ def start_cmd(a):
     if not a.go: print("DRY: 이동 안 함. 움직이려면 사람이 옆에서: start --go"); return
     from visual_teleop.tools.umi_replay_bi import stream_path
     for s in core.SIDES: unpark(br, s)
-    g = {s: o.g(s) for s in core.SIDES}; say("학습 시작 자세로 천천히 이동"); stream_path(br, [{s: br.observe().q[s] for s in core.SIDES}] + W, g, deg_s=a.deg_s)
+    # [11-02 user: "또 입이 벌려져 있어"] the observed jaw was re-sent here, and a parked (torque-off) jaw relaxes open -> close both
+    # jaws on the way to the start (training episodes start closed; g 0 = closed)
+    g = {s: 0.0 for s in core.SIDES}; say("학습 시작 자세로 천천히 이동 (집게 닫음)"); stream_path(br, [{s: br.observe().q[s] for s in core.SIDES}] + W, g, deg_s=a.deg_s)
     say("시작 자세 도착 (브리지가 마지막 목표를 유지)"); br.close()

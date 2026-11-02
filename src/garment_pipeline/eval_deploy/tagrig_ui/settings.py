@@ -23,7 +23,9 @@ CK_DIRS = {"act": [core.LDT / "checkpoints_pod/act_tagrig_v1_1m/checkpoints"],
                    (egopaths.CKPT_ROOT / "ckpts/runpod/h100/DITFT-MIX3PT100K-S03ALL281-B64-BCE-GSM-E150-NOCLIP/checkpoints"),
                    (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-S03PT50K-UMI50-S05-B64ACC4-BCE-GSM-E150-NOCLIP/checkpoints"),
                    # 10-30: today's pinching (A' 53, 0.5x) 1000-epoch run from E150, every 25 epochs; P10 test: 50 ep 18.5 mm vs E150 28.5
-                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints")],
+                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints"),
+                   # 11-01: pinching 197 demos (all Cg, 0.5x, AUG) 500-epoch fine-tune from E1000 227795; P20: 25 ep 17.29, 50 ep 18.89
+                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-E1000F227795-U200CG-S05-B64ACC4-BCE-GSM-AUG-E500-NOCLIP/checkpoints")],
            "xvla": [XVLA_FT]}         # 10-28: Exp 3 X-VLA through deploy/xvla_server.py (:8775, separate venv)
 
 
