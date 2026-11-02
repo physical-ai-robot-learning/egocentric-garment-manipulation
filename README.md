@@ -415,6 +415,14 @@ workspace corner).
 
 ### The split
 
+**Three layers.** Which code is which, at a glance:
+
+| layer | where | what it is |
+|---|---|---|
+| production code | [`src/garment_pipeline/`](src/garment_pipeline/README.md), `src/visual_teleop/`, `src/rebot_prep/`, the shared packages (`handumi_collector`, `ego_collector`, `ego_teleop`, `umi`), `scripts/` | the code that produced every reported result and runs the robot |
+| portable reference implementation | [`src/egogarment/`](src/egogarment/README.md) | small re-implementations of the core ideas that run on synthetic data without the lab set-up; not used by the real pipeline |
+| superseded | [`legacy/`](legacy/README.md) | earlier approaches kept for the record (see §8) |
+
 * **`src/`** holds importable code:
   * `visual_teleop` — robot-side tools and libraries (recorder, jaw classifier, reBot IK / limits / safety, bridge
     start, replay planner);

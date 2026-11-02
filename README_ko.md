@@ -379,6 +379,14 @@ MASt3R-SLAM 끊김 보완(파랑), 마커가 가려진 구간의 IMU 회전 + �
 
 ## 6. 코드 안내
 
+**세 층.** 어느 코드가 무엇인지 한눈에:
+
+| 층 | 위치 | 무엇인가 |
+|---|---|---|
+| 실제 코드 | [`src/garment_pipeline/`](src/garment_pipeline/README.md), `src/visual_teleop/`, `src/rebot_prep/`, 공용 패키지(`handumi_collector`, `ego_collector`, `ego_teleop`, `umi`), `scripts/` | 보고한 모든 결과를 만들고 로봇을 돌린 코드 |
+| 이식용 참고 구현 | [`src/egogarment/`](src/egogarment/README.md) | 핵심 아이디어를 실험실 장비 없이 합성 데이터로 돌릴 수 있게 다시 짠 작은 구현. 실제 파이프라인은 쓰지 않음 |
+| 대체됨 | [`legacy/`](legacy/README.md) | 기록으로 남긴 이전 방식 (8절 참고) |
+
 ### 나눈 방식
 
 * **`src/`**에는 import하는 코드가 있습니다.
