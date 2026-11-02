@@ -4,9 +4,9 @@ Human garment-manipulation demonstrations, recorded with hand-worn parallel-jaw 
 robot-feasible end-effector trajectories and training labels, replayed on a two-arm robot (**reBot B601-DM**) as an
 end-to-end test of the data, and then used to train policies for T-shirt flattening and folding.
 
-Part of **[physical-ai-vla](https://github.com/physical-ai-vla)** — Physical AI / robot learning projects.
+Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-learning)** — Physical AI / robot learning projects.
 
-[![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[Technical Report (PDF, 11-02)](report/report_en.pdf)** ([한국어](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project details](docs/details.md)
@@ -782,7 +782,7 @@ The robot is the reBot B601-DM; its vendor LeRobot plugin and URDF are not inclu
 
 ### Previous work
 
-An earlier project, [egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking),
+An earlier project, [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking),
 collected 349 bimanual human demonstrations, converted them across embodiments into robot trajectories with relative
 Cartesian actions, fine-tuned X-VLA on them, analysed the human-to-robot gap, and deployed on a dual-arm robot.
 
@@ -825,7 +825,7 @@ reports in `report/archive/` still name that repository and its pre-refactor pat
 @misc{lee_egocentric_garment_manipulation,
   author       = {Lee, Jeong Hwan},
   title        = {Egocentric Human Demonstrations for Bimanual Garment Manipulation},
-  howpublished = {\url{https://github.com/physical-ai-vla/egocentric-garment-manipulation}}
+  howpublished = {\url{https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation}}
 }
 ```
 
@@ -835,4 +835,4 @@ Interests: learning robot manipulation from human demonstrations; egocentric and
 cross-embodiment action representations; bimanual and deformable-object manipulation; vision-language-action models;
 calibration and evaluation methodology for robot-learning data.
 
-GitHub: <https://github.com/physical-ai-vla>
+GitHub: <https://github.com/physical-ai-robot-learning>

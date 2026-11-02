@@ -4,8 +4,8 @@ After the v5 report the work moved to T-shirt flattening for the laundry project
 [`docs/UPDATE_2026-10-20.md`](docs/UPDATE_2026-10-20.md) ([한국어](docs/UPDATE_2026-10-20_ko.md)); the report itself is unchanged.
 
 - **Hardware:** jaw servos removed (10-13) — **reinstalled 10-29** as torque-off jaw encoders (laundry project; see
-  [egocentric-garment-manipulation](https://github.com/physical-ai-vla/egocentric-garment-manipulation)); red tape on the jaw tips (later removed); AprilTag rigs (200–202 / 210–212) per unit; XIAO
-  nRF52840 wrist IMUs replace the Teensy ([`hardware/README.md`](https://github.com/physical-ai-vla/egocentric-cube-stacking/blob/main/hardware/README.md)).
+  [egocentric-garment-manipulation](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation)); red tape on the jaw tips (later removed); AprilTag rigs (200–202 / 210–212) per unit; XIAO
+  nRF52840 wrist IMUs replace the Teensy ([`hardware/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/hardware/README.md)).
 - **Gripper open/close from the wrist video:** red-tape tip distance per frame (`jaw_track.py`) → hysteresis binary
   (closed ≤ 200 px / open ≥ 260 px) in `src/ego_cart20/sources/jaw_visual.py`; 16/16 spot checks, corr 0.93 vs the servo.
   Used only while the servos were off; from 10-29 the jaw label is the servo encoder again.

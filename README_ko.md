@@ -3,9 +3,9 @@
 손에 끼는 평행 집게로 녹화한 사람의 옷 다루기 시연을 로봇이 할 수 있는 엔드이펙터 궤적과 학습 라벨로 변환하고, 데이터 전체를
 끝까지 시험하기 위해 양팔 로봇(**reBot B601-DM**)으로 재생한 뒤, 티셔츠 펴기·접기 정책을 학습하는 데 씁니다.
 
-**[physical-ai-vla](https://github.com/physical-ai-vla)**의 Physical AI / 로봇 학습 프로젝트 중 하나입니다.
+**[physical-ai-robot-learning](https://github.com/physical-ai-robot-learning)**의 Physical AI / 로봇 학습 프로젝트 중 하나입니다.
 
-[![ci](https://github.com/physical-ai-vla/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[테크니컬 리포트 (PDF, 11-02)](report/report_ko.pdf)** ([English](report/report_en.pdf)) · [이전 버전](report/archive/)
 · [자세한 결과](docs/results.md) · [세부 내용](docs/details_ko.md)
@@ -711,7 +711,7 @@ HandUMI 자체는 Universal Manipulation Interface(UMI, Chi et al., RSS 2024)를
 
 ### 이전 작업
 
-이전 프로젝트 [egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking)은 양손 사람 시연 349개를
+이전 프로젝트 [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking)은 양손 사람 시연 349개를
 모아, embodiment를 넘어 relative Cartesian action의 로봇 궤적으로 변환하고, X-VLA를 파인튜닝하고, 사람-로봇 차이를 분석하고,
 양팔 로봇에 배포했습니다.
 
@@ -753,7 +753,7 @@ Apache-2.0)이고 UMI(Chi et al., RSS 2024)를 따릅니다. [9절](#9-하드웨
 @misc{lee_egocentric_garment_manipulation,
   author       = {Lee, Jeong Hwan},
   title        = {Egocentric Human Demonstrations for Bimanual Garment Manipulation},
-  howpublished = {\url{https://github.com/physical-ai-vla/egocentric-garment-manipulation}}
+  howpublished = {\url{https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation}}
 }
 ```
 
@@ -762,4 +762,4 @@ Apache-2.0)이고 UMI(Chi et al., RSS 2024)를 따릅니다. [9절](#9-하드웨
 관심 분야: 사람 시연으로 로봇 조작 학습, egocentric·착용형 데이터 수집, embodiment를 넘는 action 표현, 양손·변형 물체 조작,
 vision-language-action 모델, 로봇 학습 데이터의 캘리브레이션과 평가 방법론.
 
-GitHub: <https://github.com/physical-ai-vla>
+GitHub: <https://github.com/physical-ai-robot-learning>

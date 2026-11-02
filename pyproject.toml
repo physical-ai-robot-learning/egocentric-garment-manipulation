@@ -51,7 +51,7 @@ viz = ["rerun-sdk>=0.20"]
 aero = ["dex-retargeting>=0.5,<1"]
 
 [project.urls]
-Repository = "https://github.com/physical-ai-vla/egocentric-garment-manipulation"
+Repository = "https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation"
 
 # Console commands for the egogarment modules that have a command-line interface (main()).
 [project.scripts]

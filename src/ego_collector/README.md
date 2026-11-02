@@ -26,5 +26,5 @@ python -m ego_collector --help
 
 ## Provenance
 
-Shared with [egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking) (`src/ego_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../docs/provenance.md)). The guides below are in egocentric-cube-stacking.
-See [`docs/experimental/README.md`](https://github.com/physical-ai-vla/egocentric-cube-stacking/blob/main/docs/experimental/README.md) and [`docs/provenance/experimental_MANIFEST.md`](https://github.com/physical-ai-vla/egocentric-cube-stacking/blob/main/docs/provenance/experimental_MANIFEST.md). Tests: `tests/experimental/v0/`.
+Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/ego_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../docs/provenance.md)). The guides below are in egocentric-cube-stacking.
+See [`docs/experimental/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/experimental/README.md) and [`docs/provenance/experimental_MANIFEST.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/provenance/experimental_MANIFEST.md). Tests: `tests/experimental/v0/`.

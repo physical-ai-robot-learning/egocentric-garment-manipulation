@@ -5,5 +5,5 @@ type: software
 authors:
   - family-names: "Lee"
     given-names: "Jeong Hwan"
-repository-code: "https://github.com/physical-ai-vla/egocentric-garment-manipulation"
+repository-code: "https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation"
 license: PolyForm-Noncommercial-1.0.0

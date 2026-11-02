@@ -59,7 +59,7 @@ apply).
 ## Shared packages
 
 `handumi_collector`, `ego_collector`, `ego_teleop` and `umi` are the HandUMI / teleop packages of the cube-stacking
-project ([egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking)). Both repositories hold
+project ([egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking)). Both repositories hold
 them in `src/` as identical copies: every Python file has the same bytes in both (236 files; md5 list in
 [`shared_packages_MANIFEST.md`](shared_packages_MANIFEST.md)). Only the three package `README.md` files differ (each
 repository's own links). Import names are unchanged.

@@ -1,6 +1,6 @@
 # umi_laundry: UMIalign pose + visual-gripper pipeline (2026-10-12 → 10-16)
 
-> **Location (restructure of 2026-11-01).** This file was `pipeline/umi_laundry/README.md`. Paths in it are relative to that old folder: the folder → `scripts/rebot/laundry/` (inner structure unchanged: `drivers/`, `orbbec_tracking/`, `umi_fusion_scripts/`). Full old → new table: [`docs/provenance/README.md`](https://github.com/physical-ai-vla/egocentric-cube-stacking/blob/main/docs/provenance/README.md).
+> **Location (restructure of 2026-11-01).** This file was `pipeline/umi_laundry/README.md`. Paths in it are relative to that old folder: the folder → `scripts/rebot/laundry/` (inner structure unchanged: `drivers/`, `orbbec_tracking/`, `umi_fusion_scripts/`). Full old → new table: [`docs/provenance/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/provenance/README.md).
 
 Turns a servo-less HandUMI UMIalign session (T-shirt flattening) into per-frame wrist TCP poses and binary gripper labels.
 Overview and numbers: [`docs/UPDATE_2026-10-20.md`](../UPDATE_2026-10-20.md), Sec. 2–4.

@@ -1,8 +1,8 @@
 # Shared packages: file manifest (2026-11-02)
 
 `handumi_collector`, `ego_collector`, `ego_teleop` and `umi` are kept as identical copies in two repositories,
-[egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking) and
-[egocentric-garment-manipulation](https://github.com/physical-ai-vla/egocentric-garment-manipulation), both under `src/`.
+[egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) and
+[egocentric-garment-manipulation](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation), both under `src/`.
 On 2026-11-02 they were copied back into both repositories from the shared package they had been moved to the day
 before (release v0.3.0), because that repository is private. Every Python file below is byte-identical in both
 repositories and to that release; the md5 is the same in all three places. The three package `README.md` files are
