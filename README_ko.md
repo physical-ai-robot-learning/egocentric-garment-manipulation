@@ -184,6 +184,9 @@ python -m pytest -q
 python -m pip install -r requirements.txt
 ```
 
+학습·배포·로봇 브리지 환경(결과를 만든 장비에서 기록한 고정 버전, 이 레포만으로는 재현할 수 없는 부분)은
+[docs/environments.md](docs/environments.md)에 있습니다.
+
 설치하지 않을 때는 `src/`를 경로에 넣습니다: `PYTHONPATH=src python -m visual_teleop.tools.<tool>`.
 `scripts/pose`, `scripts/retarget`, `scripts/evaluation`의 script는 `src/`를 스스로 경로에 넣습니다.
 

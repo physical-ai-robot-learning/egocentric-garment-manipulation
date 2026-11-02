@@ -1,0 +1,22 @@
+# Training environment of the garment DiT policies (fine-tunes incl. the 11-02 pinching checkpoint).
+# Recorded on 2026-11-02 from the environment that ran the training on a Linux RTX 4090 node
+# (Python 3.13.9, CUDA 12.8 wheels, NVIDIA driver 580). Versions as installed; a fresh install from this file
+# was not tested. Torch wheels: --index-url https://download.pytorch.org/whl/cu128
+torch==2.11.0
+torchvision==0.26.0
+lerobot==0.5.2
+diffusers==0.41.0
+transformers==5.5.4
+accelerate==1.15.0
+draccus==0.10.0
+datasets==4.8.5
+huggingface-hub==1.33.0
+safetensors==0.8.0
+einops==0.8.2
+numpy==2.2.6
+scipy==1.18.1
+pandas==2.3.3
+pyarrow==26.0.0
+av==15.1.0
+opencv-python-headless==4.13.0.92
+pyyaml==6.0.3

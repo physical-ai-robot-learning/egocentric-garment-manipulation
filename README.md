@@ -202,6 +202,9 @@ python -m pytest -q
 python -m pip install -r requirements.txt
 ```
 
+The training, deploy and robot-bridge environments (pinned versions recorded from the machines that produced the
+results, and what is not reproducible from this repository) are listed in [docs/environments.md](docs/environments.md).
+
 Without installing, put `src/` on the path: `PYTHONPATH=src python -m visual_teleop.tools.<tool>`. Scripts under
 `scripts/pose`, `scripts/retarget`, `scripts/evaluation` add `src/` themselves.
 
