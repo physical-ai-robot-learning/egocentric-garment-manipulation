@@ -12,7 +12,7 @@ glued to letters (product and dataset names such as CoTracker3, STS3215, P20, p9
 checked to print no numbers at all.
 
 Further checks: the Korean report prints no number the English one does not (it is a translation), HandUMI is
-attributed to BrikHMP18 in both, and the report states that no success rate is reported.
+attributed to BrikHMP18 in both, and the report states that no success rate is reported and that the pinching trials were not counted.
 
 Run from the repo root:  python analysis/verify_claims.py [--md out.md]     (standard library only)
 Exit code 1 if any check fails.
@@ -25,6 +25,7 @@ R = Path(__file__).resolve().parents[1]
 README, README_KO = "README.md", "README_ko.md"
 RESULTS, DETAILS, DETAILS_KO = "docs/results.md", "docs/details.md", "docs/details_ko.md"
 STATUS = "docs/status_2026-11-01.md"
+STATUS2 = "docs/status_2026-11-02.md"
 V01 = "report/archive/report_v0.1_en.tex"
 
 # number as printed in the report -> the repository file it was taken from
@@ -65,6 +66,8 @@ SOURCES = {
     # pinching (status 2026-11-01)
     "74": STATUS, "56": STATUS, "147": STATUS, "197": STATUS, "144": STATUS, "62160": STATUS, "55": STATUS, "46": STATUS, "4.7": STATUS, "31": README, "6207": STATUS, "19.89": STATUS, "19.13": STATUS,
     "17.1": STATUS, "17.7": STATUS, "150": STATUS, "500": STATUS, "2.6": STATUS,
+    # pinching robot runs (status 2026-11-02)
+    "17.29": STATUS2, "18.89": STATUS2,
 }
 
 def norm_source(text):
@@ -128,7 +131,7 @@ flat = " ".join(en.split())
 check("attribution", "EN: HandUMI is not our design (BrikHMP18)", "HandUMI is not our design." in flat and "BrikHMP18" in flat, "report/report_en.tex")
 check("attribution", "KO: HandUMI attributed to BrikHMP18", "BrikHMP18" in ko and "우리가 설계한 것이 아니다" in ko, "report/report_ko.tex")
 check("status", "EN: states that no success rate is reported", "No success rate is reported" in flat, "report/report_en.tex")
-check("status", "EN: pinching marked as having no robot result", "no robot result yet" in flat.lower(), "report/report_en.tex")
+check("status", "EN: pinching robot grasps stated as an observation from trials that were not counted", "trials were not counted" in flat and "first grasps observed" in flat.lower(), "report/report_en.tex")
 
 nf = sum(r[-1] == "FAIL" for r in rows)
 if "--md" in sys.argv:

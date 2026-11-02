@@ -19,7 +19,7 @@
 \begin{document}
 \title{Egocentric Human Demonstrations for\\Bimanual Garment Manipulation:\\[1mm]\Large From Hand-Worn-Gripper Recordings to Robot Policies}
 \author{\IEEEauthorblockN{Jeong Hwan Lee}
-\IEEEauthorblockA{Technical report, status of 1 November 2026\\
+\IEEEauthorblockA{Technical report, status of 2 November 2026\\
 Repository: \texttt{egocentric-garment-manipulation}}}
 \maketitle
 
@@ -40,8 +40,9 @@ flattening demonstrations, graded per demo, with labels taken \emph{before} inve
 First fine-tuned policies, observed in robot trials that were not counted, stop short of the cloth and close the jaws
 early. Two causes were recorded (the policy copied the jaw state from its input; the robot wrist cameras sit differently
 from the hand-worn ones), and checking the labels found three more data problems (a label clamp, demonstration speed,
-video jaw labels). A reduced feasibility test, pinching one sleeve with the left hand, is in progress. We report no
-success rate.
+video jaw labels). In a reduced feasibility test, pinching one sleeve with the left hand, a policy fine-tuned on 197
+demonstrations grasped the sleeve in real-robot trials on 2 November 2026; the trials were not counted, and after a miss
+the policy grasps elsewhere instead of retrying. We report no success rate.
 \end{abstract}
 
 % =====================================================================
@@ -71,10 +72,10 @@ fails visibly. The follow-up question is whether the same conversion yields labe
   recorded causes of their failure and the data problems found afterwards (Secs.~\ref{sec:data}--\ref{sec:policy}).
 \end{itemize}
 
-\textbf{Status} (1 November 2026). Replay is finished; folding by replay does not succeed. Policies fine-tuned on the
-flattening data were run on the robot in uncounted trials and did not grasp. A one-sleeve pinching test
-(Sec.~\ref{sec:pinch}) has training data, held-out test sets and a fine-tune that started on 1 November, but no robot
-result. No success rate is reported anywhere in this report, because no counted
+\textbf{Status} (2 November 2026). Replay is finished; folding by replay does not succeed. Policies fine-tuned on the
+flattening data were run on the robot in uncounted trials and did not grasp. In a one-sleeve pinching test
+(Sec.~\ref{sec:pinch}), successful grasps were observed in real-robot trials on 2 November; the trials were not
+counted. No success rate is reported anywhere in this report, because no counted
 trials were run.
 
 \textbf{Relation to earlier versions.} This report replaces version 0.1 (27 October) and version 0 (21 October), which
@@ -552,10 +553,11 @@ Also added and \emph{not yet validated on the robot}: a real-time-chunking blend
 29 October; whether it was on in a given robot run was not recorded) and an X-VLA policy server.
 
 % =====================================================================
-\section{Pinching Feasibility Test (in progress)}\label{sec:pinch}
+\section{Pinching Feasibility Test (first robot grasps)}\label{sec:pinch}
 To separate ``the pipeline cannot teach a grasp'' from ``flattening is too hard for this amount of data'', the first
 robot feasibility test was reduced to one sub-skill: \textbf{pinch one sleeve with the left hand}. The right arm is idle
-in all data and the policy is deployed with the left arm only.
+in all data; in the robot runs of 2 November both arms were under policy control and the right arm stayed at its start
+pose.
 
 \begin{figure*}[!t]
 \centering
@@ -599,7 +601,9 @@ and the baseline; on P20 built from Cg it scores 19.89\mm (\code{val_score_mm}: 
 over the left and right arm, of the translation deviation, position only; 19.13\mm on P20 built from source A$'$). Its score on the 10 demos of P10 had plateaued at 17.1--17.7\mm
 since about 150 epochs. A fine-tune from these weights on the merged 197-demo Cg set, with a new optimizer and a cosine schedule
 over 500 epochs, a checkpoint every 25 epochs, gradient clipping off, a jaw BCE head and new train-time image
-augmentation, started on 1 November (about 4.7 days planned); it has no results yet. Earlier in this chain, a DiT
+augmentation, started on 1 November (about 4.7 days planned). On P20 its checkpoints after 25 and 50 epochs score
+17.29 and 18.89\mm{} (baseline 19.89\mm); the 50-epoch checkpoint is the one that grasped on the robot, so the offline
+score did not pick the robot checkpoint. Earlier in this chain, a DiT
 pretrained on the three-dataset mix was fine-tuned on the flattening GOLD demos (label F, 0.3$\times$) and then on
 pinching data, before the 30 October set.
 
@@ -614,8 +618,31 @@ runs of about 70\,s) and the pinching baseline (one short run). In both the left
 right jaw stayed closed; in the first run the left wrist had one motor fault and the left arm once lagged its command by
 more than 20$^\circ$. No success or failure was scored.
 
-\textbf{Status: no robot result yet.} Robot trials will be reported with the number of trials and successes, whatever
-the outcome.
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_pinching_robot_1102.jpg}
+\caption{One of the real-robot runs of 2 November judged successful by the operator (50-epoch checkpoint; fixed camera,
+one frame per plan cycle; trials were not counted). Top left: start; top right: the left arm approaches the sleeve
+end with the jaw open (7\,s); bottom left: jaw closed on the sleeve (11\,s); bottom right: the sleeve pulled (22\,s).
+Blue / orange dots: the policy's next targets for the left / right jaw. Red text: the deploy loop's table-proximity
+messages.}
+\label{fig:pinchrobot}
+\end{figure*}
+
+\textbf{Robot runs of 2 November (first grasps; trials were not counted).} The 50-epoch checkpoint of the 197-demo
+fine-tune was run with 32 steps committed per plan, speed 1, real-time-chunking look-ahead off, 10 DDIM sampling steps,
+per-arm height calibration on and the soft stop. Successful grasps of the sleeve were observed in real-robot trials on
+2 November (Fig.~\ref{fig:pinchrobot}): the left arm approaches the sleeve end with the jaw open, closes on it and pulls
+it. The trials were not counted, so no success rate is given. After a miss the policy grasps elsewhere instead of
+retrying: the data contain no recovery demonstrations, so post-failure states are out of distribution. A retry means
+sending the arms back to the start pose and starting again; the data fix is to record recovery demonstrations.
+Hardware changes that day: the arms' USB locations had swapped after re-cabling (fixed in the launch configuration);
+the left jaw has mechanical slack and now closes 25$^\circ$ past its zero, with the extra squeeze ramped in over the
+last 30$^\circ$ of travel; the start move now closes both jaws (a parked jaw relaxes open); one robot wrist camera
+stalled once and the deploy UI was restarted.
+
+\textbf{Status: first grasps observed, trials were not counted.} Robot trials will be reported with the number of trials
+and successes, whatever the outcome.
 
 % =====================================================================
 \section{Superseded Approaches}\label{sec:superseded}
@@ -701,7 +728,7 @@ X-VLA fine-tuning code. Real-data stages need the recordings, some need a GPU or
 the standalone tools on the synthetic example, import and config-path smoke tests),
 \code{python scripts/evaluation/replay_parity.py --synthetic} and \code{python scripts/pose/robot_cam_solve.py --synthetic}
 (self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \code{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
-document it was taken from (README, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md} or
+document it was taken from (README, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md} or
 the archived report v0.1). This is a check of consistency with the project's records, not a re-computation of the
 numbers from data.
 
@@ -712,8 +739,10 @@ robot and bring its jaws to the human's grasp height, which shows that calibrati
 sound; open-loop replay does not fold a shirt. A pose source that anchors fixed-camera point tracking with markers keeps
 the jaw-tip pose through grasps, and the training labels are now the fused jaw tip before IK, without a clamp, with
 servo jaw labels and slowed timing. The first policies, observed in uncounted robot trials, stopped short of the cloth;
-the recorded causes and the label problems found afterwards are changed, except the camera re-mount. Next:
-re-mount the robot wrist cameras, finish the pinching test with counted robot trials, then evaluate flattening policies
+the recorded causes and the label problems found afterwards are changed, except the camera re-mount. In the reduced
+pinching test, a policy fine-tuned on 197 demonstrations grasped the sleeve in uncounted robot trials on 2 November; it
+does not recover from a miss. Next: record recovery demonstrations, re-mount the robot wrist cameras, finish the
+pinching test with counted robot trials, then evaluate flattening policies
 trained on the corrected labels and the servo-labelled demonstrations with counted trials.
 
 \section*{Acknowledgements}
