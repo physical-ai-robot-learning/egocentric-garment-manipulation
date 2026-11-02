@@ -111,7 +111,7 @@ def test_height_calib_path(tmp_path):
     chk = "import flask, cv2, numpy, scipy, pinocchio, pink, ego_teleop; from egogarment import paths as p; assert (p.HANDUMI_SW_ROOT / 'assets/rebot_b601/rebot_b601_bimanual.urdf').exists()"
     env = dict(os.environ, PYTHONPATH=os.pathsep.join([str(REPO / "src")] + [x for x in [os.environ.get("PYTHONPATH")] if x]))
     if subprocess.run([PY, "-c", chk], capture_output=True, timeout=300, env=env).returncode != 0:
-        pytest.skip(f"{PY}: needs flask, cv2, scipy, pinocchio, pink, the egocentric package and the reBot URDF")
+        pytest.skip(f"{PY}: needs flask, cv2, scipy, pinocchio, pink, ego_teleop and the reBot URDF")
     out = tmp_path / "hc.json"
     r = subprocess.run([PY, str(probe), str(REPO), str(out)], capture_output=True, text=True, timeout=600, env=env)
     assert r.returncode == 0, r.stderr[-3000:]

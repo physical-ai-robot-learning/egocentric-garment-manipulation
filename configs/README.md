@@ -2,7 +2,7 @@
 
 Calibration results, robot settings / overrides, regression baselines and HandUMI collector profiles.
 
-**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code, `handumi_collector`, comes from the shared [`handumi-common`](https://github.com/physical-ai-vla/handumi-common) package)
+**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code is `src/handumi_collector/`, shared with the cube-stacking project)
 
 ## Inputs → Outputs
 Written by the calibration scripts in `scripts/pose/` and `scripts/retarget/`; read by those scripts,

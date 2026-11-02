@@ -5,18 +5,17 @@ action / observation contract, two dataset helpers, a UMI pose helper and parts 
 workspace). They were copied into `src/` (refactor v3, 2026-11-01) so that every import resolves from a clean clone.
 Import names are unchanged, so the code that uses them is unchanged.
 
-**Shared package (2026-11-01, later the same day).** The copies of `ego_collector`, `ego_teleop`, `handumi_collector` and
-`umi` were removed from `src/`. These packages now come from the shared package [`handumi-common`](https://github.com/physical-ai-vla/handumi-common) (v0.1.0;
-`pyproject.toml`: `handumi-common @ git+https://github.com/physical-ai-vla/handumi-common@v0.3.0`), which holds their full
-versions once for this repository and egocentric-cube-stacking; see [Moved to the shared package](#moved-to-the-shared-package).
-Still vendored here: `contracts`, `xvla_core`, `umi_to_lerobot`.
+**Shared packages.** `ego_collector`, `ego_teleop`, `handumi_collector` and `umi` are in `src/` as the full packages,
+identical copies of the ones in egocentric-cube-stacking; see [Shared packages](#shared-packages) (the partial copy of
+2026-11-01, a separate shared package for one day, and the copy back on 2026-11-02). Also vendored here: `contracts`,
+`xvla_core`, `umi_to_lerobot`.
 
 * Copies are byte-exact at the time of copying; the md5 below is that of the **source** file. Edits made afterwards
   in this repository are listed under "Changes after copying".
 * `ego_collector`, `ego_teleop` and `handumi_collector` are the HandUMI / teleop packages of the earlier cube-stacking
-  project. Only the modules this repository imports at module level, plus the package `__init__` files they need, were
-  copied — not the whole packages (now replaced by the shared package, see above).
-* `umi/common/pose_util.py` (formerly `src/umi/`, now in the shared package) is our own minimal stand-in (written 2026-10-08) for UMI's `umi/common/pose_util.py`:
+  project. On 2026-11-01 only the modules this repository imports at module level, plus the package `__init__` files they
+  need, were copied; since 2026-11-02 the full packages are here (see [Shared packages](#shared-packages)).
+* `src/umi/common/pose_util.py` is our own minimal stand-in (written 2026-10-08) for UMI's `umi/common/pose_util.py`:
   same function names and conventions (pose = xyz + rotation vector; rot6d = first two rows of R; Gram–Schmidt back
   to R) for the five functions we use. It is not a copy of upstream code; UMI's MIT licence and source are recorded in
   [`upstream/README.md`](../upstream/README.md) because the API and conventions follow it.
@@ -46,30 +45,59 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 | import | used by | why it is not copied |
 |---|---|---|
 | `rel_relonly_bce` | `garment_pipeline.eval_deploy.xvla_server` | X-VLA training patch from the cube project's X-VLA deploy tree (`~/xvla_deploy/umi_bridge/umi76`, `~/ego_cart20/launch/rel32bin`); the server runs in a separate X-VLA environment set up with `PYTHONPATH` (see the module docstring) |
-| `ego_cart20.*` | `umi_to_lerobot` (lazy, ego-data branches only), `ego_teleop.ego_cart20_link` (shared package, lazy), `legacy/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
+| `ego_cart20.*` | `umi_to_lerobot` (lazy, ego-data branches only), `ego_teleop.ego_cart20_link` (lazy), `legacy/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
 | `lerobot_plugin_rebot.*`, `bh_indy7_lerobot*`, `usb_arm_ports` | `scripts/deploy/robot_bridge/` | reBot driver stack of the robot PC (`~/robot-cockpit`), third-party / company code |
 | `stereo_openvins_eval`, `stereo_basalt_eval` | `visual_teleop.vision.stereo_vio_tracker` | stereo VIO experiment (dropped 10-16, see `legacy/`), needs native OpenVINS / Basalt bridges |
 | `jaw_redx` | `visual_teleop.vision.fingertip_detector` (red-tape detector, lazy) | lives in `legacy/scripts/umi_fusion/` (tape removed 10-20) and itself needs `ego_cart20` |
 
 The modules `ego_teleop.hand3d.*`, `ego_collector.hands.mediapipe_tracker` and `ego_teleop.tracking.backends.openvins`
 (imported lazily by `visual_teleop.vision.rgbd_pose`, `visual_teleop.tools.sensor_hub` and
-`visual_teleop.vision.stereo_vio_tracker`) were in this table until the shared package replaced the partial copies; they
-now resolve from `handumi-common` (their optional dependencies, e.g. MediaPipe, `pyorbbecsdk` or the OpenVINS bridge, still
+`visual_teleop.vision.stereo_vio_tracker`) were in this table while `src/` held only the partial copies; they
+now resolve from the full packages in `src/` (their optional dependencies, e.g. MediaPipe, `pyorbbecsdk` or the OpenVINS bridge, still
 apply).
 
-## Moved to the shared package
+## Shared packages
 
-Record of the 34 files (31 of `handumi_collector` / `ego_collector` / `ego_teleop`, 3 of `umi`) that were copied here (source on the original machine, md5 of the source) and are now provided
-by [`handumi-common`](https://github.com/physical-ai-vla/handumi-common). The shared package has these sources byte-identical, with one exception:
-`handumi_collector/config.py` sets `REPO_ROOT = parents[2]` (the repository root in the `src/` layout) instead of the
-`parents[1]` of the flat source tree; this repository only uses `ImuCfg` from it. `ego_teleop/robot/__init__.py` is the
-source file in full, i.e. with the `aero_client` / `coordinator` re-exports that the copy here had removed (the shared
-package contains those modules). The four files where this copy was newer than the cube-stacking copy
-(`ego_collector/camera/orbbec_capture.py`, `ego_teleop/robot/rebot_client.py`, `ego_teleop/robot/safety.py`,
-`ego_teleop/transforms/frames.py`) are the versions below, so the code this repository runs is unchanged; the shared
-package's [`docs/provenance.md`](https://github.com/physical-ai-vla/handumi-common/blob/main/docs/provenance.md) lists every difference that was reconciled.
+`handumi_collector`, `ego_collector`, `ego_teleop` and `umi` are the HandUMI / teleop packages of the cube-stacking
+project ([egocentric-cube-stacking](https://github.com/physical-ai-vla/egocentric-cube-stacking)). Both repositories hold
+them in `src/` as identical copies: every Python file has the same bytes in both (236 files; md5 list in
+[`shared_packages_MANIFEST.md`](shared_packages_MANIFEST.md)). Only the three package `README.md` files differ (each
+repository's own links). Import names are unchanged.
 
-| file (was in this repository) | source (original machine) | md5 of source |
+History:
+
+1. **2026-11-01 (refactor v3).** The import closure of what this repository uses (34 files, table below) was copied here.
+2. **2026-11-01, later.** The copies were removed and the full packages were installed from a separate shared package
+   (a git dependency in `pyproject.toml`) that held them once for both repositories.
+3. **2026-11-02: copied back from the shared package (v0.3.0) because that repository is private.** A public clone could
+   no longer install this repository. The four full packages were copied back from release v0.3.0 into `src/`,
+   byte-identical (239 files: 236 `.py`, 2,009,728 bytes, plus 3 `README.md` rewritten for this repository), and the git
+   dependency was removed. The full packages were chosen over the 34-file closure: the robot launcher
+   (`~/laundry_dit_training/deploy/_garment_repo.py`) puts this `src/` first on `sys.path`, so a partial `ego_teleop`
+   here would hide the modules it does not contain; with the full packages every import resolves to the same code as with
+   the shared package. `pyproject.toml` gained the packages' extras (`collector`, `experimental`, `apriltag`, `viz`,
+   `aero`, from the shared package's `pyproject.toml`; `collector` uses `opencv-python<5` instead of
+   `opencv-contrib-python` so one environment keeps one OpenCV wheel).
+
+Differences between the 34 files copied on 2026-11-01 and the files now in `src/`: `handumi_collector/config.py` sets
+`REPO_ROOT = parents[2]` (the repository root in the `src/` layout) instead of the `parents[1]` of the flat source tree;
+this repository only uses `ImuCfg` from it. `ego_teleop/robot/__init__.py` is the source file in full, i.e. with the
+`aero_client` / `coordinator` re-exports that the partial copy had removed (the full package contains those modules).
+All other files are byte-identical to their source (md5 below). Where this repository's copy had been newer than the
+cube-stacking copy (`ego_collector/camera/orbbec_capture.py`, `ego_teleop/robot/rebot_client.py`,
+`ego_teleop/robot/safety.py`, `ego_teleop/transforms/frames.py`) the shared packages carry this repository's version, so
+the code this repository runs is unchanged.
+
+Tests (fresh Python 3.12 environment, `pip install -e ".[test]"` and `opencv-python-headless<5`, as in CI):
+`python -m pytest -q` gives 348 passed, 103 skipped. Before (same environment, the shared package on the path instead of
+`src/`): 186 passed, 37 skipped. The difference is the import smoke test (`tests/test_imports.py`), which now also
+walks the 228 modules of the shared packages: 162 import, 66 skip for an optional dependency, and two scripts that run
+at import (`ego_collector.__main__`, `handumi_collector.tools.metric_qa`) are listed as not imported. The 34 modules of
+the 2026-11-01 copy give the same result as then (31 import, 3 skip for pandas).
+
+Record of the 34 files of the 2026-11-01 partial copy (source on the original machine, md5 of the source):
+
+| file | source (original machine) | md5 of source |
 |---|---|---|
 | `src/umi/__init__.py` | `~/softfold_infer/rebot/umi/__init__.py` | `d41d8cd98f00b204e9800998ecf8427e` |
 | `src/umi/common/__init__.py` | `~/softfold_infer/rebot/umi/common/__init__.py` | `d41d8cd98f00b204e9800998ecf8427e` |
