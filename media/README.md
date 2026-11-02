@@ -25,6 +25,8 @@ shown at the replay speed (94 s at 0.35×).
 | `world_frame_start_markers.jpg` | the same two panels without the IDs and coordinates | (copy in `report/figures/`) |
 | `orbbec_global_view_demo2_start.jpg` | the fixed Orbbec camera's view at the start of a demo: both grippers on the start markers, shirt laid out, both arms in view | – |
 | `pinching_cg_gold_trajectory_sources.gif` / `.mp4` | three GOLD left-hand pinching demonstrations (11-01), Cg-fused jaw-tip paths coloured by pose source; rendered with `garment_pipeline.fusion_stack.orbbec.v2b.fusion.render_traj_sources` | – |
+| `pinching_robot_20261102_113704.gif` | real-robot pinching run of 2 November, 11:37 (50-epoch checkpoint of the 197-demo DiT fine-tune; one of two runs the operator judged successful; trials not counted): fixed-camera view + both wrist-camera inputs cropped from the deploy UI, one frame per 1.4 s plan cycle, about 2.8× real time | [README §8](../README.md#pinching-10-30--11-02-first-real-robot-grasps-trials-not-counted) |
+| `pinching_robot_20261102_113704.mp4`, `pinching_robot_20261102_114857.mp4` | the full composed deploy-UI videos of the 11:37 and 11:48 runs (fixed camera, top view, wrist inputs, live checks), re-encoded at about 2.8× real time | [README §8](../README.md#pinching-10-30--11-02-first-real-robot-grasps-trials-not-counted) |
 
 Raw recordings are not included. `media/umi_hand_current.jpg` of the former `egocentric-laundry-folding` repository was
 byte-identical to `umi_hands.jpg` and was not kept.
