@@ -2,7 +2,7 @@
 
 Calibration results, robot settings / overrides, regression baselines and HandUMI collector profiles.
 
-**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code, `handumi_collector`, comes from the shared [`robot-learning`](https://github.com/physical-ai-vla/robot-learning) package)
+**Status:** current (`calibration/`, `robot/`, `regression/`); `handumi/` = HandUMI collector profiles (the collector code, `handumi_collector`, comes from the shared [`handumi-common`](https://github.com/physical-ai-vla/handumi-common) package)
 
 ## Inputs → Outputs
 Written by the calibration scripts in `scripts/pose/` and `scripts/retarget/`; read by those scripts,

@@ -6,8 +6,8 @@ workspace). They were copied into `src/` (refactor v3, 2026-11-01) so that every
 Import names are unchanged, so the code that uses them is unchanged.
 
 **Shared package (2026-11-01, later the same day).** The copies of `ego_collector`, `ego_teleop`, `handumi_collector` and
-`umi` were removed from `src/`. These packages now come from the shared package [`robot-learning`](https://github.com/physical-ai-vla/robot-learning) (v0.1.0;
-`pyproject.toml`: `robot-learning @ git+https://github.com/physical-ai-vla/robot-learning@v0.2.1`), which holds their full
+`umi` were removed from `src/`. These packages now come from the shared package [`handumi-common`](https://github.com/physical-ai-vla/handumi-common) (v0.1.0;
+`pyproject.toml`: `handumi-common @ git+https://github.com/physical-ai-vla/handumi-common@v0.3.0`), which holds their full
 versions once for this repository and egocentric-cube-stacking; see [Moved to the shared package](#moved-to-the-shared-package).
 Still vendored here: `contracts`, `xvla_core`, `umi_to_lerobot`.
 
@@ -54,20 +54,20 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 The modules `ego_teleop.hand3d.*`, `ego_collector.hands.mediapipe_tracker` and `ego_teleop.tracking.backends.openvins`
 (imported lazily by `visual_teleop.vision.rgbd_pose`, `visual_teleop.tools.sensor_hub` and
 `visual_teleop.vision.stereo_vio_tracker`) were in this table until the shared package replaced the partial copies; they
-now resolve from `robot-learning` (their optional dependencies, e.g. MediaPipe, `pyorbbecsdk` or the OpenVINS bridge, still
+now resolve from `handumi-common` (their optional dependencies, e.g. MediaPipe, `pyorbbecsdk` or the OpenVINS bridge, still
 apply).
 
 ## Moved to the shared package
 
 Record of the 34 files (31 of `handumi_collector` / `ego_collector` / `ego_teleop`, 3 of `umi`) that were copied here (source on the original machine, md5 of the source) and are now provided
-by [`robot-learning`](https://github.com/physical-ai-vla/robot-learning). The shared package has these sources byte-identical, with one exception:
+by [`handumi-common`](https://github.com/physical-ai-vla/handumi-common). The shared package has these sources byte-identical, with one exception:
 `handumi_collector/config.py` sets `REPO_ROOT = parents[2]` (the repository root in the `src/` layout) instead of the
 `parents[1]` of the flat source tree; this repository only uses `ImuCfg` from it. `ego_teleop/robot/__init__.py` is the
 source file in full, i.e. with the `aero_client` / `coordinator` re-exports that the copy here had removed (the shared
 package contains those modules). The four files where this copy was newer than the cube-stacking copy
 (`ego_collector/camera/orbbec_capture.py`, `ego_teleop/robot/rebot_client.py`, `ego_teleop/robot/safety.py`,
 `ego_teleop/transforms/frames.py`) are the versions below, so the code this repository runs is unchanged; the shared
-package's [`docs/provenance.md`](https://github.com/physical-ai-vla/robot-learning/blob/main/docs/provenance.md) lists every difference that was reconciled.
+package's [`docs/provenance.md`](https://github.com/physical-ai-vla/handumi-common/blob/main/docs/provenance.md) lists every difference that was reconciled.
 
 | file (was in this repository) | source (original machine) | md5 of source |
 |---|---|---|
