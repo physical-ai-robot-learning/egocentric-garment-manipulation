@@ -28,6 +28,9 @@ RUN_AT_IMPORT = {
     "garment_pipeline.fusion_stack.orbbec.v2b.tighten_trim": "script: rewrites idle_trim.csv from sys.argv[1]",
     "garment_pipeline.fusion_stack.orbbec.v2b.track_v31": "reads start_seed_v1.json next to the module and creates out/ at import",
     "garment_pipeline.labels_dataset.idle_trim": "script: reads every recorded take and writes idle_trim.csv",
+    # shared packages (identical copies shared with egocentric-cube-stacking, docs/provenance.md)
+    "ego_collector.__main__": "entry point: runs the ego-collector command line (argparse exits without arguments)",
+    "handumi_collector.tools.metric_qa": "script: reads the CSV given in sys.argv[1]",
 }
 
 # Modules whose dependencies are not part of this repository (listed in docs/provenance.md).

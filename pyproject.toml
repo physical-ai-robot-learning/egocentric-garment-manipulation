@@ -16,9 +16,7 @@ dependencies = [
     "numpy>=1.24",
     "scipy>=1.10",
     "matplotlib>=3.7",
-    "pyyaml",
-    # handumi_collector, ego_collector, ego_teleop (and umi): the shared package of the egocentric projects
-    "handumi-common @ git+https://github.com/physical-ai-vla/handumi-common@v0.3.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +26,29 @@ vision = ["opencv-python<5"]                 # <5: cv2.calibrateRobotWorldHandEy
 pipeline = ["pandas", "opencv-python<5"]    # garment_pipeline fusion / labels / dataset stages (training + deploy need the LeRobot env: torch, lerobot, diffusers)
 robot = ["pin", "pin-pink", "requests"]       # Pink IK + HTTP bridge client (visual_teleop.robot, replay tools)
 jaw = ["torch", "ultralytics", "flask"]       # jaw classifier / jaw-tip keypoint training + labelling UI
+# The shared packages in src/ (handumi_collector, ego_collector, ego_teleop, umi; identical copies shared with
+# egocentric-cube-stacking, docs/provenance.md). Their base needs (numpy, scipy, pyyaml) are the base above; the extras
+# below are theirs. One OpenCV wheel per environment: `collector` uses opencv-python (as `vision`), not opencv-contrib-python.
+# HandUMI raw collector (handumi_collector): recording, devices, UI
+collector = [
+    "opencv-python>=4.10,<5",
+    "pandas>=2.1",
+    "pyarrow>=14",
+    "matplotlib>=3.8",
+    "tqdm>=4.66",
+    "mcap>=1.2",
+    "pyserial>=3.5",
+    "PySide6>=6.7",
+    "feetech-servo-sdk>=1.0.0",
+    "av>=12",
+    "trimesh>=4.0",
+]
+experimental = ["mediapipe>=0.10.14"]         # ego_collector V0 / ego_teleop hand tracking
+apriltag = ["pupil-apriltags>=1.0.4"]
+viz = ["rerun-sdk>=0.20"]
+# Aero hand branch (ego_teleop/hand3d + retarget/aero_backends): dex_retargeting/DexPilot on the Aero URDF.
+# The head RGB-D camera additionally needs `pyorbbecsdk`, installed by hand.
+aero = ["dex-retargeting>=0.5,<1"]
 
 [project.urls]
 Repository = "https://github.com/physical-ai-vla/egocentric-garment-manipulation"
@@ -40,8 +61,8 @@ egogarment-robotize = "egogarment.cli:robotize"
 egogarment-parity-metrics = "egogarment.cli:parity_metrics"
 egogarment-plot-example = "egogarment.cli:plot_example"
 
-# src layout: finds egogarment, garment_pipeline, visual_teleop, rebot_prep and the vendored package contracts
-# (docs/provenance.md). handumi_collector, ego_collector, ego_teleop and umi come from the handumi-common dependency.
+# src layout: finds egogarment, garment_pipeline, visual_teleop, rebot_prep, the vendored package contracts and the
+# shared packages handumi_collector, ego_collector, ego_teleop and umi (docs/provenance.md).
 [tool.setuptools]
 package-dir = { "" = "src" }
 py-modules = ["xvla_core", "umi_to_lerobot"]   # vendored single-file modules (docs/provenance.md)
