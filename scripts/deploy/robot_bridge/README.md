@@ -30,6 +30,20 @@
 > non-zero while closed is fixed with `zero_left_gripper_only.py <port> --go` (the zero lives in the motor; a power cycle does not reset it).
 
 
+## Left-jaw squeeze (added 2026-11-02)
+
+The left jaw developed mechanical slack: its zero is still correct (hand-closed reads about -1°, open about -218°), but a
+command to 0° no longer pinches cloth firmly. Two environment options and one endpoint handle it:
+
+| option / endpoint | effect |
+|---|---|
+| `MIT_GRIP_CLOSE_DEG_LEFT/RIGHT` (default unset = 0) | sets the plugin's jaw close endpoint that many degrees past the zero (the 2026-11-02 runs used 25 on the left) |
+| squeeze ramp (fixed, 30°) | the extra close is blended in only over the last 30° before closed, so open commands keep their physical angle; a squeezed jaw is reported back as 0° (closed), so a stop or READY that re-sends the measured jaw no longer opens it |
+| `POST /jaw_close_test {"arm": "left", "close_deg": N}` | live tuning: sets the endpoint (allowed range -5 to 45) and closes that jaw; not persisted, the launch option wins after a restart |
+
+Re-cabling the arms can swap which USB location belongs to which arm. On 2026-11-02 this was fixed in the launch configuration
+(`LEFT_LOC` / `RIGHT_LOC`, the per-arm USB location IDs), not in code: after any re-cabling, confirm the sides at READY before a policy run.
+
 ## Tools (run with the plugin's Python; close the bridge first if it holds the port)
 
 | tool | use |

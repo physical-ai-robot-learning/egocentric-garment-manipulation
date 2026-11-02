@@ -59,6 +59,7 @@ GRIP_OPEN_DEG, GRIP_CLOSE_DEG, GRIP_CMD_SCALE = -270.0, 0.0, -6.0
 # [2026-10-21 user: the left jaw opens too far; zero is fine (closed reads 0.0)] per-side cap on how far "fully open" goes, as a fraction
 # of the -270 deg range: MIT_GRIP_OPEN_FRAC_LEFT / _RIGHT (default 1.0 = unchanged). Command 45 then means "open as far as allowed".
 GRIP_OPEN_FRAC = {s: float(os.environ.get(f"MIT_GRIP_OPEN_FRAC_{s.upper()}", "1.0")) for s in ("left", "right")}
+GRIP_CLOSE_EXTRA = {s: float(os.environ.get(f"MIT_GRIP_CLOSE_DEG_{s.upper()}", "0")) for s in ("left", "right")}
 ARM_IDX = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12]
 ALL_SIDES = ("left", "right")
 # [2026-10-13 user] MIT_SIDES=left (or right) connects ONE arm; the absent arm is reported as zeros in /observe and ignored in
@@ -72,12 +73,27 @@ S = {"connected": False, "estop": False, "status": "idle", "error": None, "arms"
 glock = threading.Lock()                     # goals / snapshot only; the bus belongs to the control thread
 
 
-def raw_jaw_to_norm(raw_deg):
-    return float(np.clip((raw_deg - GRIP_OPEN_DEG) / (GRIP_CLOSE_DEG - GRIP_OPEN_DEG), 0.0, 1.0))
+GRIP_SQUEEZE_RAMP_DEG = 30.0   # [11-02] the extra close (MIT_GRIP_CLOSE_DEG_<SIDE>) ramps in over the last 30 deg before closed only
 
 
-def norm_to_raw_jaw(norm):
-    return GRIP_OPEN_DEG + float(norm) * (GRIP_CLOSE_DEG - GRIP_OPEN_DEG)
+def raw_jaw_to_norm(raw_deg, side=None):
+    """command raw jaw deg (<= 0) -> the plugin's norm.  [11-02] with a close extra CE the plugin's span is open..+CE; open targets keep
+    their physical angle and only the last GRIP_SQUEEZE_RAMP_DEG ramp into the squeeze (0 deg -> +CE).  Before, the whole range was
+    stretched, so an open command opened ~20 deg less (user: "이젠 그리퍼를 열지를 못해")"""
+    ce = GRIP_CLOSE_EXTRA.get(side, 0.0) if side else 0.0
+    r = min(GRIP_CLOSE_DEG, float(raw_deg))
+    phys = r + ce * max(0.0, 1.0 + r / GRIP_SQUEEZE_RAMP_DEG)
+    return float(np.clip((phys - GRIP_OPEN_DEG) / (GRIP_CLOSE_DEG + ce - GRIP_OPEN_DEG), 0.0, 1.0))
+
+
+def norm_to_raw_jaw(norm, side=None):
+    """[11-02] with MIT_GRIP_CLOSE_DEG_<SIDE> the plugin's norm spans open..+close_deg -> report the physical jaw deg, capped at 0
+    (closed): a squeezed-shut jaw read back as ~-20 deg before, and a stop / READY re-sent that reading -> the jaw opened a bit"""
+    ce = GRIP_CLOSE_EXTRA.get(side, 0.0) if side else 0.0
+    phys = GRIP_OPEN_DEG + float(norm) * (GRIP_CLOSE_DEG + ce - GRIP_OPEN_DEG)
+    if ce > 0 and phys > -GRIP_SQUEEZE_RAMP_DEG:          # inverse of raw_jaw_to_norm's squeeze ramp
+        phys = (phys - ce) / (1.0 + ce / GRIP_SQUEEZE_RAMP_DEG)
+    return min(GRIP_CLOSE_DEG, phys)
 
 
 def leader_vec_to_goals(act):
@@ -88,7 +104,7 @@ def leader_vec_to_goals(act):
         arm_leader_deg = np.degrees(np.asarray(act[o:o + 6], float))
         raw = np.clip(arm_leader_deg * SEEED_DIR, SEEED_LIM[:, 0], SEEED_LIM[:, 1])
         jaw_raw = float(np.clip(float(act[o + 6]) * GRIP_CMD_SCALE * GRIP_OPEN_FRAC[side], GRIP_OPEN_DEG * GRIP_OPEN_FRAC[side], GRIP_CLOSE_DEG))
-        out[side] = (raw, raw_jaw_to_norm(jaw_raw))
+        out[side] = (raw, raw_jaw_to_norm(jaw_raw, side))
     return out
 
 
@@ -171,6 +187,12 @@ def _build_arm(side, port):
         # so the second arm was refused. Its _lockfile_path() is a per-instance seam: one lock per arm.
         rebot.arm_backend._transport._lockfile_path = (lambda _p=f"/tmp/bh_indy7_rebot_{side}.lock": _p)
     rebot.connect()
+    # [2026-11-02 user: "왼쪽 약간 헐거워져서 ... 0보다 조금 더 가게"] per-side jaw close endpoint past 0 deg (positive raw = tighter than
+    # the zero; same direction as a small negative command): MIT_GRIP_CLOSE_DEG_LEFT / _RIGHT, unset = plugin default 0
+    close_deg = os.environ.get(f"MIT_GRIP_CLOSE_DEG_{side.upper()}")
+    if close_deg and not MOCK:
+        rebot.arm_backend.set_gripper_endpoint("close", math.radians(float(close_deg)))
+        print(f"[mit] {side} jaw close endpoint -> {float(close_deg):+.1f} deg", flush=True)
     if os.environ.get("MIT_COLLISION_GUARD", "0") != "1":
         # [2026-10-04 user: "충돌 정지 이런것도 없애줘 오히려 연결이 안되"] the plugin's collision guard keeps running but can no
         # longer LATCH: a would-be trip is only recorded in /status auto_events. Motor-level faults (drive disabled) still happen
@@ -482,7 +504,7 @@ def _joints14_raw():
         arm = S["arms"].get(side)
         if arm is None:                                   # [2026-10-13] arm not connected (MIT_SIDES): zeros keep the 14-vector layout
             out += [0.0] * 7; continue
-        out += [float(x) for x in arm["q"]] + [norm_to_raw_jaw(arm["jaw_norm"])]
+        out += [float(x) for x in arm["q"]] + [norm_to_raw_jaw(arm["jaw_norm"], side)]
     return out
 
 
@@ -588,7 +610,7 @@ def motor_states():
         for side in SIDES:
             a = S["arms"][side]
             d = {n: {"status": 1, "pos_deg": round(float(a["q"][i]), 2)} for i, n in enumerate(MOTORS)}
-            d["gripper"] = {"status": 1, "pos_deg": round(norm_to_raw_jaw(a["jaw_norm"]), 1)}
+            d["gripper"] = {"status": 1, "pos_deg": round(norm_to_raw_jaw(a["jaw_norm"], side), 1)}
             out[f"{side}_arm"] = d
     return jsonify(out)
 
@@ -928,6 +950,28 @@ def gripper_zero():
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:200]}), 500
     return jsonify({"ok": False, "error": "gripper re-zero (stage=set) is not implemented in the MIT bridge -- use robot_service.py (POS_VEL)"}), 501
+
+
+@app.route("/jaw_close_test", methods=["POST"])
+def jaw_close_test():
+    """[2026-11-02 user: "3도씩 더 꽉 닫아볼래?"] {"arm": "left", "close_deg": 19}: set that jaw's close endpoint live and command it
+    fully closed, the arm held at its current goal (a parked arm is re-enabled in place).  Not persisted -- the launch env
+    MIT_GRIP_CLOSE_DEG_<SIDE> decides the value after a restart."""
+    if not S["connected"]:
+        return jsonify({"error": "not connected"}), 400
+    b = request.get_json(force=True) or {}
+    side, deg = b.get("arm"), float(b.get("close_deg", 0.0))
+    if side not in S["arms"] or not -5.0 <= deg <= 45.0:
+        return jsonify({"error": "arm must be left/right, close_deg in [-5, 45]"}), 400
+    arm_ = S["arms"][side]
+    if arm_.get("parked"):
+        _unpark(side)
+    arm_["rebot"].arm_backend.set_gripper_endpoint("close", math.radians(deg))
+    GRIP_CLOSE_EXTRA[side] = deg
+    with glock:
+        arm_["jaw_goal"] = 1.0
+    print(f"[mit] {side} jaw close test -> {deg:+.1f} deg, closing", flush=True)
+    return jsonify({"ok": True, "arm": side, "close_deg": deg})
 
 
 @app.route("/disconnect", methods=["POST"])
