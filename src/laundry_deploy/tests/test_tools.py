@@ -11,8 +11,9 @@ import types
 import cv2
 import numpy as np
 import pytest
-import torch
 from scipy.spatial.transform import Rotation
+
+torch = pytest.importorskip("torch")
 
 from laundry_deploy.core import height_calib as heightCalib
 from laundry_deploy.core.errors import DeployError

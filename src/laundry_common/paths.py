@@ -15,6 +15,13 @@ roots at your copies with these environment variables; no code changes:
     EGO_IK_PYTHON     interpreter with pinocchio / pink used for the IK sub-process of the dataset builder (~/xvla-mac/bin/python)
     TAGRIG_STATE_DIR  working state of the deploy tools: act_tagrig_ui_settings.json, act_tagrig_cams.json (+ .bak_auto),
                       start_pose.json, height_calib.json (+ .prev, height_calib_pending*.json)   (EGO_TRAIN_ROOT/deploy)
+    EGO_GRASP_WORK    grasp label tree: grasp_labels_v1/ (v1 events), grasp_labels_v2/ (gold_v2.csv, events_v2.csv,
+                      gold_overrides_v2.json, ts_cv/, pgrasp_v2_W0.4/)                                       (EGO_TRAIN_ROOT/data)
+    EGO_GRASP_ROUNDS  folders of the grasp gold labeling rounds (grasp_label_v0_30, grasp_gold_r2, grasp_gold_r3,
+                      grasp_gold_r4_loose, grasp_label_v1)                                                   (EGO_DESKTOP)
+    EGO_GRASP_SPLITS  per-take split docs <set>_split.json (flat1103n_*, flat1104_*, flat1105_* S03G) the grasp tools take
+                      the flatten demo keys from; on 11-05 they sat in the build session's scratchpad      (EGO_GRASP_WORK/split_docs)
+    EGO_FFMPEG        ffmpeg binary that encodes the grasp review videos                                    (/opt/homebrew/bin/ffmpeg)
 
 FUSION_WORK is the tree the fusion modules used as "the folder next to the module" before they became a package
 (`_imu_consistency/` on the recording Mac); every sub-path below it is unchanged. TAGRIG_STATE_DIR defaults to the deploy
@@ -60,5 +67,14 @@ DERIVED = TRAIN_ROOT / "data/tag_rig_derived"             # arm-assigned + robot
 REPORTS = TRAIN_ROOT / "reports"                          # idle_trim.csv, QA stats, deploy logs
 IDLE_TRIM_CSV = REPORTS / "idle_trim.csv"
 TAGRIG_STATE_DIR = _rootFromEnv("TAGRIG_STATE_DIR", TRAIN_ROOT / "deploy")
+LEROBOT_ROOT = TRAIN_ROOT / "data/lerobot"                # built LeRobot sets <name>_<split>
+
+# --- grasp labels (laundry_grasp) ----------------------------------------------------------------------------------
+GRASP_WORK = _rootFromEnv("EGO_GRASP_WORK", TRAIN_ROOT / "data")
+GRASP_LABELS_V1 = GRASP_WORK / "grasp_labels_v1"          # grasp_events_v1.csv (v1 jaw segmentation)
+GRASP_LABELS_V2 = GRASP_WORK / "grasp_labels_v2"          # v2 events + gold, overrides, CV, frozen p_grasp generator
+GRASP_ROUNDS = _rootFromEnv("EGO_GRASP_ROUNDS", DESKTOP)
+GRASP_SPLITS = _rootFromEnv("EGO_GRASP_SPLITS", GRASP_WORK / "split_docs")
+FFMPEG = _rootFromEnv("EGO_FFMPEG", Path("/opt/homebrew/bin/ffmpeg"))
 
 UVC_UTIL = COCKPIT_ROOT / "bin/uvc-util"                  # UVC camera-control helper (exposure, device list)

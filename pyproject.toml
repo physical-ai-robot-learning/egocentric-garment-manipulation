@@ -62,6 +62,7 @@ packages = [
     "src/laundry_training",
     "src/laundry_deploy",
     "src/laundry_reference",
+    "src/laundry_grasp",
 ]
 
 [tool.pytest.ini_options]
@@ -74,4 +75,5 @@ testpaths = [
     "src/laundry_training/tests",
     "src/laundry_deploy/tests",
     "src/laundry_reference/tests",
+    "src/laundry_grasp/tests",
 ]

@@ -27,7 +27,8 @@ def _flag(name: str) -> bool:
 
 GRIP_STATE_MASK = _flag("GRIP_STATE_MASK")
 # 11-05 FLAT250-PGRASP: PGRASP=<version> (e.g. grasp-v2-W0.4) -> the GRIP_STATE_MASK jaw slots (state 18, 19) carry the causal
-# L / R p_grasp of <dataset root>/meta/pgrasp_<version>.npy (per global frame index) instead of 0. Needs GRIP_STATE_MASK=1.
+# L / R p_grasp of <dataset root>/meta/pgrasp_<version>.npy (per global frame index; written by python -m laundry_grasp.sidefile)
+# instead of 0. Needs GRIP_STATE_MASK=1.
 PGRASP = os.environ.get("PGRASP", "")
 
 # 11-01 user "이미지 증강 넣어보자": TRAIN-time image augmentation (AUG=1), applied per sample in the dataset (CPU workers, images in

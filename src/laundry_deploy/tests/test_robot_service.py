@@ -265,6 +265,7 @@ def _j(r):
 
 
 def test_routes_not_connected(M):
+    pytest.importorskip("flask")
     tApp = M.B.createApp()
     tC = tApp.test_client()
     tOut = {}
@@ -310,6 +311,7 @@ def _seg(seg):
 
 
 def test_routes_connected(M, monkeypatch):
+    pytest.importorskip("flask")
     B = M.B
     tLog = _connect(M, monkeypatch)
     monkeypatch.setattr(M.C, "NO_CAMERAS", True)

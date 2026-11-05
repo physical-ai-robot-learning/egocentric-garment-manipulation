@@ -49,6 +49,7 @@
 |---|---|---|
 | [`src/laundry_tracking/`](src/laundry_tracking/) | 0, 2–4단계: 카메라 ↔ 로봇과 태그 리그 캘리브레이션(`calib/`), CoTracker + 마커 + IMU fusion(`cotrack/`, `fusion/`), trim, GOLD / SILVER / REJECT 등급 | 로봇 좌표에서 집게 끝 포즈를 어떻게 복원하는지 보고 싶을 때 |
 | [`src/laundry_jaw/`](src/laundry_jaw/) | 2단계: 서보(`from_motor`)나 손목 영상의 집게 끝 keypoint(`aperture`)로 집게 상태 | 집게 라벨이 어디서 오는지 알고 싶을 때 |
+| [`src/laundry_grasp/`](src/laundry_grasp/README.md) | 5b단계: 손목 카메라로 집게 닫힘 이벤트의 잡음 / 빈손 라벨, 고정된 p_grasp 생성기, 프레임별 사이드 파일 | 닫힌 집게가 천을 잡았는지 정책에 어떻게 알려 주는지 보고 싶을 때 |
 | [`src/laundry_dataset/`](src/laundry_dataset/) | 5단계: 라벨 F / A / B와 IK 진단(`robotize_ik`), LeRobot 데이터셋 빌더(`tag_rig_unsplit`), split / 점검 빌드(`builds/`) | 라벨 정의와 데이터셋 계약을 보고 싶을 때 |
 | [`src/laundry_training/`](src/laundry_training/) | 6단계: DiT 학습기, loss mask, augmentation, 집게 head, 스위치(`env_options`) | 학습 레시피를 보고 싶을 때 |
 | [`src/laundry_deploy/`](src/laundry_deploy/) | 7단계: receding-horizon deploy(`core/`, `session/`, `ui/`), 오프라인 평가와 높이 캘리브레이션(`tools/`), reBot MIT 브리지(`robot_service/`) | 정책이 로봇에서 어떻게 돌고 움직이기 전에 무엇을 검사하는지 알고 싶을 때 |
@@ -84,6 +85,7 @@
 | 3 · 점 추적 + 마커 + IMU fusion | `laundry_tracking` | `python -m laundry_tracking.new_take_prep <take>` → `cotrack.make_pack` → `cotrack.run_cotracker`(GPU) → `cotrack.point_solver` → `cotrack.gate` → `python -m laundry_tracking.fusion.trajectory_fusion <pack> Cg --ct solve3` |
 | 4 · trim + 품질 등급 | `laundry_tracking` | `python -m laundry_tracking.tighten_trim <idle_audit.csv> 0.3`, `edge_gap_trim <pack>`, `cotrack.episode_quality <quality.csv> <pack>` |
 | 5 · 라벨 + LeRobot 데이터셋 | `laundry_dataset` | `python -m laundry_dataset.robotize_ik <take> <derived take> --workers 8`, `python -m laundry_dataset.tag_rig_unsplit --label fused --speed 0.3 --out <dataset> --takes <take> …` |
+| 5b · grasp 라벨(p_grasp) | `laundry_grasp` | `python -m laundry_grasp.generate`(고정 `grasp-v2-W0.4`) → `python -m laundry_grasp.sidefile <set> <pgrasp dir>`. 라벨링 페이지 `python -m laundry_grasp.gold_ui <round dir>` |
 | 6 · 학습 | `laundry_training` | `python -m laundry_training.train_dit_tagrig …` (LeRobot 포크, 클러스터 작업 `scripts/laundry/ray_ditddp/run.sh`) |
 | 7 · deploy + 평가 | `laundry_deploy` | `python -m laundry_deploy.ui.server` (UI :8770, DRY 먼저), `python -m laundry_deploy.session.cli run --policy dit --secs 30`, `python -m laundry_deploy.tools.offline_eval --ckpt … --data … --out …` |
 | 재생 트랙 (10-08 → 10-22) | `scripts/laundry/retarget`, `umi_replay_bi`, `scripts/laundry/eval` | `python scripts/laundry/retarget/umi_robotize_bi.py <take> …` → `python -m laundry_shared.visual_teleop.tools.umi_replay_bi <take> … --offline` → `python scripts/laundry/eval/replay_parity.py <take> <run>/right` |
@@ -100,9 +102,9 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # 시뮬레이
 ```
 
 테스트는 모든 패키지의 특성화 테스트(코드 구조를 바꾸기 전에 합성 녹화, 가짜 IK, golden 파일로 기록한 출력), 구조·import smoke
-test, 합성 예제에 대한 참고 구현 회귀 검사입니다. 개발 환경에서 529개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함), `uv sync --group vision --group robot`로
-만든 새 clone에서 527개 통과, 5개 건너뜀(2026-11-05). 기본 설치(`uv sync`만)로는 숫자 검사와 두 자체 시험은 돌지만, 테스트 수집에
-torch가 필요합니다. dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
+test, 합성 예제에 대한 참고 구현 회귀 검사입니다. torch, Pink IK, Flask가 있는 환경에서
+596개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함, 2026-11-05). 기본 설치(`uv sync`나 `pip install -e ".[test]"`만)에서는
+나머지가 모두 돌아서 425개 통과, 41개 건너뜀(torch, Pink, Flask가 필요한 테스트). dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
 
 **이 저장소만으로 재현할 수 없는 것:** 실제 시스템의 숫자는 포함하지 않은 녹화 데이터(원본 take, 학습된 checkpoint)에서
 나왔습니다. reBot 제조사 플러그인과 URDF, 로봇 PC 드라이버, X-VLA 학습 패치는 포함하지 않았습니다. CoTracker와 학습은 GPU,

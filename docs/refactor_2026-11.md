@@ -9,7 +9,7 @@ Two steps:
 1. **Code layout (commit `3fbf473`, 2026-11-05).** The code tree was replaced by the codebase that is maintained in the
    project's company repository, where it was restructured on 2026-11-04 to the "OA" layout and style of the company's
    OpenArm work. The behaviour was kept: every package got characterization tests recorded on the code *before* the
-   change, and they pass unchanged after it (529 passed, 3 skipped in this repository).
+   change, and they pass unchanged after it (529 passed, 3 skipped in this repository on 11-05; 596 / 3 after `laundry_grasp` was added the same day).
 2. **Documentation (2026-11-05).** The README was shortened to a front page; its long parts moved to
    [pipeline.md](pipeline.md), [codebase.md](codebase.md) and [history.md](history.md) (Korean:
    [pipeline_ko.md](pipeline_ko.md), [codebase_ko.md](codebase_ko.md), [history_ko.md](history_ko.md)) with only path
@@ -56,7 +56,7 @@ constants, `main(argv) -> int` entry points, no work at import time, no `sys.pat
 | `src/umi/` (our stand-in for UMI's `pose_util`) | removed (not imported by the laundry code; still in git history and in egocentric-cube-stacking) |
 | `scripts/evaluation/` | `scripts/laundry/eval/` (with `epoch_eval_gateway.sh`) |
 | `scripts/retarget/` | `scripts/laundry/retarget/` |
-| `scripts/grasp/` | `scripts/laundry/grasp/` (research scripts, not yet in OA style) |
+| `scripts/grasp/` | `src/laundry_grasp/` (OA package, 11-05: `events`, `crops`, `model`, `pgrasp`, `generate`, `sidefile`, `gold_ui`, `cv`, `render`, `rule_v0`; every real-data output re-made and compared byte for byte with the original scripts) + `archive/laundry/grasp_exploration/` (exploratory scripts, verbatim) |
 | `scripts/ray_jobs/cotracker/` | `scripts/laundry/ray_cotracker/` |
 | `scripts/ray_jobs/ditddp/` | `scripts/laundry/ray_ditddp/` |
 | `scripts/runpod_convert/` | `scripts/laundry/runpod_convert/` |
@@ -156,7 +156,7 @@ camera map, start pose, height calibration) default to `EGO_TRAIN_ROOT/deploy`; 
 | check | result |
 |---|---|
 | characterization tests per package, recorded on the old code and run unchanged on the new one (synthetic recording world through every tracking CLI; deploy goldens byte-identical; synthetic takes through every dataset / build mode; jaw and reference regression values) | pass |
-| `PYTHONPATH=src python -m pytest -q` | 529 passed, 3 skipped (skips: lerobot not installed, reBot URDF not in the repository) |
+| `PYTHONPATH=src python -m pytest -q` | 596 passed, 3 skipped (skips: lerobot not installed, reBot URDF not in the repository); base install 425 passed, 41 skipped |
 | `python analysis/verify_claims.py` | 227 claims checked, 0 failed |
 | `python scripts/laundry/eval/replay_parity.py --synthetic`, `python -m laundry_tracking.calib.robot_cam_solve --synthetic` | PASS |
 | `--help` of the pipeline entry points (CI step) | parse |

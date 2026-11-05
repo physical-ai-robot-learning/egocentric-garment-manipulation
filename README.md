@@ -54,12 +54,13 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`src/laundry_tracking/`](src/laundry_tracking/) | stages 0, 2–4: camera ↔ robot and tag-rig calibration (`calib/`), CoTracker + marker + IMU fusion (`cotrack/`, `fusion/`), trims, GOLD / SILVER / REJECT grades | you want to see how the jaw-tip pose is recovered in the robot frame |
 | [`src/laundry_jaw/`](src/laundry_jaw/) | stage 2: jaw state from the servo (`from_motor`) or from jaw-tip keypoints in the wrist video (`aperture`) | you want to know where the gripper label comes from |
 | [`src/laundry_dataset/`](src/laundry_dataset/) | stage 5: labels F / A / B and IK diagnostics (`robotize_ik`), LeRobot dataset builder (`tag_rig_unsplit`), split / audit builds (`builds/`) | you want the label definition and the dataset contract |
+| [`src/laundry_grasp/`](src/laundry_grasp/README.md) | stage 5b: held / empty labels of jaw close events from the wrist camera, frozen p_grasp generator, per-frame side files | you want to know how the policy is told whether a closed jaw holds the cloth |
 | [`src/laundry_training/`](src/laundry_training/) | stage 6: DiT trainer, loss masks, augmentation, jaw head, switches (`env_options`) | you want the training recipe |
 | [`src/laundry_deploy/`](src/laundry_deploy/) | stage 7: receding-horizon deploy (`core/`, `session/`, `ui/`), offline eval and height calibration (`tools/`), reBot MIT bridge (`robot_service/`) | you want to know how a policy runs on the robot and what is checked before anything moves |
 | [`src/laundry_shared/`](src/laundry_shared/) | stage 1 and replay: recorder `tag_rig_record`, jaw classifier, reBot IK, replay planner (copies of the HandUMI / teleop modules the pipeline imports) | you want the recorder or the replay planner |
 | [`src/laundry_reference/`](src/laundry_reference/README.md) | small standalone re-implementations of the trajectory stages, runnable on synthetic data | you want the core ideas without the lab set-up |
 | [`src/laundry_common/`](src/laundry_common/paths.py) | `paths`: every machine-specific root, with environment-variable overrides | you want to run the code on other folders |
-| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, conversion), grasp-label scripts | you want the operational entry points |
+| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, conversion) | you want the operational entry points |
 | [`configs/laundry/`](configs/laundry/README.md) | calibration results, robot overrides, jaw models, pinned environments | you want the numbers the code reads |
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke tests and per-package characterization tests | you want to check that the code runs |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | SYNTHETIC demo + simulated replay | you want data to run the reference code on |
@@ -68,7 +69,7 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`report/`](report/README.md) | technical report (English 11-05, Korean 11-02), LaTeX + PDF | you want the whole method and results in one document |
 | [`media/`](media/README.md) | GIFs, videos and photos of the real setup | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI build copy (BrikHMP18's design) + our modified parts, IMU firmware | you want to build the gripper |
-| [`archive/`](archive/README.md) | superseded code: MASt3R / ORB-SLAM3 pose, UMIalign, stereo VIO, red-tape jaw, bare-hand collector | you want to see what was tried and dropped |
+| [`archive/`](archive/README.md) | superseded code: MASt3R / ORB-SLAM3 pose, UMIalign, stereo VIO, red-tape jaw, bare-hand collector, grasp-label exploration | you want to see what was tried and dropped |
 
 **Start reading here:** [`docs/pipeline.md`](docs/pipeline.md) (world frame and stages),
 [`src/laundry_tracking/fusion/trajectory_fusion.py`](src/laundry_tracking/fusion/trajectory_fusion.py) (the pose
@@ -89,6 +90,7 @@ are not in this repository. Options, outputs and the replay track: [docs/pipelin
 | 3 · point tracking + marker + IMU fusion | `laundry_tracking` | `python -m laundry_tracking.new_take_prep <take>` → `cotrack.make_pack` → `cotrack.run_cotracker` (GPU) → `cotrack.point_solver` → `cotrack.gate` → `python -m laundry_tracking.fusion.trajectory_fusion <pack> Cg --ct solve3` |
 | 4 · trims + quality grade | `laundry_tracking` | `python -m laundry_tracking.tighten_trim <idle_audit.csv> 0.3`; `edge_gap_trim <pack>`; `cotrack.episode_quality <quality.csv> <pack>` |
 | 5 · labels + LeRobot dataset | `laundry_dataset` | `python -m laundry_dataset.robotize_ik <take> <derived take> --workers 8`; `python -m laundry_dataset.tag_rig_unsplit --label fused --speed 0.3 --out <dataset> --takes <take> …` |
+| 5b · grasp labels (p_grasp) | `laundry_grasp` | `python -m laundry_grasp.generate` (frozen `grasp-v2-W0.4`) → `python -m laundry_grasp.sidefile <set> <pgrasp dir>`; labeling page `python -m laundry_grasp.gold_ui <round dir>` |
 | 6 · train | `laundry_training` | `python -m laundry_training.train_dit_tagrig …` (LeRobot fork; cluster job `scripts/laundry/ray_ditddp/run.sh`) |
 | 7 · deploy + evaluate | `laundry_deploy` | `python -m laundry_deploy.ui.server` (UI :8770, DRY first); `python -m laundry_deploy.session.cli run --policy dit --secs 30`; `python -m laundry_deploy.tools.offline_eval --ckpt … --data … --out …` |
 | replay track (10-08 → 10-22) | `scripts/laundry/retarget`, `umi_replay_bi`, `scripts/laundry/eval` | `python scripts/laundry/retarget/umi_robotize_bi.py <take> …` → `python -m laundry_shared.visual_teleop.tools.umi_replay_bi <take> … --offline` → `python scripts/laundry/eval/replay_parity.py <take> <run>/right` |
@@ -106,10 +108,9 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # camera ↔ r
 
 The tests are characterization tests of every package (outputs recorded before the code was restructured, on synthetic
 recordings, fake IK and golden files), layout / import smoke tests and the reference regression on the synthetic
-example: 529 pass and 3 skip in the development environment (lerobot not installed, reBot URDF not included); 527 pass
-and 5 skip in a fresh clone with `uv sync --group vision --group robot` (2026-11-05). A base install (`uv sync` alone)
-runs the claims check and the two self-tests, but test collection needs torch. Dependency groups: `vision`, `robot`,
-`train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
+example: 596 pass and 3 skip with torch, Pink IK and Flask installed (lerobot not installed, reBot URDF not included;
+2026-11-05). A base install (`uv sync` or `pip install -e ".[test]"` alone) runs everything else: 425 pass, 41 skip (the
+tests that need torch, Pink or Flask). Dependency groups: `vision`, `robot`, `train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
 
 **Not reproducible from this repository:** the real-system numbers come from recorded data that is not included (raw
 takes, trained checkpoints); the reBot vendor plugin and URDF, the robot-PC driver stack and the X-VLA training patch are

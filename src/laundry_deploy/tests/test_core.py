@@ -7,8 +7,9 @@ import types
 
 import numpy as np
 import pytest
-import torch
 from scipy.spatial.transform import Rotation
+
+torch = pytest.importorskip("torch")
 
 from laundry_shared.contracts.action_contract import T_to_pose9, make_T
 

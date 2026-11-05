@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset=utf-8><title>Grasp gold labels</title><style>
+body{font-family:-apple-system,sans-serif;background:#111;color:#eee;margin:0;padding:16px;text-align:center}
+video{width:min(960px,100%);background:#000} .b{font-size:20px;padding:14px 22px;margin:6px;border:0;border-radius:8px;cursor:pointer}
+#h{background:#3c3} #e{background:#e44;color:#fff} #u{background:#b7b} #s{background:#777;color:#fff} .info{margin:8px;color:#aaa}
+</style></head><body><div class=info id=prog></div><video id=v autoplay loop muted playsinline></video>
+<div><button class=b id=h onclick="lab('held')">1 잡힘</button><button class=b id=e onclick="lab('empty')">2 헛잡기</button>
+<button class=b id=u onclick="lab('__L3__')">3 __T3__</button><button class=b id=s onclick="lab('skip')">0 건너뛰기</button></div>
+<div class=info>주황 띠 = 집게 닫힘(모터). 닫힌 동안 천이 집게 사이에 물려 있었나? &nbsp; ← 이전 &nbsp; 스페이스 = 다시 재생 &nbsp; 속도: <a href=# onclick="sp(0.5)">0.5x</a> <a href=# onclick="sp(1)">1x</a></div>
+<div class=info id=last></div>
+<script>
+let E=[],G={},i=0,rate=1;
+async function init(){const r=await (await fetch('/api/state')).json();E=r.events;G=r.gold;i=E.findIndex(e=>!G[e.id]);if(i<0)i=E.length;show()}
+function sp(x){rate=x;document.getElementById('v').playbackRate=x;return false}
+function show(){const n=Object.keys(G).length;document.getElementById('prog').textContent=`${Math.min(i+1,E.length)} / ${E.length}   (라벨 ${n})`;
+ if(i>=E.length){document.getElementById('v').removeAttribute('src');document.getElementById('prog').textContent+='  — 끝! 고마워요';return}
+ const v=document.getElementById('v');v.src='/clips/'+E[i].id+'.mp4';v.playbackRate=rate;document.getElementById('last').textContent=E[i].id+(G[E[i].id]?'  현재: '+G[E[i].id]:'')}
+async function lab(g){if(i>=E.length)return;const e=E[i];await fetch('/api/label',{method:'POST',body:JSON.stringify({id:e.id,video:e.video,event:e.event,gold:g})});G[e.id]=g;i++;show()}
+document.onkeydown=k=>{if(k.key=='1')lab('held');else if(k.key=='2')lab('empty');else if(k.key=='3')lab('__L3__');else if(k.key=='0')lab('skip');
+ else if(k.key=='ArrowLeft'){i=Math.max(0,i-1);show()}else if(k.key==' '){k.preventDefault();const v=document.getElementById('v');v.currentTime=0;v.play()}};
+init();
+</script></body></html>

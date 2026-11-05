@@ -20,3 +20,4 @@ across the organisation's repositories; [docs/refactor_2026-11.md](../docs/refac
 | `slam/mast3r/` | MASt3R-SLAM restart runner (Ray / GPU) | 10-13 … 10-23 | same; moved here 10-27 |
 | `orbslam3/` | ORB-SLAM3 mono-inertial evaluation (our scripts only, no GPL source) | 10-21 | scale diverged → rejected |
 | [`docs/`](docs/) | documents that described the 11-01 → 11-05 code layout: the refactor-candidates list and the md5 manifest of the full shared-package copies | 11-01 → 11-05 | superseded by the 11-05 layout, kept as records |
+| [`laundry/grasp_exploration/`](laundry/grasp_exploration/README.md) | grasp-label exploration of 11-05: CLIP classifier, labeling-round mining, v1 apply / render, ROI-size CV, confident-error clips (verbatim) | 11-05 | superseded by `src/laundry_grasp/` |

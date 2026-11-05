@@ -20,6 +20,6 @@ The job's working directory is this folder plus a copy of the training code unde
 - `train`: `DS=<set>`, `EPOCHS` (default 100); a checkpoint every epoch, `training_state` kept on the newest two only;
   `RESUME=1` continues from the newest complete checkpoint, `FRESH=1` starts over.
 - `PGRASP=<version>` exports the option for the trainer (and for a config-only resume) and refuses to start without
-  `<set>/meta/pgrasp_<version>.npy` (made by `scripts/laundry/grasp/grasp_pgrasp_sidefile.py`).
+  `<set>/meta/pgrasp_<version>.npy` (made by `python -m laundry_grasp.sidefile`).
 
 Per-epoch offline evaluation on the Mac: `scripts/laundry/eval/epoch_eval_gateway.sh`.

@@ -13,7 +13,12 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
-import torch
+try:
+    import torch
+except ImportError:                  # base install without the vision / train group: these tests are not collected
+    torch = None
+
+collect_ignore_glob = ["test_*.py"] if torch is None else []
 
 GOLDEN_FILE = Path(__file__).with_name("golden_dataset.npz")
 RECORD = os.environ.get("LAUNDRY_CHAR_RECORD") == "1"

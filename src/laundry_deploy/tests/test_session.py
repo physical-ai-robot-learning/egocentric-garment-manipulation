@@ -155,6 +155,7 @@ def test_streamer(monkeypatch):
 
 
 def test_poller_grip_limits_and_ready(monkeypatch, capsys):
+    pytest.importorskip("requests")
     tOut = {}
     tPoll = bridge_mod.RobotPoller(None, Q0, True)
     tOut["fake_read"] = tPoll.read()
