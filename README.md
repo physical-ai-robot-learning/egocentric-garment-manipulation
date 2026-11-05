@@ -95,6 +95,28 @@ are not in this repository. Options, outputs and the replay track: [docs/pipelin
 | 7 · deploy + evaluate | `laundry_deploy` | `python -m laundry_deploy.ui.server` (UI :8770, DRY first); `python -m laundry_deploy.session.cli run --policy dit --secs 30`; `python -m laundry_deploy.tools.offline_eval --ckpt … --data … --out …` |
 | replay track (10-08 → 10-22) | `scripts/laundry/retarget`, `umi_replay_bi`, `scripts/laundry/eval` | `python scripts/laundry/retarget/umi_robotize_bi.py <take> …` → `python -m laundry_shared.visual_teleop.tools.umi_replay_bi <take> … --offline` → `python scripts/laundry/eval/replay_parity.py <take> <run>/right` |
 
+### What stages 3 and replay look like
+
+**Arm trajectories from point tracking (CoTracker).** One GOLD flattening demonstration (26 October). Each jaw-tip path is
+coloured by where its pose came from: green = AprilTag markers + CoTracker points + depth, blue = CoTracker points alone
+while the marker is hidden, orange = IMU rotation inside a CoTracker gap. Left: fixed camera; right: the same paths in
+the robot base frame.
+
+![Jaw-tip paths from markers, CoTracker and IMU](media/flatten_gold_trajectory_sources.gif)
+
+**Arm trajectories with MASt3R-SLAM as the gap filler (replay era).** Both hands' jaw-tip paths in one world frame:
+green = AprilTag markers + depth, blue = MASt3R-SLAM from the wrist fisheye camera (gated filler), orange = IMU rotation +
+interpolation. Left: fixed camera; right: 3-D paths.
+
+![Jaw-tip paths from markers, MASt3R-SLAM and IMU](media/trajectory_reconstruction_large.gif)
+
+**Robot replay of a human demonstration.** The converted two-arm trajectory of a human demonstration (left) executed on
+the reBot arms (right), run 200335, same fixed camera, one clock, shown at robot speed (0.35×). The robot follows the
+demonstrated motion and its jaws catch the shirt edge and drag it; folding itself was not achieved by replay
+(details: [docs/history.md](docs/history.md#overview-as-of-2-november)).
+
+![Human demonstration vs. robot replay, robot speed](media/replay3_200335_robot_time_94s_large.gif)
+
 ## Install and test
 
 ```bash

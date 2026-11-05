@@ -90,6 +90,26 @@
 | 7 · deploy + 평가 | `laundry_deploy` | `python -m laundry_deploy.ui.server` (UI :8770, DRY 먼저), `python -m laundry_deploy.session.cli run --policy dit --secs 30`, `python -m laundry_deploy.tools.offline_eval --ckpt … --data … --out …` |
 | 재생 트랙 (10-08 → 10-22) | `scripts/laundry/retarget`, `umi_replay_bi`, `scripts/laundry/eval` | `python scripts/laundry/retarget/umi_robotize_bi.py <take> …` → `python -m laundry_shared.visual_teleop.tools.umi_replay_bi <take> … --offline` → `python scripts/laundry/eval/replay_parity.py <take> <run>/right` |
 
+### 3단계와 리플레이 결과 보기
+
+**점 추적(CoTracker)으로 얻은 팔 궤적.** GOLD 펴기 시연 하나(10월 26일). 집게 끝 궤적은 자세를 어디서 얻었는지에
+따라 색이 다르다: 초록 = AprilTag 마커 + CoTracker 점 + 깊이, 파랑 = 마커가 가려진 동안 CoTracker 점만, 주황 =
+CoTracker 공백 구간의 IMU 회전. 왼쪽은 고정 카메라, 오른쪽은 같은 궤적을 로봇 base 좌표계에 그린 것이다.
+
+![마커, CoTracker, IMU로 얻은 집게 끝 궤적](media/flatten_gold_trajectory_sources.gif)
+
+**MASt3R-SLAM으로 공백을 채운 팔 궤적 (리플레이 시기).** 두 손의 집게 끝 궤적을 하나의 world 좌표계에 그렸다:
+초록 = AprilTag 마커 + 깊이, 파랑 = 손목 어안 카메라의 MASt3R-SLAM(게이트를 통과한 구간만 채움), 주황 = IMU 회전 +
+보간. 왼쪽은 고정 카메라, 오른쪽은 3D 궤적.
+
+![마커, MASt3R-SLAM, IMU로 얻은 집게 끝 궤적](media/trajectory_reconstruction_large.gif)
+
+**사람 시연의 로봇 리플레이.** 사람 시연(왼쪽)을 변환한 양팔 궤적을 reBot 팔에서 실행한 장면(오른쪽), run 200335,
+같은 고정 카메라, 하나의 시계, 로봇 속도(0.35배)로 재생. 로봇이 시연 동작을 따라가고 집게가 셔츠 가장자리를 잡아
+끈다. 리플레이만으로 접기까지 되지는 않았다([이력](docs/history_ko.md#개요-11월-2일-기준)).
+
+![사람 시연 대 로봇 리플레이, 로봇 속도](media/replay3_200335_robot_time_94s_large.gif)
+
 ## 설치와 테스트
 
 ```bash
