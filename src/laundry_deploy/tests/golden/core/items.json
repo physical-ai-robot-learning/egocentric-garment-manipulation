@@ -1,0 +1,121 @@
+{
+ "one": {
+  "observation.images.global": [
+   [
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   123982.0064
+  ],
+  "observation.images.left_wrist": [
+   [
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   123986.610327
+  ],
+  "observation.images.right_wrist": [
+   [
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   123942.05738
+  ],
+  "observation.state": [
+   [
+    30
+   ],
+   "torch.float32",
+   7.766614
+  ],
+  "task": "laundry folding"
+ },
+ "two_none": {
+  "observation.images.global": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   247964.0128
+  ],
+  "observation.images.left_wrist": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   247973.220653
+  ],
+  "observation.images.right_wrist": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   247884.11476
+  ],
+  "observation.state": [
+   [
+    2,
+    30
+   ],
+   "torch.float32",
+   15.533228
+  ],
+  "task": "laundry folding"
+ },
+ "two_prev": {
+  "observation.images.global": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   247895.255946
+  ],
+  "observation.images.left_wrist": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   248015.675553
+  ],
+  "observation.images.right_wrist": [
+   [
+    2,
+    3,
+    216,
+    384
+   ],
+   "torch.float32",
+   247766.761825
+  ],
+  "observation.state": [
+   [
+    2,
+    30
+   ],
+   "torch.float32",
+   4.194868
+  ],
+  "task": "laundry folding"
+ }
+}

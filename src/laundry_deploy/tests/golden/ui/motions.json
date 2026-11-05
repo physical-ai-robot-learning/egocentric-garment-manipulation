@@ -1,0 +1,150 @@
+{
+ "bridges": [
+  [
+   [
+    "http://bridge",
+    true,
+    0.5
+   ],
+   [
+    [
+     "close"
+    ]
+   ]
+  ],
+  [
+   [
+    "http://bridge",
+    true,
+    0.5
+   ],
+   [
+    [
+     "close"
+    ],
+    [
+     "close"
+    ]
+   ]
+  ],
+  [
+   [
+    "http://bridge",
+    true,
+    0.5
+   ],
+   [
+    [
+     "status"
+    ],
+    [
+     "POST",
+     "/clear_estop",
+     null
+    ],
+    [
+     "POST",
+     "/rest",
+     null
+    ],
+    [
+     "close"
+    ]
+   ]
+  ]
+ ],
+ "park": [
+  [
+   true,
+   "휴식(park) 시작"
+  ],
+  "휴식(park) 끝"
+ ],
+ "park_refused": [
+  [
+   true,
+   "휴식(park) 시작"
+  ],
+  "휴식(park) 중단: /rest 거부: {'ok': False, 'error': 'estop'}",
+  [
+   [
+    "status"
+   ],
+   [
+    "POST",
+    "/rest",
+    null
+   ],
+   [
+    "close"
+   ]
+  ]
+ ],
+ "ready": [
+  [
+   true,
+   "READY로 이동 시작"
+  ],
+  "READY로 이동 끝",
+  null,
+  "idle"
+ ],
+ "ready_bridges": [
+  [
+   "http://bridge",
+   true,
+   0.5
+  ]
+ ],
+ "refuse_busy": [
+  false,
+  "실행 중에는 불가"
+ ],
+ "refuse_dry": [
+  false,
+  "이 UI 는 --dry-only 로 실행됨 (로봇 이동 비활성)"
+ ],
+ "start": [
+  [
+   true,
+   "시작 자세로 이동 시작"
+  ],
+  "시작 자세로 이동 끝"
+ ],
+ "start_args": [
+  {
+   "assume_ready": false,
+   "deg_s": 10.0,
+   "episode": -1,
+   "go": true,
+   "height_calib": true,
+   "label": "",
+   "root": "flatS05C_train149",
+   "start_lift": 0.0
+  },
+  {
+   "assume_ready": false,
+   "deg_s": 10.0,
+   "episode": -1,
+   "go": true,
+   "height_calib": false,
+   "label": "",
+   "root": "flat300_A_gold281_train",
+   "start_lift": 0.0
+  }
+ ],
+ "start_args2": {
+  "assume_ready": false,
+  "deg_s": 10.0,
+  "episode": -1,
+  "go": true,
+  "height_calib": false,
+  "label": "",
+  "root": "flat300_A_gold281_train",
+  "start_lift": 0.0
+ },
+ "start_default": [
+  true,
+  "시작 자세로 이동 시작"
+ ]
+}

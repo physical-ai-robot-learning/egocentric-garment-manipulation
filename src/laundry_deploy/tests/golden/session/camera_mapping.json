@@ -1,0 +1,67 @@
+{
+ "cam_key": "0x0c45:0x6366 0x01100000 1.00 Arducam 1080P Low Light\n0x0c45:0x6366 0x01200000 1.00 FisheyeCamLeft",
+ "recorder": [
+  "333 python umi_jaw record --hand left"
+ ],
+ "remap": {
+  "cam_key": "0x0c45:0x6366 0x01100000 1.00 Arducam 1080P Low Light\n0x0c45:0x6366 0x01200000 1.00 FisheyeCamLeft",
+  "left": {
+   "index": 3,
+   "location": "0x01100000",
+   "name": "Arducam 1080P Low Light"
+  },
+  "probed": "2026-11-04 12:00:00 (auto by name)",
+  "right": {
+   "index": 1,
+   "location": "0x01200000",
+   "name": "FisheyeCamLeft"
+  },
+  "wave_test": {
+   "confirmed": true,
+   "left": "0x01100000",
+   "right": "0x01200000"
+  }
+ },
+ "remap_bak": {
+  "cam_key": "old",
+  "left": {
+   "index": 0,
+   "location": "0x0aaaaaaa",
+   "name": "Arducam 1080P Low Light"
+  },
+  "right": {
+   "index": 2,
+   "location": "0x01200000",
+   "name": "FisheyeCamLeft"
+  },
+  "wave_test": {
+   "confirmed": true
+  }
+ },
+ "remap_file": {
+  "cam_key": "0x0c45:0x6366 0x01100000 1.00 Arducam 1080P Low Light\n0x0c45:0x6366 0x01200000 1.00 FisheyeCamLeft",
+  "left": {
+   "index": 3,
+   "location": "0x01100000",
+   "name": "Arducam 1080P Low Light"
+  },
+  "probed": "2026-11-04 12:00:00 (auto by name)",
+  "right": {
+   "index": 1,
+   "location": "0x01200000",
+   "name": "FisheyeCamLeft"
+  },
+  "wave_test": {
+   "confirmed": true,
+   "left": "0x01100000",
+   "right": "0x01200000"
+  }
+ },
+ "remap_missing": "left 손목 카메라 'nope' 가 USB 목록에 없음 -- 연결 확인\nIndex  Vend:Prod   LocationID UVC  Name\n0      0x0c45:0x6366 0x01100000 1.00 Arducam 1080P Low Light\n1      0x0c45:0x6366 0x01200000 1.00 FisheyeCamLeft\n2      0x046d:0x085c 0x02100000 1.00 C922 Pro Stream Webcam",
+ "remap_noop": true,
+ "stdout": "[배포] 손목 카메라 자동 매핑: left = 'Arducam 1080P Low Light' -> USB 0x01100000, OpenCV index 3 (전: 0x0aaaaaaa, index 0)\n[배포] 손목 카메라 자동 매핑: right = 'FisheyeCamLeft' -> USB 0x01200000, OpenCV index 1 (전: 0x01200000, index 2)\n경고: 로봇 left 손목 카메라 USB 0x01100000 = UMI 녹화기 umi_jaw LOCATIONS['left'] = 0x0110 와 같은 포트 -- 이대로 UMI 녹화(tag_rig_record --wrist / umi_jaw record --hand left)를 하면 로봇 카메라가 열림. UMI 녹화 전에 UMI 카메라로 바꿔 꽂으세요\n",
+ "umi_none": [],
+ "umi_warn": [
+  "경고: 로봇 left 손목 카메라 USB 0x01100000 = UMI 녹화기 umi_jaw LOCATIONS['left'] = 0x0110 와 같은 포트 -- 이대로 UMI 녹화(tag_rig_record --wrist / umi_jaw record --hand left)를 하면 로봇 카메라가 열림. UMI 녹화 전에 UMI 카메라로 바꿔 꽂으세요"
+ ]
+}

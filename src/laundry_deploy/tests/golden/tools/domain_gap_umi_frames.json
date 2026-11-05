@@ -1,0 +1,30 @@
+{
+ "start1": {
+  "left": [],
+  "right": []
+ },
+ "start3": {
+  "left": [
+   "20261026_100000/wrist_left/wrist_00022.jpg",
+   "20261026_100000/wrist_left/wrist_00142.jpg",
+   "20261027_110000/wrist_left/wrist_00022.jpg",
+   "20261027_110000/wrist_left/wrist_00142.jpg"
+  ],
+  "right": [
+   "20261026_100000/wrist/wrist_00022.jpg",
+   "20261026_100000/wrist/wrist_00142.jpg",
+   "20261027_110000/wrist/wrist_00022.jpg",
+   "20261027_110000/wrist/wrist_00142.jpg"
+  ]
+ },
+ "whole2": {
+  "left": [
+   "20261026_100000/wrist_left/wrist_00158.jpg",
+   "20261027_110000/wrist_left/wrist_00158.jpg"
+  ],
+  "right": [
+   "20261026_100000/wrist/wrist_00158.jpg",
+   "20261027_110000/wrist/wrist_00158.jpg"
+  ]
+ }
+}

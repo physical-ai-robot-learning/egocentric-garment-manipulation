@@ -1,0 +1,33 @@
+{
+ "args": {
+  "ik_step": 7.5,
+  "jaw_half": 0.02,
+  "level_max": 0.0,
+  "ori_cost": 0.1,
+  "roll_relax": 1.5,
+  "roll_thr": 115.0,
+  "table_z": 0.003,
+  "tip_clear": 0.005,
+  "tip_clear_left_extra": 0.005
+ },
+ "args2": {
+  "ik_step": 7.5,
+  "jaw_half": 0.02,
+  "level_max": 0.0,
+  "ori_cost": 0.1,
+  "roll_relax": 1.5,
+  "roll_thr": 90.0,
+  "table_z": 0.003,
+  "tip_clear": -0.01,
+  "tip_clear_left_extra": 0.005
+ },
+ "shared": true,
+ "side_names": [
+  "left",
+  "right"
+ ],
+ "sides": [
+  "left",
+  "right"
+ ]
+}

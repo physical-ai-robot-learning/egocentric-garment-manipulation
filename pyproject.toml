@@ -1,79 +1,77 @@
-[build-system]
-requires = ["setuptools>=64"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "egocentric-garment-manipulation"
-version = "0.2.0"
-description = "Hand-worn-gripper (UMI-style) T-shirt demonstrations -> robot-feasible trajectories and training labels for two reBot B601-DM arms"
+version = "0.3.0"
+description = "Hand-worn-gripper (HandUMI) T-shirt demonstrations -> fixed-camera pose fusion -> reBot training labels, DiT training and two-arm deployment"
 readme = "README.md"
 license = { text = "PolyForm-Noncommercial-1.0.0" }
 authors = [{ name = "Jeong Hwan Lee" }]
-requires-python = ">=3.10"
-# Base = what the importable packages need at import time (egogarment, visual_teleop, rebot_prep, most of garment_pipeline).
-# Hardware / GPU pieces are extras.
+requires-python = ">=3.12"
+# Base = what the laundry packages need at import time. Machine- and GPU-specific pieces are dependency groups below.
 dependencies = [
-    "numpy>=1.24",
-    "scipy>=1.10",
-    "matplotlib>=3.7",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pandas>=2.1",
     "pyyaml>=6.0",
+    "matplotlib>=3.8",
+    # <5: cv2.calibrateRobotWorldHandEye is gone in 5.0 (laundry_tracking.calib). One OpenCV distribution per environment.
+    "opencv-python>=4.10,<5",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
-dev = ["pytest>=7"]
-vision = ["opencv-python<5"]                 # <5: cv2.calibrateRobotWorldHandEye is gone in 5.0; AprilTag / ArUco pose, wrist + Orbbec video (rebot_prep.parity, scripts/pose)
-pipeline = ["pandas", "opencv-python<5"]    # garment_pipeline fusion / labels / dataset stages (training + deploy need the LeRobot env: torch, lerobot, diffusers)
-robot = ["pin", "pin-pink", "requests"]       # Pink IK + HTTP bridge client (visual_teleop.robot, replay tools)
-jaw = ["torch", "ultralytics", "flask"]       # jaw classifier / jaw-tip keypoint training + labelling UI
-# The shared packages in src/ (handumi_collector, ego_collector, ego_teleop, umi; identical copies shared with
-# egocentric-cube-stacking, docs/provenance.md). Their base needs (numpy, scipy, pyyaml) are the base above; the extras
-# below are theirs. One OpenCV wheel per environment: `collector` uses opencv-python (as `vision`), not opencv-contrib-python.
-# HandUMI raw collector (handumi_collector): recording, devices, UI
-collector = [
-    "opencv-python>=4.10,<5",
-    "pandas>=2.1",
-    "pyarrow>=14",
-    "matplotlib>=3.8",
-    "tqdm>=4.66",
-    "mcap>=1.2",
-    "pyserial>=3.5",
-    "PySide6>=6.7",
-    "feetech-servo-sdk>=1.0.0",
-    "av>=12",
-    "trimesh>=4.0",
-]
-experimental = ["mediapipe>=0.10.14"]         # ego_collector V0 / ego_teleop hand tracking
-apriltag = ["pupil-apriltags>=1.0.4"]
-viz = ["rerun-sdk>=0.20"]
-# Aero hand branch (ego_teleop/hand3d + retarget/aero_backends): dex_retargeting/DexPilot on the Aero URDF.
-# The head RGB-D camera additionally needs `pyorbbecsdk`, installed by hand.
-aero = ["dex-retargeting>=0.5,<1"]
+test = ["pytest>=8.0"]          # pip users: pip install -e ".[test]" (uv users: the dev group)
 
 [project.urls]
 Repository = "https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation"
 
-# Console commands for the egogarment modules that have a command-line interface (main()).
 [project.scripts]
-egogarment-gap-fill = "egogarment.cli:gap_fill"
-egogarment-relative-se3 = "egogarment.cli:relative_se3"
-egogarment-robotize = "egogarment.cli:robotize"
-egogarment-parity-metrics = "egogarment.cli:parity_metrics"
-egogarment-plot-example = "egogarment.cli:plot_example"
+laundry-reference-gap-fill = "laundry_reference.cli:gap_fill"
+laundry-reference-relative-se3 = "laundry_reference.cli:relative_se3"
+laundry-reference-robotize = "laundry_reference.cli:robotize"
+laundry-reference-parity-metrics = "laundry_reference.cli:parity_metrics"
+laundry-reference-plot-example = "laundry_reference.cli:plot_example"
 
-# src layout: finds egogarment, garment_pipeline, visual_teleop, rebot_prep, the vendored package contracts and the
-# shared packages handumi_collector, ego_collector, ego_teleop and umi (docs/provenance.md).
-[tool.setuptools]
-package-dir = { "" = "src" }
-py-modules = ["xvla_core", "umi_to_lerobot"]   # vendored single-file modules (docs/provenance.md)
+[dependency-groups]
+# laundry_tracking CoTracker stage (CUDA node) and laundry_jaw models
+vision = ["torch>=2.4", "torchvision>=0.19", "ultralytics>=8.3"]
+# IK labels (laundry_dataset.robotize_ik, sub-process EGO_IK_PYTHON) and the deploy / robot bridge
+robot = ["pin>=3.4", "pin-pink>=3.1", "requests>=2.31", "flask>=3.0"]
+# laundry_training: the DiT / ACT trainer runs on the LeRobot fork of the training nodes (lerobot multi-task DiT, diffusers,
+# accelerate); that fork is installed by hand there and is not on PyPI in the version used (configs/laundry/envs/requirements-train.txt).
+train = ["torch>=2.4", "torchvision>=0.19", "diffusers>=0.30", "accelerate>=0.33", "safetensors>=0.4"]
+# laundry_shared collector / recorder modules (tag_rig_record, umi_jaw capture, mcap readers)
+collector = ["pyserial>=3.5", "feetech-servo-sdk>=1.0.0", "av>=12", "mcap>=1.2", "tqdm>=4.66", "pupil-apriltags>=1.0.4"]
+dev = ["pytest>=8.0"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv]
+default-groups = ["dev"]
 
-[tool.setuptools.package-data]
-visual_teleop = ["config/*.yaml", "config/*.jsonl", "assets/*.png"]
-garment_pipeline = ["eval_deploy/tagrig_ui/page.html"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+dev-mode-dirs = ["src"]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/laundry_common",
+    "src/laundry_shared",
+    "src/laundry_jaw",
+    "src/laundry_tracking",
+    "src/laundry_dataset",
+    "src/laundry_training",
+    "src/laundry_deploy",
+    "src/laundry_reference",
+]
 
 [tool.pytest.ini_options]
-# Only tests/ is collected. Files named *_test.py under src/ and legacy/ are hardware tools, not pytest tests.
-testpaths = ["tests"]
+# Files named *_test.py under src/laundry_shared and archive/ are hardware tools, not pytest tests.
+testpaths = [
+    "tests/laundry",
+    "src/laundry_jaw/tests",
+    "src/laundry_tracking/tests",
+    "src/laundry_dataset/tests",
+    "src/laundry_training/tests",
+    "src/laundry_deploy/tests",
+    "src/laundry_reference/tests",
+]

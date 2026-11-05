@@ -83,7 +83,7 @@ The units in use differ from the build above as follows. Details and numbers: `d
   and the servo cover/adapter are not fitted. Collector hardware profile: `handumi_rgbd_noservo`.~~
 - **Jaw servos back (10-29) as encoders.** Each unit again carries its STS3215 (id 1, Waveshare adapter), with **torque
   off** so it never drives the jaw while a person holds it; it is only read (~100 Hz) by the recorder
-  (`src/visual_teleop/tools/tag_rig_record.py`) and converted to jaw labels by `scripts/pose/jaw_from_motor.py`.
+  (`src/laundry_shared/visual_teleop/tools/tag_rig_record.py`) and converted to jaw labels by `python -m laundry_jaw.from_motor`.
   The right unit's stiff linkage reaches only ~0.65–0.7 of the left one's normalised opening; re-plugging a servo shifts
   its whole reading (handled by per-take re-centring).
 - **Red/orange tape on both jaw tips** (first a small red X on white tape, from 10-13 15:xx solid tape). The gripper

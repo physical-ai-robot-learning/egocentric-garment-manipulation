@@ -1,0 +1,46 @@
+{
+ "err_False": {
+  "last": null,
+  "mode": "idle",
+  "msg": "오류: ValueError: x"
+ },
+ "err_True": {
+  "last": null,
+  "mode": "hold",
+  "msg": "오류: ValueError: x"
+ },
+ "exit_False": {
+  "last": null,
+  "mode": "idle",
+  "msg": "시작 안 됨: 로봇 상태 E-STOP"
+ },
+ "exit_True": {
+  "last": null,
+  "mode": "hold",
+  "msg": "시작 안 됨: 로봇 상태 E-STOP"
+ },
+ "none_False": {
+  "last": {},
+  "mode": "idle",
+  "msg": "끝: None"
+ },
+ "none_True": {
+  "last": {},
+  "mode": "hold",
+  "msg": "끝: None -- 로봇은 현재 자세 유지 (HOLD). 다음 동작은 버튼으로만"
+ },
+ "ok_False": {
+  "last": {
+   "stop_reason": "max time 60s"
+  },
+  "mode": "idle",
+  "msg": "끝: max time 60s"
+ },
+ "ok_True": {
+  "last": {
+   "stop_reason": "max time 60s"
+  },
+  "mode": "hold",
+  "msg": "끝: max time 60s -- 로봇은 현재 자세 유지 (HOLD). 다음 동작은 버튼으로만"
+ }
+}

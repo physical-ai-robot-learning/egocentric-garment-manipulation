@@ -1,0 +1,121 @@
+{
+ "from_anchors": {
+  "anchors": "<REPO>/configs/laundry/calibration/start_anchors_v001.json",
+  "frames": "0:10:2",
+  "meta": "",
+  "out": "",
+  "take": "take"
+ },
+ "pivot": {
+  "rig": "r.json",
+  "tag_size": {
+   "kind": "f",
+   "value": 0.048
+  },
+  "take": "take",
+  "write": false
+ },
+ "pivot_joint": {
+  "rig": "<REPO>/configs/laundry/calibration/umi_tag_rig_v002.json",
+  "tag_size": {
+   "kind": "f",
+   "value": 0.048
+  },
+  "takes": [
+   "t1",
+   "t2"
+  ],
+  "write": false
+ },
+ "rig_solve": {
+  "tag_size": {
+   "kind": "f",
+   "value": 0.048
+  },
+  "take": "take"
+ },
+ "robot_cam_solve": {
+  "check": false,
+  "depth_sigma_mm": {
+   "kind": "f",
+   "value": 6.0
+  },
+  "fit_size": false,
+  "folds": {
+   "kind": "i",
+   "value": 5
+  },
+  "min_frames": {
+   "kind": "i",
+   "value": 5
+  },
+  "no_depth": false,
+  "out": "<REPO>/configs/laundry/calibration/robot_cam_v001.json",
+  "run": "run",
+  "synthetic": false,
+  "tag_link": {
+   "kind": "i",
+   "value": 6
+  },
+  "tag_size": {
+   "kind": "f",
+   "value": 0.05
+  },
+  "tags": {
+   "hash": "9eee56a0de001e20",
+   "kind": "i",
+   "shape": [
+    1
+   ]
+  },
+  "take": "take",
+  "write": false
+ },
+ "side_check": {
+  "cams": [],
+  "imus": [],
+  "motors": [],
+  "secs": {
+   "kind": "f",
+   "value": 40.0
+  }
+ },
+ "tcp_traj": {
+  "depth": false,
+  "hand": "오른손",
+  "imu_fill": false,
+  "rig": "<REPO>/configs/laundry/calibration/umi_tag_rig_v002.json",
+  "robot_cal": "<REPO>/configs/laundry/calibration/robot_cam_v001.json",
+  "rot": "imu",
+  "tag_size": {
+   "kind": "f",
+   "value": 0.048
+  },
+  "take": "take"
+ },
+ "touch_tcp": {
+  "board": "3x4@300",
+  "board_tag": {
+   "kind": "f",
+   "value": 0.05
+  },
+  "depth": false,
+  "fused": false,
+  "gate_jitter_mm": {
+   "kind": "f",
+   "value": 15.0
+  },
+  "gate_tags": {
+   "kind": "f",
+   "value": 1.5
+  },
+  "rig": "<REPO>/configs/laundry/calibration/umi_tag_rig_v002.json",
+  "rot": "imu",
+  "tag_size": {
+   "kind": "f",
+   "value": 0.048
+  },
+  "take": "take",
+  "write": false
+ }
+}

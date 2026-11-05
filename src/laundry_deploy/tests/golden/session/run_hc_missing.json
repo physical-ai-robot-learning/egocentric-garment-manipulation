@@ -1,0 +1,1 @@
+"deploy/height_calib.json 없음 -- 먼저 `python deploy/height_calib.py measure`"

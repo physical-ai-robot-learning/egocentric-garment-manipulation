@@ -1,0 +1,21 @@
+{
+ "global_idle": "864d5be87c208671b348268ccf5a257454d014d3ab235ce40ac40ce3a45a4377",
+ "global_none": null,
+ "global_plan": "cd36b410d3eaeaccc36989966cb82c9fa30a2dc8075cf8c89bdb83bdeb9a82a4",
+ "tcp": {
+  "left": [
+   0.367,
+   0.177,
+   0.109
+  ],
+  "right": [
+   0.375,
+   -0.267,
+   0.206
+  ]
+ },
+ "tcp_none": null,
+ "wrist": "33059e1cfafbe3cef9e36c67d9f29265ae7f0fa22ab1179f516ae9b40b2ccff1",
+ "wrist_none": null,
+ "wrist_plain": "8483fb652703fa00253e325ba39212a9e555c869801ac30c8353a5da84a7bb69"
+}

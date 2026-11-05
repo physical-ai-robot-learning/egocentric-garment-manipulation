@@ -1,0 +1,269 @@
+{
+ "clear_busy": [
+  false,
+  "실행/이동 중에는 해제할 수 없습니다"
+ ],
+ "clear_collision_fail": {
+  "log": [
+   [
+    "POST",
+    "/clear_estop",
+    null
+   ],
+   [
+    "POST",
+    "/clear_collision",
+    null
+   ]
+  ],
+  "mode": "hold",
+  "res": [
+   false,
+   "E-STOP 해제 실패: torque | clear_collision: {'left': 'ERR x'} -- 팔 토크/모터 커넥터 확인"
+  ]
+ },
+ "clear_collision_ok": {
+  "log": [
+   [
+    "POST",
+    "/clear_estop",
+    null
+   ],
+   [
+    "POST",
+    "/clear_collision",
+    null
+   ]
+  ],
+  "mode": "idle",
+  "res": [
+   true,
+   "E-STOP 해제됨 (팔은 현재 자세 유지)"
+  ]
+ },
+ "clear_error_field": {
+  "log": [
+   [
+    "POST",
+    "/clear_estop",
+    null
+   ],
+   [
+    "POST",
+    "/clear_collision",
+    null
+   ]
+  ],
+  "mode": "idle",
+  "res": [
+   true,
+   "E-STOP 해제됨 (팔은 현재 자세 유지)"
+  ]
+ },
+ "clear_ok": {
+  "log": [
+   [
+    "POST",
+    "/clear_estop",
+    null
+   ]
+  ],
+  "mode": "idle",
+  "res": [
+   true,
+   "E-STOP 해제됨 (팔은 현재 자세 유지)"
+  ]
+ },
+ "clear_raise": [
+  false,
+  "E-STOP 해제 실패: ConnectionError: down"
+ ],
+ "estop_False_dry": {
+  "log": [
+   [
+    "estop"
+   ]
+  ],
+  "mode": "dry",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_False_go": {
+  "log": [
+   [
+    "estop"
+   ]
+  ],
+  "mode": "hold",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_False_hold": {
+  "log": [
+   [
+    "estop"
+   ]
+  ],
+  "mode": "hold",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_False_idle": {
+  "log": [
+   [
+    "estop"
+   ]
+  ],
+  "mode": "idle",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_True_dry": {
+  "log": [],
+  "mode": "dry",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_True_go": {
+  "log": [],
+  "mode": "hold",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_True_hold": {
+  "log": [],
+  "mode": "hold",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "estop_True_idle": {
+  "log": [],
+  "mode": "idle",
+  "res": [
+   true,
+   "E-STOP -- 즉시 정지 (현재 자세 유지, 해제 필요)"
+  ],
+  "stop": "earlier"
+ },
+ "hold_False_dry": {
+  "log": [],
+  "mode": "dry",
+  "res": [
+   true,
+   "정지 -- 감속 후 현재 자세 유지 (E-STOP 아님)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_False_go": {
+  "log": [],
+  "mode": "hold",
+  "res": [
+   true,
+   "정지 -- 감속 후 현재 자세 유지 (E-STOP 아님)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_False_hold": {
+  "log": [
+   [
+    "POST",
+    "/stop",
+    null
+   ]
+  ],
+  "mode": "hold",
+  "res": [
+   true,
+   "정지 -- 감속 후 현재 자세 유지 (E-STOP 아님)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_False_idle": {
+  "log": [
+   [
+    "POST",
+    "/stop",
+    null
+   ]
+  ],
+  "mode": "idle",
+  "res": [
+   true,
+   "정지 -- 감속 후 현재 자세 유지 (E-STOP 아님)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_True_dry": {
+  "log": [],
+  "mode": "dry",
+  "res": [
+   true,
+   "정지 (DRY 전용 UI: 브리지 명령 없음)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_True_go": {
+  "log": [],
+  "mode": "hold",
+  "res": [
+   true,
+   "정지 (DRY 전용 UI: 브리지 명령 없음)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_True_hold": {
+  "log": [],
+  "mode": "hold",
+  "res": [
+   true,
+   "정지 (DRY 전용 UI: 브리지 명령 없음)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "hold_True_idle": {
+  "log": [],
+  "mode": "idle",
+  "res": [
+   true,
+   "정지 (DRY 전용 UI: 브리지 명령 없음)"
+  ],
+  "stop": "정지 / HOLD (UI)"
+ },
+ "step_go": [
+  [
+   true,
+   "한 스텝 요청 (지금까지 3 스텝)"
+  ],
+  1,
+  [
+   true,
+   "한 스텝 요청 (지금까지 3 스텝)"
+  ],
+  1
+ ],
+ "step_idle": [
+  false,
+  "스텝 모드 실행 중이 아님"
+ ]
+}

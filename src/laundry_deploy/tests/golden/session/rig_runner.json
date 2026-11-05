@@ -1,0 +1,27 @@
+{
+ "made": [
+  [
+   "xvla",
+   "<TMP>/x"
+  ],
+  [
+   "policy",
+   "<TMP>/d",
+   "cpu",
+   2
+  ],
+  [
+   "policy",
+   "<TMP>/missing",
+   "mps",
+   1
+  ]
+ ],
+ "out": [
+  "xvla",
+  "policy",
+  "policy",
+  "policy",
+  1
+ ]
+}

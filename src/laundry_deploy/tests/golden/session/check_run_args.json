@@ -1,0 +1,59 @@
+{
+ "0": [
+  "ok",
+  1
+ ],
+ "1": [
+  "ok",
+  4
+ ],
+ "10": [
+  "exit",
+  "--assume-ready / --assume-start 는 dry-run 전용"
+ ],
+ "11": [
+  "exit",
+  "--replay-global (녹화 프레임) 은 테스트 전용 -- --go 금지"
+ ],
+ "12": [
+  "ok",
+  1
+ ],
+ "13": [
+  "ok",
+  1
+ ],
+ "2": [
+  "ok",
+  16
+ ],
+ "3": [
+  "ok",
+  10
+ ],
+ "4": [
+  "ok",
+  20
+ ],
+ "5": [
+  "exit",
+  "--policy label 에는 --label <ik_v1/demoNN.npz> 필요"
+ ],
+ "6": [
+  "ok",
+  4
+ ],
+ "7": [
+  "exit",
+  "--commit 40 불가 (1..32 = the whole chunk)"
+ ],
+ "8": [
+  "exit",
+  "--commit 0 불가 (1..32 = the whole chunk)"
+ ],
+ "9": [
+  "exit",
+  "--assume-ready / --assume-start 는 dry-run 전용"
+ ],
+ "stdout": "[배포] 속도 x3.0: commit 20 -> 10 (청크 끝을 넘지 않게)\n"
+}

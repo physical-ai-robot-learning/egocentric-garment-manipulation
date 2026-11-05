@@ -1,0 +1,362 @@
+{
+ "get /motor_states None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "get /observe None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "get /plan/progress None": [
+  200,
+  {
+   "dry": true,
+   "estop": false,
+   "exec_row": 0,
+   "glitch": null,
+   "last_row": 0,
+   "pace": 1.0,
+   "queued": 0,
+   "remaining_1x_s": 0.0,
+   "remaining_s": 0.0,
+   "rows_in": 0,
+   "session": null,
+   "t": "<t>"
+  }
+ ],
+ "get /status None": [
+  200,
+  {
+   "arms": {},
+   "auto_events": 0,
+   "connected": false,
+   "error": null,
+   "estop": false,
+   "goal_interp": false,
+   "grip_deg_s": 90.0,
+   "grip_open_frac": {
+    "left": 1.0,
+    "right": 1.0
+   },
+   "ki": {},
+   "ki_joints": null,
+   "kp": {},
+   "last_auto_event": null,
+   "max_acc_deg_s2": 180.0,
+   "max_deg_s": 45.0,
+   "max_tick_ms": 0.0,
+   "n_joints": 14,
+   "parked": [],
+   "rest_torque_off": false,
+   "service": "mit",
+   "status": "idle",
+   "tick_hz": 100.0,
+   "tick_overruns": 0,
+   "ticks": 0
+  }
+ ],
+ "post /clear_collision None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /clear_estop None": [
+  200,
+  {
+   "ok": true
+  }
+ ],
+ "post /estop None": [
+  200,
+  {
+   "msg": "E-STOP - both arms hold",
+   "ok": true
+  }
+ ],
+ "post /execute_step {'action': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /gripper_zero {'arm': 'left', 'stage': 'set'}": [
+  501,
+  {
+   "error": "gripper re-zero (stage=set) is not implemented in the MIT bridge -- use robot_service.py (POS_VEL)",
+   "ok": false
+  }
+ ],
+ "post /jaw_close_test {'arm': 'left', 'close_deg': 10}": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /plan/close {}": [
+  200,
+  {
+   "ok": true
+  }
+ ],
+ "post /plan/open {'session': 1}": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /plan/pace {'session': 1}": [
+  409,
+  {
+   "error": "no such session"
+  }
+ ],
+ "post /plan/rows {'session': 1, 'rows': []}": [
+  409,
+  {
+   "error": "no open session 1 (open: None)"
+  }
+ ],
+ "post /reenable None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /reopen_cameras None": [
+  500,
+  {
+   "error": "No module named 'lerobot'",
+   "ok": false
+  }
+ ],
+ "post /rest None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /set_speed {'goal_interp': True, 'interp_kp': 100, 'rest_torque_off': True, 'grip_deg_s': 900, 'max_acc_deg_s2': 1000}": [
+  200,
+  {
+   "goal_interp": true,
+   "grip_deg_s": 900.0,
+   "interp_kp": 40.0,
+   "max_acc_deg_s2": 1000.0,
+   "max_deg_s": 30.0,
+   "ok": true,
+   "rest_torque_off": true
+  }
+ ],
+ "post /set_speed {'max_deg_s': 120}": [
+  400,
+  {
+   "error": "max_deg_s in [1, 90], max_acc_deg_s2 in [5, 1000], grip_deg_s in [10, 900]",
+   "ok": false
+  }
+ ],
+ "post /set_speed {'max_deg_s': 30}": [
+  200,
+  {
+   "goal_interp": false,
+   "grip_deg_s": 90.0,
+   "interp_kp": 8.0,
+   "max_acc_deg_s2": 180.0,
+   "max_deg_s": 30.0,
+   "ok": true,
+   "rest_torque_off": false
+  }
+ ],
+ "post /stop None": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "post /torque {'arm': 'left', 'on': True}": [
+  400,
+  {
+   "error": "not connected"
+  }
+ ],
+ "url_map": [
+  [
+   "/clear_collision",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/clear_estop",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/connect",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/disconnect",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/estop",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/execute_step",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/frame/<cam>",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/gripper_zero",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/jaw_close_test",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/motor_states",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/observe",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/plan/close",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/plan/open",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/plan/pace",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/plan/progress",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/plan/rows",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/reenable",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/reopen_cameras",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/rest",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/set_speed",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/static/<path:filename>",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/status",
+   [
+    "GET",
+    "HEAD",
+    "OPTIONS"
+   ]
+  ],
+  [
+   "/stop",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ],
+  [
+   "/torque",
+   [
+    "OPTIONS",
+    "POST"
+   ]
+  ]
+ ]
+}

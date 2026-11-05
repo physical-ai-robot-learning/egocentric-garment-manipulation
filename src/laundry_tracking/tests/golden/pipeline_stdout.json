@@ -1,0 +1,162 @@
+[
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 seeds {'left': [0.4, 0.169, 0.09], 'right': [0.4, -0.17, 0.089]}\n{'take': '20261030_120000', 'demo': 0, 'demo_len_s': 12.0, 'keep_start_s': np.float64(1.42), 'keep_end_s': np.float64(10.56), 'cut_head_s': np.float64(1.4), 'cut_tail_s': np.float64(1.4), 'kept_s': np.float64(9.1), 'pose_src': 'tag_only'}\n{'take': '20261030_120000', 'demo': 1, 'demo_len_s': 12.0, 'keep_start_s': np.float64(1.58), 'keep_end_s': np.float64(10.6), 'cut_head_s': np.float64(1.6), 'cut_tail_s': np.float64(1.4), 'kept_s': np.float64(9.0), 'pose_src': 'tag_only'}\n",
+  "step": "new_take_prep"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_130000 3 {'right': 1, 'left': 0}\n",
+  "step": "tag_rot"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 static unlocks {'left': 0, 'right': 0} roi [ 0.05  0.76 -0.61  0.61] {'left': 1.0, 'right': 1.0} global-mode share {'left': 0.0, 'right': 0.0}\n",
+  "step": "tracker_speed"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 static unlocks {'left': 0, 'right': 0} roi [ 0.05  0.76 -0.61  0.61] {'left': 1.0, 'right': 1.0} global-mode share {'left': 0.0, 'right': 0.0}\n",
+  "step": "tracker_default"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 left src ORBBEC/TAG/INTERP % [83.8, 0.0, 16.2] invalid demos [] lags [-100, 0]\n20261030_120000 right src ORBBEC/TAG/INTERP % [83.8, 0.0, 16.2] invalid demos [] lags [-120, -120]\n",
+  "step": "candidate"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 0 137 frames {'left': 40, 'right': 40} reserve 360\n20261030_120000 1 136 frames {'left': 40, 'right': 40} reserve 320\n",
+  "step": "pack"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_d00 l | CT-v2 {'cov': 0.985, 'gap_max_s': np.float64(0.13), 'abs_med': 26.7, 'far10': 0.208, 'wrong_burst_s': np.float64(0.94), 'e32_med': 101.1, 'e32_p90': 164.5, 'n_e32': 86, 'trusted_min': 15, 'trusted_med': 27, 'events': 4, 'no_trusted_gap_s': 0.0, 'high': 0.96}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 31.1, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 9.5, 'e32_p90': 15.2, 'n_e32': 90}\n20261030_120000_d00 r | CT-v2 {'cov': 0.847, 'gap_max_s': np.float64(1.4), 'abs_med': 9.3, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 11.7, 'e32_p90': 19.7, 'n_e32': 58, 'trusted_min': 34, 'trusted_med': 46, 'events': 1, 'no_trusted_gap_s': 0.0, 'high': 0.85}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 30.9, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 10.2, 'e32_p90': 17.0, 'n_e32': 83}\n20261030_120000_d01 l | CT-v2 {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 27.1, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 9.5, 'e32_p90': 16.4, 'n_e32': 111, 'trusted_min': 21, 'trusted_med': 25, 'events': 1, 'no_trusted_gap_s': 0.0, 'high': 1.0}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 30.7, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 5.4, 'e32_p90': 8.9, 'n_e32': 111}\n20261030_120000_d01 r | CT-v2 {'cov': 0.897, 'gap_max_s': np.float64(0.93), 'abs_med': 26.7, 'far10': 0.09, 'wrong_burst_s': np.float64(0.73), 'e32_med': 16.5, 'e32_p90': 298.5, 'n_e32': 98, 'trusted_min': 20, 'trusted_med': 20, 'events': 0, 'no_trusted_gap_s': 0.0, 'high': 0.89}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 32.0, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 11.3, 'e32_p90': 22.6, 'n_e32': 111}\n",
+  "step": "solve"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_d00 l | CT-v2 {'cov': 0.985, 'gap_max_s': np.float64(0.13), 'abs_med': 26.7, 'far10': 0.208, 'wrong_burst_s': np.float64(0.94), 'e32_med': 101.1, 'e32_p90': 164.5, 'n_e32': 86, 'trusted_min': 15, 'trusted_med': 27, 'events': 4, 'no_trusted_gap_s': 0.0, 'high': 0.96}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 31.1, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 9.5, 'e32_p90': 15.2, 'n_e32': 90}\n20261030_120000_d00 r | CT-v2 {'cov': 0.847, 'gap_max_s': np.float64(1.4), 'abs_med': 9.3, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 11.7, 'e32_p90': 19.7, 'n_e32': 58, 'trusted_min': 34, 'trusted_med': 46, 'events': 1, 'no_trusted_gap_s': 0.0, 'high': 0.85}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 30.9, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 10.2, 'e32_p90': 17.0, 'n_e32': 83}\n20261030_120000_d01 l | CT-v2 {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 26.9, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 9.4, 'e32_p90': 16.3, 'n_e32': 111, 'trusted_min': 21, 'trusted_med': 25, 'events': 1, 'no_trusted_gap_s': 0.0, 'high': 1.0}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 30.7, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 5.5, 'e32_p90': 9.1, 'n_e32': 111}\n20261030_120000_d01 r | CT-v2 {'cov': 0.897, 'gap_max_s': np.float64(0.93), 'abs_med': 27.6, 'far10': 0.09, 'wrong_burst_s': np.float64(0.73), 'e32_med': 17.0, 'e32_p90': 298.9, 'n_e32': 98, 'trusted_min': 20, 'trusted_med': 20, 'events': 0, 'no_trusted_gap_s': 0.0, 'high': 0.89}\n                      | base[trackv31speed] {'cov': 1.0, 'gap_max_s': 0.0, 'abs_med': 32.8, 'far10': 0.0, 'wrong_burst_s': 0.0, 'e32_med': 11.7, 'e32_p90': 23.2, 'n_e32': 111}\n",
+  "step": "solve_h1"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_d00 l h-1: cut imu  0.0% tag 35.0% lr  0.0% | valid 65.0%\n20261030_120000_d00 r h-1: cut imu  0.0% tag  0.0% lr  0.0% | valid 84.7%\n20261030_120000_d01 l h-1: cut imu  0.0% tag  0.0% lr  0.0% | valid 100.0%\n20261030_120000_d01 r h-1: cut imu  0.0% tag 18.4% lr 14.0% | valid 71.3%\n",
+  "step": "gate"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_d00 l h1: cut imu 21.2% tag 29.2% lr  0.0% | valid 60.6%\n20261030_120000_d00 r h1: cut imu  0.0% tag  0.0% lr  0.0% | valid 84.7%\n20261030_120000_d01 l h1: cut imu  0.0% tag  0.0% lr  0.0% | valid 100.0%\n20261030_120000_d01 r h1: cut imu  0.0% tag 18.4% lr 14.0% | valid 71.3%\n",
+  "step": "gate_h1"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 d00 l lag 0 ms ncc 0.11 | nodes 182 ct 88 tags 121\n20261030_120000 d00 r lag -80 ms ncc 0.81 | nodes 182 ct 115 tags 124\n20261030_120000 d01 l lag 20 ms ncc 0.94 | nodes 180 ct 135 tags 135\n20261030_120000 d01 r lag 0 ms ncc 0.09 | nodes 180 ct 97 tags 135\n",
+  "step": "fusion_prod"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 d00 l lag 0 ms ncc 0.11 | nodes 182 ct 134 tags 121\n20261030_120000 d00 r lag -80 ms ncc 0.81 | nodes 182 ct 115 tags 124\n",
+  "step": "fusion_ablation"
+ },
+ {
+  "rc": 1,
+  "stderr_tail": [
+   "missing <TMP>/pack/20261030_120000_d01/solve2_left_h0.npz (run cotrack/solve2.py / gate.py <pack> 0)"
+  ],
+  "stdout": "20261030_120000 d01 l lag 20 ms ncc 0.94 | nodes 180 ct 135 tags 135\n",
+  "step": "fusion_strict"
+ },
+ {
+  "rc": 1,
+  "stderr_tail": [
+   "variant D needs wrist SLAM segments for the take (none for 155004 yet)"
+  ],
+  "stdout": "",
+  "step": "fusion_d"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "  arm      var  raw_cov  cont_cov  sup_cov  gap_s  e32_med  e32_p90  abs_med  abs_p90  far10  burst_s  gapbr_max  gapbr_med  n_gap\n left fus_Cg_g    0.993     0.986    1.000  0.000     12.5     30.1    5.868   26.874  0.000    0.000        NaN        NaN    0.0\n left  fus_R_g    0.993     0.986    0.993  0.135      NaN      NaN   27.395   76.644  0.085    0.735        NaN        NaN    0.0\n left    fus_C    0.985     0.984    1.000  0.000     11.0     28.0    8.256  147.563  0.262    1.669        NaN        NaN    0.0\nright fus_Cg_g    0.872     0.986    1.000  0.000      9.5     20.0   12.034   20.629  0.000    0.000     39.564     14.916   27.0\nright  fus_R_g    0.872     0.937    0.872  1.399      NaN      NaN   17.749   62.209  0.051    0.868     49.310     22.010   27.0\nright    fus_C    0.847     0.984    1.000  0.000      NaN      NaN   17.925   23.166  0.000    0.000     21.905     15.155   25.0\n",
+  "step": "metrics"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000 left replaced 271 frames, measured 0.991\n20261030_120000 right replaced 271 frames, measured 0.967\n",
+  "step": "derived"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "{'REJECT': 2} | in_130: {'REJECT': 1}\n",
+  "step": "quality"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "all: class        REJECT\nout_of_view        \nFalse             2\nin_130: class        REJECT\nout_of_view        \nFalse             1\nexit edges: {}\nout-of-view arms: L 0 R 0\n",
+  "step": "out_of_view"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "wrote q01_20261030_120000_d00.mp4\nwrote q02_20261030_120000_d01.mp4\n",
+  "step": "render_qa"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "source fractions {'left': {'AprilTag': 1.0, 'CoTracker': 0.0, 'IMU': 0.0}, 'right': {'AprilTag': 0.897, 'CoTracker': 0.0, 'IMU': 0.103}}\nwrote <TMP>/src.gif 28 frames\n",
+  "step": "render_sources"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_right_d00_h0.npz s0 0.596 scales [0.527 0.56  0.568]\n20261030_120000_right_d00_h-1.npz s0 1.742 scales [0.541 0.572 0.832]\n",
+  "step": "stitch_visual"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "20261030_120000_left_d01_h-1.npz s0 0.648 scales [0.451 0.668 0.885]\n",
+  "step": "stitch_raw"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "mode A (one world for the whole input)\n20261030_120000_left_d00_h2.npz s0 0.284 scales [0.377 0.42  0.432]\n",
+  "step": "stitch_mode_a"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "",
+  "step": "world_calls"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "edge-gap cut 20261030_120000 1 head 0.0 s tail 1.0 s -> 8.1 s\nedge-gap trim: 1 demos\n",
+  "step": "edge_gap_trim"
+ },
+ {
+  "rc": 0,
+  "stderr_tail": [],
+  "stdout": "tightened 1 demos\n",
+  "step": "tighten_trim"
+ }
+]

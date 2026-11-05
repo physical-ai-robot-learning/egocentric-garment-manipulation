@@ -1,0 +1,139 @@
+{
+ "default": {
+  "clock": 1000.2,
+  "log": [
+   {
+    "flags": [
+     "WARN:future_workspace_l_k20",
+     "WARN:future_table_k20",
+     "WARN:future_table_k28"
+    ],
+    "ik_max_mm": [
+     1.6004645656917944e-13,
+     6.206335383118183e-13
+    ],
+    "ik_ok": [
+     1.0,
+     1.0
+    ],
+    "min_clear": 0.1117974013896707,
+    "min_table": -0.12505318156860745,
+    "ms": 0.0,
+    "t": 1.25
+   }
+  ],
+  "res": {
+   "flags": [
+    "WARN:future_workspace_l_k20",
+    "WARN:future_table_k20",
+    "WARN:future_table_k28"
+   ],
+   "ik_max_mm": [
+    1.6004645656917944e-13,
+    6.206335383118183e-13
+   ],
+   "ik_ok": [
+    1.0,
+    1.0
+   ],
+   "min_clear": 0.1117974013896707,
+   "min_table": -0.12505318156860745,
+   "ms": 0.0,
+   "t": 1.25
+  }
+ },
+ "hold": {
+  "clock": 1000.2,
+  "log": [
+   {
+    "flags": [
+     "HOLD:future_collision_k4_L.link5-link6 / R.link5-link6",
+     "HOLD:future_collision_k8_L.link5-link6 / R.link5-link6",
+     "HOLD:future_collision_k12_L.link5-link6 / R.link5-link6",
+     "HOLD:future_collision_k16_L.link5-link6 / R.link5-link6",
+     "WARN:future_workspace_l_k20",
+     "HOLD:future_collision_k20_L.link5-link6 / R.link5-link6",
+     "HOLD:future_table_k20",
+     "HOLD:future_collision_k24_L.link5-link6 / R.link5-link6",
+     "HOLD:future_collision_k28_L.link5-link6 / R.link5-link6",
+     "HOLD:future_table_k28",
+     "HOLD:future_collision_k32_L.link5-link6 / R.link5-link6"
+    ],
+    "ik_max_mm": [
+     1.6004645656917944e-13,
+     6.206335383118183e-13
+    ],
+    "ik_ok": [
+     1.0,
+     1.0
+    ],
+    "min_clear": 0.1117974013896707,
+    "min_table": -0.12505318156860745,
+    "ms": 0.0,
+    "t": 1.25
+   }
+  ],
+  "res": {
+   "flags": [
+    "HOLD:future_collision_k4_L.link5-link6 / R.link5-link6",
+    "HOLD:future_collision_k8_L.link5-link6 / R.link5-link6",
+    "HOLD:future_collision_k12_L.link5-link6 / R.link5-link6",
+    "HOLD:future_collision_k16_L.link5-link6 / R.link5-link6",
+    "WARN:future_workspace_l_k20",
+    "HOLD:future_collision_k20_L.link5-link6 / R.link5-link6",
+    "HOLD:future_table_k20",
+    "HOLD:future_collision_k24_L.link5-link6 / R.link5-link6",
+    "HOLD:future_collision_k28_L.link5-link6 / R.link5-link6",
+    "HOLD:future_table_k28",
+    "HOLD:future_collision_k32_L.link5-link6 / R.link5-link6"
+   ],
+   "ik_max_mm": [
+    1.6004645656917944e-13,
+    6.206335383118183e-13
+   ],
+   "ik_ok": [
+    1.0,
+    1.0
+   ],
+   "min_clear": 0.1117974013896707,
+   "min_table": -0.12505318156860745,
+   "ms": 0.0,
+   "t": 1.25
+  }
+ },
+ "stride8": {
+  "clock": 1000.2,
+  "log": [
+   {
+    "flags": [],
+    "ik_max_mm": [
+     8.886119947416683e-14,
+     6.112531465858672e-13
+    ],
+    "ik_ok": [
+     1.0,
+     1.0
+    ],
+    "min_clear": 0.11179740138967065,
+    "min_table": 0.018237872488989715,
+    "ms": 0.0,
+    "t": 1.25
+   }
+  ],
+  "res": {
+   "flags": [],
+   "ik_max_mm": [
+    8.886119947416683e-14,
+    6.112531465858672e-13
+   ],
+   "ik_ok": [
+    1.0,
+    1.0
+   ],
+   "min_clear": 0.11179740138967065,
+   "min_table": 0.018237872488989715,
+   "ms": 0.0,
+   "t": 1.25
+  }
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "CAMS": [
+  "global",
+  "left_wrist",
+  "right_wrist"
+ ],
+ "CAPSULES": [
+  [
+   "link1",
+   "link2",
+   0.045
+  ],
+  [
+   "link2",
+   "link3",
+   0.04
+  ],
+  [
+   "link3",
+   "link4",
+   0.035
+  ],
+  [
+   "link4",
+   "link5",
+   0.032
+  ],
+  [
+   "link5",
+   "link6",
+   0.032
+  ],
+  [
+   "link6",
+   "gbody",
+   0.032
+  ]
+ ],
+ "DT": 0.05,
+ "FINGER_R": 0.012,
+ "GI": {
+  "left": 18,
+  "right": 19
+ },
+ "IMG_WH": [
+  384,
+  216
+ ],
+ "ROBOTIZE_ARGS": {
+  "ik_step": 7.5,
+  "jaw_half": 0.02,
+  "level_max": 0.0,
+  "ori_cost": 0.1,
+  "roll_relax": 1.5,
+  "roll_thr": 115.0,
+  "table_z": 0.003,
+  "tip_clear": 0.005,
+  "tip_clear_left_extra": 0.005
+ },
+ "SIDES": [
+  "left",
+  "right"
+ ],
+ "SL": {
+  "left": [
+   0,
+   9
+  ],
+  "right": [
+   9,
+   18
+  ]
+ },
+ "TABLE_R_WRIST": 0.012,
+ "TASK": "laundry folding",
+ "XVLA_ROW_DT": 0.06666666666666667,
+ "XVLA_RY": [
+  [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  [
+   0.0,
+   1.0,
+   0.0
+  ],
+  [
+   1.0,
+   0.0,
+   0.0
+  ]
+ ]
+}

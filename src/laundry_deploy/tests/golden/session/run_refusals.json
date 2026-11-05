@@ -1,0 +1,6 @@
+{
+ "fake_q": "--go 는 라이브 Orbbec + 실제 로봇 상태에서만",
+ "no_wave": "--go 전에 wave 테스트로 손목 카메라 좌우를 확인하세요",
+ "replay": "--go 는 라이브 Orbbec + 실제 로봇 상태에서만",
+ "stdout": ""
+}

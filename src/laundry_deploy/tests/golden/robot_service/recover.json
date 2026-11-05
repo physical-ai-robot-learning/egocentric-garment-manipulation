@@ -1,0 +1,171 @@
+{
+ "after_recover": {
+  "left": [
+   [
+    1.0,
+    -2.0,
+    3.0,
+    -4.0,
+    5.0,
+    -6.0
+   ],
+   [
+    1.0,
+    -2.0,
+    3.0,
+    -4.0,
+    5.0,
+    -6.0
+   ],
+   null,
+   700.0
+  ],
+  "right": [
+   [
+    -1.0,
+    2.0,
+    -3.0,
+    4.0,
+    -5.0,
+    6.0
+   ],
+   [
+    -1.0,
+    2.0,
+    -3.0,
+    4.0,
+    -5.0,
+    6.0
+   ],
+   null,
+   701.5
+  ]
+ },
+ "auto_events": [
+  {
+   "arm": "left",
+   "reason": "MOTOR FAULT joint_5 disabled",
+   "result": "recovered"
+  },
+  {
+   "arm": "right",
+   "reason": "ARM STATE STALE",
+   "result": "recovered"
+  },
+  {
+   "arm": "left",
+   "reason": "unpark (motion command)",
+   "result": "torque on, hold at measured pose"
+  },
+  {
+   "arm": "left",
+   "reason": "rest reached (park)",
+   "result": "torque off"
+  },
+  {
+   "arm": "right",
+   "reason": "rest reached (park)",
+   "result": "torque off"
+  }
+ ],
+ "hold": [
+  true,
+  "ESTOP",
+  "test hold"
+ ],
+ "log": [
+  [
+   "left",
+   "refresh"
+  ],
+  [
+   "right",
+   "refresh"
+  ],
+  [
+   "left",
+   "clear_collision_stop",
+   [],
+   {}
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "left",
+   "refresh"
+  ],
+  [
+   "right",
+   "clear_collision_stop",
+   [],
+   {}
+  ],
+  [
+   "right",
+   "refresh"
+  ],
+  [
+   "left",
+   "stop_motion",
+   [],
+   {}
+  ],
+  [
+   "right",
+   "stop_motion",
+   [],
+   {}
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "left",
+   "refresh"
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    false
+   ],
+   {}
+  ],
+  [
+   "right",
+   "guard_paused"
+  ],
+  [
+   "right",
+   "set_arm_torque",
+   [
+    false
+   ],
+   {}
+  ]
+ ],
+ "unpark": false
+}

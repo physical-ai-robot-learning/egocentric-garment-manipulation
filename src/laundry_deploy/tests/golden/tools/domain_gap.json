@@ -1,0 +1,200 @@
+{
+ "agg": {
+  "bgr_mean": [
+   152.3,
+   154.9,
+   157.9
+  ],
+  "cloth_area_pct": 5.06,
+  "cloth_centroid": [
+   654.7,
+   379.4
+  ],
+  "contrast_std": 44.08,
+  "grey": {
+   "mean": 155.4,
+   "p1": 20.0,
+   "p50": 167.0,
+   "p99": 200.0
+  },
+  "jaw_area_pct": 8.82,
+  "jaw_axis_deg_from_vertical": -90.0,
+  "jaw_bbox": [
+   490,
+   450,
+   790,
+   719
+  ],
+  "jaw_centroid": [
+   640.0,
+   584.5
+  ],
+  "jaw_top_y": 450.0,
+  "jaw_width_at90": 300.0,
+  "n": 3
+ },
+ "agg_one": {
+  "bgr_mean": [
+   1.0,
+   2.0,
+   3.0
+  ],
+  "grey": {
+   "mean": 155.4,
+   "p1": 20.0,
+   "p50": 167.0,
+   "p99": 200.0
+  },
+  "n": 1
+ },
+ "blank": {
+  "bgr_mean": [
+   200.0,
+   200.0,
+   200.0
+  ],
+  "cloth_area_pct": 0.0,
+  "contrast_std": 0.0,
+  "grey": {
+   "mean": 200.0,
+   "p1": 200.0,
+   "p50": 200.0,
+   "p99": 200.0
+  },
+  "jaw_area_pct": 0.0,
+  "size": [
+   1280,
+   720
+  ]
+ },
+ "cloth": [
+  "54fdf3bd902aebd64df44eae97575ead99f9d3501fed3ddfce8b670d4f590d45",
+  "60d3d09c6f8582c35fc8a50daf29169f3db1210f9a03381144d3cf13586af861",
+  "1001e0ae6b4920c5c14cc34792b5fb57cd5b68345ee5414666299a1cb04605e5"
+ ],
+ "fov": {
+  "file": "fisheye_left_v002.yaml",
+  "fx_1920": 700.0,
+  "hfov_deg": 147.9,
+  "vfov_deg": 86.2
+ },
+ "jaw": [
+  "3aa6b709e814d40df15eef22b2e0fc89b54ddd1b0ee9b2267961d30809b25bfd",
+  "864f554cdd4db83bc188bf6f6220f7549617c6c39bf7d3e2f36b4cc9d5f76f24",
+  "82da8dc253ec9f65323ddc047f38fe64275dee20c8888c2e216f0dbf79d1da24"
+ ],
+ "measure": [
+  {
+   "bgr_mean": [
+    152.293369140625,
+    154.85197699652778,
+    157.86222764756945
+   ],
+   "cloth_area_pct": 5.062934027777778,
+   "cloth_centroid": [
+    654.7086369481354,
+    379.37044577796826
+   ],
+   "contrast_std": 44.079112355607364,
+   "grey": {
+    "mean": 155.4486447482639,
+    "p1": 20.0,
+    "p50": 167.0,
+    "p99": 200.0
+   },
+   "jaw_area_pct": 8.818359375,
+   "jaw_axis_deg_from_vertical": -90.0,
+   "jaw_bbox": [
+    490,
+    450,
+    790,
+    719
+   ],
+   "jaw_centroid": [
+    640.0,
+    584.5
+   ],
+   "jaw_top_y": 450,
+   "jaw_width_at90": 300,
+   "size": [
+    1280,
+    720
+   ]
+  },
+  {
+   "bgr_mean": [
+    153.94861436631945,
+    156.82912000868055,
+    160.2301388888889
+   ],
+   "cloth_area_pct": 5.718315972222222,
+   "cloth_centroid": [
+    677.1918406072107,
+    396.0611954459203
+   ],
+   "contrast_std": 40.89811334219363,
+   "grey": {
+    "mean": 157.50441514756943,
+    "p1": 20.0,
+    "p50": 167.0,
+    "p99": 200.0
+   },
+   "jaw_area_pct": 7.353515625,
+   "jaw_axis_deg_from_vertical": 0.0,
+   "jaw_bbox": [
+    535,
+    450,
+    785,
+    719
+   ],
+   "jaw_centroid": [
+    660.0,
+    584.5
+   ],
+   "jaw_top_y": 450,
+   "jaw_width_at90": 250,
+   "size": [
+    1280,
+    720
+   ]
+  },
+  {
+   "bgr_mean": [
+    150.64867947048612,
+    153.08340169270832,
+    156.04186197916667
+   ],
+   "cloth_area_pct": 4.899088541666666,
+   "cloth_centroid": [
+    635.0,
+    374.5
+   ],
+   "contrast_std": 46.36530346246747,
+   "grey": {
+    "mean": 153.67923285590277,
+    "p1": 20.0,
+    "p50": 167.0,
+    "p99": 200.0
+   },
+   "jaw_area_pct": 9.990234375,
+   "jaw_axis_deg_from_vertical": -90.0,
+   "jaw_bbox": [
+    455,
+    450,
+    795,
+    719
+   ],
+   "jaw_centroid": [
+    625.0,
+    584.5
+   ],
+   "jaw_top_y": 450,
+   "jaw_width_at90": 340,
+   "size": [
+    1280,
+    720
+   ]
+  }
+ ],
+ "overlay": "b2c268f61f684e466f49c62ec79e67c2536f75ecbbd87266f68a0ed70bfbef6e"
+}

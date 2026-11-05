@@ -1,0 +1,40 @@
+{
+ "MIT_KD=1,1,1,1,1,9": "MIT_KD must be 6 values in [0, 5.0], got 1,1,1,1,1,9",
+ "MIT_KI=0": "MIT_KI must be in (0, 200], got 0.0",
+ "MIT_KI=201": "MIT_KI must be in (0, 200], got 201.0",
+ "MIT_KI_JOINTS=1,1,1,1,1,0": "MIT_KI_JOINTS must be 6 values in (0, 200], got 1,1,1,1,1,0",
+ "MIT_KP=1,2,3": "MIT_KP must be 6 values in [0, 200.0], got 1,2,3",
+ "none": [
+  {},
+  null
+ ],
+ "set": [
+  {
+   "arm_integral_ki_nm_per_rad_s": 40.0,
+   "arm_mit_kd": [
+    3.0,
+    3.0,
+    3.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "arm_mit_kp": [
+    64.0,
+    64.0,
+    64.0,
+    28.0,
+    28.0,
+    28.0
+   ]
+  },
+  [
+   28.0,
+   28.0,
+   40.0,
+   10.0,
+   10.0,
+   10.0
+  ]
+ ]
+}

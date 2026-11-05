@@ -1,0 +1,862 @@
+{
+ "after_glitch": [
+  null,
+  "row 5: jump 167.7 deg > 90.0"
+ ],
+ "after_jaw_test": [
+  {
+   "left": 19.0,
+   "right": 0.0
+  },
+  1.0
+ ],
+ "after_stop": {
+  "left": [
+   [
+    1.0,
+    -2.0,
+    3.0,
+    -4.0,
+    5.0,
+    -6.0
+   ],
+   [
+    1.0,
+    -2.0,
+    3.0,
+    -4.0,
+    5.0,
+    -6.0
+   ],
+   null
+  ],
+  "right": [
+   [
+    -1.0,
+    2.0,
+    -3.0,
+    4.0,
+    -5.0,
+    6.0
+   ],
+   [
+    -1.0,
+    2.0,
+    -3.0,
+    4.0,
+    -5.0,
+    6.0
+   ],
+   null
+  ]
+ },
+ "arm_after_seg": {
+  "left": [
+   [
+    1.0,
+    -2.0,
+    3.0,
+    -4.0,
+    5.0,
+    -6.0
+   ],
+   [
+    -0.5729577951308232,
+    -0.5729577951308232,
+    0.0,
+    0.5729577951308232,
+    0.5729577951308232,
+    -0.5729577951308232
+   ],
+   0.03333333333333333,
+   700.0,
+   0.7777777777777778
+  ],
+  "right": [
+   [
+    -1.0,
+    2.0,
+    -3.0,
+    4.0,
+    -5.0,
+    6.0
+   ],
+   [
+    0.5729577951308232,
+    0.0,
+    -0.5729577951308232,
+    -0.5729577951308232,
+    -0.5729577951308232,
+    0.5729577951308232
+   ],
+   0.03333333333333333,
+   700.0,
+   0.3333333333333333
+  ]
+ },
+ "auto_events": [
+  {
+   "arm": "left",
+   "reason": "unpark (motion command)",
+   "result": "torque on, hold at measured pose"
+  }
+ ],
+ "cfg_grip": [
+  400.0,
+  400.0
+ ],
+ "clear": [
+  200,
+  {
+   "ok": true
+  }
+ ],
+ "clear_blocked": [
+  400,
+  {
+   "error": "collision guard still latched: {'left': 'ARM STATE STALE'} -- /reenable after checking the arm",
+   "ok": false
+  }
+ ],
+ "clear_collision": [
+  200,
+  {
+   "arms": {
+    "left": "cleared+enabled",
+    "right": "cleared+enabled"
+   },
+   "ok": true
+  }
+ ],
+ "estop": [
+  200,
+  {
+   "msg": "E-STOP - both arms hold",
+   "ok": true
+  }
+ ],
+ "exec": [
+  200,
+  {
+   "error": null,
+   "ok": true,
+   "sent_deg": [
+    5.729577951308233,
+    -11.459155902616466,
+    17.188733853924695,
+    -22.918311805232932,
+    28.64788975654116,
+    -34.37746770784939,
+    20.0,
+    -5.729577951308233,
+    11.459155902616466,
+    -17.188733853924695,
+    22.918311805232932,
+    -28.64788975654116,
+    34.37746770784939,
+    7.5
+   ]
+  }
+ ],
+ "exec_bad": [
+  400,
+  {
+   "error": "bad action"
+  }
+ ],
+ "exec_during_plan": [
+  409,
+  {
+   "error": "PLAN session s1 open -- /plan/close first"
+  }
+ ],
+ "exec_estop": [
+  400,
+  {
+   "error": "E-STOP (operator E-STOP)"
+  }
+ ],
+ "exec_goals": {
+  "left": [
+   [
+    -5.729577951308233,
+    0.0,
+    0.0,
+    -22.918311805232932,
+    28.64788975654116,
+    34.37746770784939
+   ],
+   0.5555555555555556
+  ],
+  "right": [
+   [
+    5.729577951308233,
+    -11.459155902616466,
+    -17.188733853924695,
+    22.918311805232932,
+    -28.64788975654116,
+    -34.37746770784939
+   ],
+   0.8333333333333334
+  ]
+ },
+ "fol_log": [
+  [
+   "left",
+   "refresh"
+  ],
+  [
+   "right",
+   "refresh"
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    false
+   ],
+   {}
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "left",
+   "refresh"
+  ],
+  [
+   "right",
+   "set_gripper_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "right",
+   "guard_paused"
+  ],
+  [
+   "right",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "left",
+   "stop_motion",
+   [],
+   {}
+  ],
+  [
+   "right",
+   "stop_motion",
+   [],
+   {}
+  ],
+  [
+   "left",
+   "clear_collision_stop",
+   [],
+   {}
+  ],
+  [
+   "left",
+   "guard_paused"
+  ],
+  [
+   "left",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "right",
+   "clear_collision_stop",
+   [],
+   {}
+  ],
+  [
+   "right",
+   "guard_paused"
+  ],
+  [
+   "right",
+   "set_arm_torque",
+   [
+    true
+   ],
+   {}
+  ],
+  [
+   "left",
+   "set_gripper_torque",
+   [
+    false
+   ],
+   {}
+  ],
+  [
+   "endpoint",
+   [
+    "close",
+    0.33161255787892263
+   ]
+  ]
+ ],
+ "glitch": [
+  409,
+  {
+   "accepted": 0,
+   "error": "GLITCH -- session closed, holding: row 5: jump 167.7 deg > 90.0"
+  }
+ ],
+ "gripper_release": [
+  200,
+  {
+   "msg": "left jaw torque off",
+   "ok": true
+  }
+ ],
+ "jaw_test": [
+  200,
+  {
+   "arm": "left",
+   "close_deg": 19.0,
+   "ok": true
+  }
+ ],
+ "jaw_test_bad": [
+  400,
+  {
+   "error": "arm must be left/right, close_deg in [-5, 45]"
+  }
+ ],
+ "motors": [
+  200,
+  {
+   "left_arm": {
+    "elbow_flex": {
+     "pos_deg": 3.0,
+     "status": 1
+    },
+    "gripper": {
+     "pos_deg": -162.0,
+     "status": 1
+    },
+    "shoulder_lift": {
+     "pos_deg": -2.0,
+     "status": 1
+    },
+    "shoulder_pan": {
+     "pos_deg": 1.0,
+     "status": 1
+    },
+    "wrist_flex": {
+     "pos_deg": -4.0,
+     "status": 1
+    },
+    "wrist_roll": {
+     "pos_deg": -6.0,
+     "status": 1
+    },
+    "wrist_yaw": {
+     "pos_deg": 5.0,
+     "status": 1
+    }
+   },
+   "right_arm": {
+    "elbow_flex": {
+     "pos_deg": -3.0,
+     "status": 1
+    },
+    "gripper": {
+     "pos_deg": -162.0,
+     "status": 1
+    },
+    "shoulder_lift": {
+     "pos_deg": 2.0,
+     "status": 1
+    },
+    "shoulder_pan": {
+     "pos_deg": -1.0,
+     "status": 1
+    },
+    "wrist_flex": {
+     "pos_deg": 4.0,
+     "status": 1
+    },
+    "wrist_roll": {
+     "pos_deg": 6.0,
+     "status": 1
+    },
+    "wrist_yaw": {
+     "pos_deg": -5.0,
+     "status": 1
+    }
+   }
+  }
+ ],
+ "observe": {
+  "cam_age_ms": {},
+  "images": {},
+  "joints_deg": [
+   1.0,
+   -2.0,
+   3.0,
+   -4.0,
+   5.0,
+   -6.0,
+   -162.0,
+   -1.0,
+   2.0,
+   -3.0,
+   4.0,
+   -5.0,
+   6.0,
+   -162.0
+  ],
+  "joints_rad": [
+   0.017453292519943295,
+   -0.03490658503988659,
+   0.05235987755982989,
+   -0.06981317007977318,
+   0.08726646259971647,
+   -0.10471975511965978,
+   -162.0,
+   -0.017453292519943295,
+   0.03490658503988659,
+   -0.05235987755982989,
+   0.06981317007977318,
+   -0.08726646259971647,
+   0.10471975511965978,
+   -162.0
+  ],
+  "t_wall": "<t>"
+ },
+ "pace": [
+  200,
+  {
+   "ok": true,
+   "pace": 1.5
+  }
+ ],
+ "pace2": [
+  200,
+  {
+   "ok": true,
+   "pace": 0.5
+  }
+ ],
+ "parked": {
+  "left": true,
+  "right": null
+ },
+ "plan_700.01": [
+  1,
+  false,
+  3
+ ],
+ "plan_700.2": [
+  2,
+  false,
+  2
+ ],
+ "plan_700.5": [
+  3,
+  false,
+  1
+ ],
+ "plan_701.0": [
+  4,
+  false,
+  0
+ ],
+ "plan_702.0": [
+  4,
+  true,
+  0
+ ],
+ "plan_after_close_other": "s3",
+ "plan_close": [
+  200,
+  {
+   "ok": true
+  }
+ ],
+ "plan_close_other": [
+  200,
+  {
+   "ok": true
+  }
+ ],
+ "plan_open": [
+  200,
+  {
+   "ok": true,
+   "row0": "the measured pose",
+   "session": "s1"
+  }
+ ],
+ "plan_open2": [
+  200,
+  {
+   "ok": true,
+   "row0": "the measured pose",
+   "session": "s3"
+  }
+ ],
+ "plan_open_none": [
+  400,
+  {
+   "error": "session id required"
+  }
+ ],
+ "progress": [
+  200,
+  {
+   "dry": true,
+   "estop": false,
+   "exec_row": 0,
+   "glitch": null,
+   "last_row": 4,
+   "pace": 1.5,
+   "queued": 4,
+   "remaining_1x_s": 0.2,
+   "remaining_s": 0.13333333333333333,
+   "rows_in": 4,
+   "session": "s1",
+   "t": 700.0
+  }
+ ],
+ "progress2": [
+  200,
+  {
+   "dry": false,
+   "estop": false,
+   "exec_row": 1,
+   "glitch": null,
+   "last_row": 4,
+   "pace": 0.5,
+   "queued": 3,
+   "remaining_1x_s": 0.2000000000000114,
+   "remaining_s": 0.4000000000000228,
+   "rows_in": 4,
+   "session": "s1",
+   "t": 700.0
+  }
+ ],
+ "raw14": [
+  1.0,
+  -2.0,
+  3.0,
+  -4.0,
+  5.0,
+  -6.0,
+  -162.0,
+  -1.0,
+  2.0,
+  -3.0,
+  4.0,
+  -5.0,
+  6.0,
+  -162.0
+ ],
+ "reenable": [
+  200,
+  {
+   "ok": true,
+   "reenabled": {
+    "left": "already enabled (no-op: a re-enable holds the bus > 0.5 s and stalls the control loop)",
+    "right": true
+   }
+  }
+ ],
+ "rest": [
+  200,
+  {
+   "msg": "rest: ramping to the connect pose at 15.0 deg/s",
+   "ok": true
+  }
+ ],
+ "rest_estop": [
+  400,
+  {
+   "error": "E-STOP"
+  }
+ ],
+ "rest_goals": {
+  "left": [
+   1.0,
+   -2.0,
+   3.0,
+   -4.0,
+   5.0,
+   -6.0
+  ],
+  "right": [
+   -1.0,
+   2.0,
+   -3.0,
+   4.0,
+   -5.0,
+   6.0
+  ]
+ },
+ "rows": [
+  200,
+  {
+   "accepted": 4,
+   "last_row": 4,
+   "ok": true
+  }
+ ],
+ "rows_bad": [
+  400,
+  {
+   "accepted": 0,
+   "error": "bad row 5"
+  }
+ ],
+ "rows_order": [
+  409,
+  {
+   "accepted": 0,
+   "error": "row 9 out of order (expected 5)"
+  }
+ ],
+ "rows_wrong_session": [
+  409,
+  {
+   "error": "no open session s2 (open: s1)"
+  }
+ ],
+ "seg1": {
+  "T_nom": 0.05,
+  "end": {
+   "left": [
+    [
+     -0.5729577951308232,
+     -0.5729577951308232,
+     0.0,
+     0.5729577951308232,
+     0.5729577951308232,
+     -0.5729577951308232
+    ],
+    0.7777777777777778
+   ],
+   "right": [
+    [
+     0.5729577951308232,
+     0.0,
+     -0.5729577951308232,
+     -0.5729577951308232,
+     -0.5729577951308232,
+     0.5729577951308232
+    ],
+    0.3333333333333333
+   ]
+  },
+  "row": 1,
+  "t0": 700.0
+ },
+ "speed": [
+  200,
+  {
+   "goal_interp": false,
+   "grip_deg_s": 400.0,
+   "interp_kp": 8.0,
+   "max_acc_deg_s2": 180.0,
+   "max_deg_s": 60.0,
+   "ok": true,
+   "rest_torque_off": false
+  }
+ ],
+ "status": [
+  200,
+  {
+   "arms": {
+    "left": {
+     "blocked": null,
+     "goal_minus_cmd_deg": 0.0,
+     "mode": "mit",
+     "read_age_ms": 100.0
+    },
+    "right": {
+     "blocked": null,
+     "goal_minus_cmd_deg": 0.0,
+     "mode": "mit",
+     "read_age_ms": 100.0
+    }
+   },
+   "auto_events": 0,
+   "connected": true,
+   "error": null,
+   "estop": false,
+   "goal_interp": false,
+   "grip_deg_s": 90.0,
+   "grip_open_frac": {
+    "left": 1.0,
+    "right": 1.0
+   },
+   "ki": {
+    "left": 28.0,
+    "right": 28.0
+   },
+   "ki_joints": null,
+   "kp": {
+    "left": [
+     64,
+     64,
+     64,
+     64,
+     64,
+     64
+    ],
+    "right": [
+     64,
+     64,
+     64,
+     64,
+     64,
+     64
+    ]
+   },
+   "last_auto_event": null,
+   "max_acc_deg_s2": 180.0,
+   "max_deg_s": 45.0,
+   "max_tick_ms": 0.0,
+   "n_joints": 14,
+   "parked": [],
+   "rest_torque_off": false,
+   "service": "mit",
+   "status": "connected",
+   "tick_hz": 100.0,
+   "tick_overruns": 0,
+   "ticks": 0
+  }
+ ],
+ "status_end": [
+  200,
+  {
+   "arms": {
+    "left": {
+     "blocked": null,
+     "goal_minus_cmd_deg": 0.0,
+     "mode": "mit",
+     "read_age_ms": 200.0
+    },
+    "right": {
+     "blocked": null,
+     "goal_minus_cmd_deg": 0.0,
+     "mode": "mit",
+     "read_age_ms": 200.0
+    }
+   },
+   "auto_events": 1,
+   "connected": true,
+   "error": null,
+   "estop": false,
+   "goal_interp": false,
+   "grip_deg_s": 400.0,
+   "grip_open_frac": {
+    "left": 1.0,
+    "right": 1.0
+   },
+   "ki": {
+    "left": 28.0,
+    "right": 28.0
+   },
+   "ki_joints": null,
+   "kp": {
+    "left": [
+     64,
+     64,
+     64,
+     64,
+     64,
+     64
+    ],
+    "right": [
+     64,
+     64,
+     64,
+     64,
+     64,
+     64
+    ]
+   },
+   "last_auto_event": {
+    "arm": "left",
+    "reason": "unpark (motion command)",
+    "result": "torque on, hold at measured pose",
+    "t": 700.0
+   },
+   "max_acc_deg_s2": 180.0,
+   "max_deg_s": 60.0,
+   "max_tick_ms": 0.0,
+   "n_joints": 14,
+   "parked": [],
+   "rest_torque_off": false,
+   "service": "mit",
+   "status": "connected",
+   "tick_hz": 100.0,
+   "tick_overruns": 0,
+   "ticks": 0
+  }
+ ],
+ "status_rest": "resting",
+ "stop": [
+  200,
+  {
+   "msg": "stop (hold the current pose)",
+   "ok": true
+  }
+ ],
+ "torque_bogus": [
+  200,
+  {
+   "arms": {},
+   "ok": true,
+   "torque_on": true
+  }
+ ],
+ "torque_off": [
+  200,
+  {
+   "arms": {
+    "left": false
+   },
+   "ok": true,
+   "torque_on": false
+  }
+ ],
+ "torque_on": [
+  200,
+  {
+   "arms": {
+    "left": "unparked: torque on, hold at measured pose",
+    "right": "arm already on; jaw on"
+   },
+   "ok": true,
+   "torque_on": true
+  }
+ ]
+}

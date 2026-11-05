@@ -1,0 +1,490 @@
+{
+ "COL": {
+  "left": [
+   255,
+   140,
+   0
+  ],
+  "right": [
+   0,
+   140,
+   255
+  ]
+ },
+ "S": {
+  "arm_clear_mm": {
+   "max": 980.0,
+   "p50": 327.6,
+   "p90": 822.0
+  },
+  "assume_ready": false,
+  "cams": {
+   "left": {
+    "location": "0x1"
+   },
+   "right": {
+    "location": "0x2"
+   }
+  },
+  "chunk_smoothness_mm": {
+   "k1": {
+    "max": 8.6,
+    "p50": 4.3,
+    "p90": 8.3
+   },
+   "k16": {
+    "max": 8.6,
+    "p50": 3.7,
+    "p90": 6.8
+   },
+   "k32": {
+    "max": 8.5,
+    "p50": 4.8,
+    "p90": 7.1
+   },
+   "k8": {
+    "max": 7.1,
+    "p50": 3.1,
+    "p90": 7.0
+   }
+  },
+  "chunk_y_median_m": {
+   "left": 0.014,
+   "right": -0.008
+  },
+  "ckpt": "ck",
+  "commit": 1,
+  "cycles": 6,
+  "dit_history_used_frac": null,
+  "dit_sampler": null,
+  "flag_counts": {
+   "LIM:tcp_speed": 6,
+   "STOP:ik_l": 4,
+   "WARN:link_gap": 2,
+   "nocolon": 1
+  },
+  "global_src": "REPLAY /takes/x",
+  "go": false,
+  "grip_raw": {
+   "left": {
+    "all_steps": {
+     "p01": -0.096,
+     "p10": -0.029,
+     "p50": 0.478,
+     "p90": 0.963,
+     "p99": 1.079
+    },
+    "k1_by_third": [
+     0.743,
+     0.596,
+     0.652
+    ],
+    "k32_by_third": [
+     0.372,
+     0.446,
+     0.6
+    ],
+    "open_frac_any_step": 1.0,
+    "open_frac_k1": 0.5,
+    "out_of_0_1": 0.135
+   },
+   "right": {
+    "all_steps": {
+     "p01": -0.069,
+     "p10": 0.02,
+     "p50": 0.496,
+     "p90": 0.954,
+     "p99": 1.077
+    },
+    "k1_by_third": [
+     0.437,
+     0.138,
+     0.852
+    ],
+    "k32_by_third": [
+     0.794,
+     0.588,
+     0.456
+    ],
+    "open_frac_any_step": 1.0,
+    "open_frac_k1": 0.333,
+    "out_of_0_1": 0.052
+   }
+  },
+  "ik_commit_mm": {
+   "max": 1.0,
+   "p50": 0.4,
+   "p90": 0.9
+  },
+  "img_age_ms": {
+   "max": 1.0,
+   "p50": 0.4,
+   "p90": 0.8
+  },
+  "k1_disp_mm": {
+   "left": {
+    "max": 674.2,
+    "p50": 396.0,
+    "p90": 617.9
+   },
+   "right": {
+    "max": 657.0,
+    "p50": 257.0,
+    "p90": 493.1
+   }
+  },
+  "k32_disp_mm_median": {
+   "left": [
+    59.0,
+    64.0,
+    -61.0
+   ],
+   "right": [
+    20.0,
+    84.0,
+    128.0
+   ]
+  },
+  "k32_dz_mm": {
+   "left": {
+    "max": 547.1,
+    "p50": -60.9,
+    "p90": 410.6
+   },
+   "right": {
+    "max": 420.1,
+    "p50": 127.8,
+    "p90": 305.1
+   }
+  },
+  "k32_norm_mm": {
+   "left": {
+    "max": 650.9,
+    "p50": 516.8,
+    "p90": 644.9
+   },
+   "right": {
+    "max": 543.5,
+    "p50": 353.3,
+    "p90": 508.8
+   }
+  },
+  "latency_ms": {
+   "ctrl_ik_safety": {
+    "max": 81.1,
+    "p50": 62.7,
+    "p90": 79.7
+   },
+   "k0_steps_skipped": {
+    "max": 2.0,
+    "p50": 1.0,
+    "p90": 2.0
+   },
+   "loop": {
+    "max": 80.9,
+    "p50": 40.2,
+    "p90": 73.8
+   },
+   "obs": {
+    "max": 86.5,
+    "p50": 67.2,
+    "p90": 84.0
+   },
+   "obs_to_commit": {
+    "max": 88.1,
+    "p50": 20.0,
+    "p90": 82.4
+   },
+   "policy": {
+    "max": 94.4,
+    "p50": 65.5,
+    "p90": 90.0
+   },
+   "preview": {
+    "max": 6.0,
+    "p50": 5.0,
+    "p90": 5.8
+   }
+  },
+  "left_on_plus_y": true,
+  "link_gap_mm": {
+   "max": 997.6,
+   "p50": 608.8,
+   "p90": 970.8
+  },
+  "plan_hz": 4.4,
+  "policy": "act",
+  "preview": {
+   "ik_max_mm": {
+    "max": 11.0,
+    "p50": 7.0,
+    "p90": 10.2
+   },
+   "ik_ok": [
+    1.0,
+    0.875
+   ],
+   "min_clear_mm": {
+    "max": 50.0,
+    "p50": 40.0,
+    "p90": 48.0
+   },
+   "min_table_mm": {
+    "max": 20.0,
+    "p50": 15.0,
+    "p90": 19.0
+   },
+   "n": 2
+  },
+  "ready_offset_deg": {
+   "left": 1.0,
+   "right": 2.0
+  },
+  "secs": 1.4,
+  "stop_reason": "max time 60s",
+  "violation_cycles": 2,
+  "wave_test": {
+   "confirmed": true
+  },
+  "workspace": {
+   "left": [
+    [
+     -0.1,
+     -0.5,
+     0.0
+    ],
+    [
+     0.6,
+     0.5,
+     0.4
+    ]
+   ],
+   "right": [
+    [
+     -0.1,
+     -0.5,
+     0.0
+    ],
+    [
+     0.6,
+     0.5,
+     0.4
+    ]
+   ]
+  },
+  "ws_chunk_out_frac": [
+   0.665,
+   0.368
+  ]
+ },
+ "empty": {},
+ "files": [
+  "log.npz",
+  "summary.json"
+ ],
+ "npz": {
+  "T_chunk": [
+   [
+    6,
+    2,
+    32,
+    4,
+    4
+   ],
+   "float64"
+  ],
+  "T_meas": [
+   [
+    6,
+    2,
+    4,
+    4
+   ],
+   "float64"
+  ],
+  "arm_clear": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "dchunk_k16_mm": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "dchunk_k1_mm": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "dchunk_k32_mm": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "dchunk_k8_mm": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "flags": [
+   [
+    6
+   ],
+   "<U63"
+  ],
+  "g_pred": [
+   [
+    6,
+    2
+   ],
+   "float64"
+  ],
+  "gimg_jpg": [
+   [
+    6
+   ],
+   "object"
+  ],
+  "grip_raw": [
+   [
+    6,
+    32,
+    2
+   ],
+   "float64"
+  ],
+  "hist_used": [
+   [
+    6
+   ],
+   "bool"
+  ],
+  "ik_mm": [
+   [
+    6,
+    2,
+    2
+   ],
+   "float64"
+  ],
+  "img_age_ms": [
+   [
+    6,
+    3
+   ],
+   "float64"
+  ],
+  "k0": [
+   [
+    6
+   ],
+   "int64"
+  ],
+  "lat_ctrl_ms": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "lat_obs_ms": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "lat_pol_ms": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "lat_total_ms": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "link_gap": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "obs_to_commit_ms": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "preview": [
+   [
+    2
+   ],
+   "<U120"
+  ],
+  "pv_ik_ok": [
+   [
+    6,
+    2
+   ],
+   "float64"
+  ],
+  "speed": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "t": [
+   [
+    6
+   ],
+   "float64"
+  ],
+  "wl": [
+   [
+    6,
+    2,
+    2,
+    3
+   ],
+   "uint8"
+  ],
+  "wr": [
+   [
+    6,
+    2,
+    2,
+    3
+   ],
+   "uint8"
+  ],
+  "ws_chunk_out": [
+   [
+    6,
+    2
+   ],
+   "float64"
+  ]
+ },
+ "npz_flags": [
+  "LIM:tcp_speed_l",
+  "LIM:tcp_speed_l;STOP:ik_l_30mm_5deg",
+  "LIM:tcp_speed_l;STOP:ik_l_30mm_5deg;WARN:link_gap_100mm",
+  "LIM:tcp_speed_l;STOP:ik_l_30mm_5deg;WARN:link_gap_100mm;nocolon",
+  "LIM:tcp_speed_l",
+  "LIM:tcp_speed_l;STOP:ik_l_30mm_5deg"
+ ],
+ "npz_preview": [
+  "{\"t\": 0.1, \"ik_ok\": [1.0, 0.75], \"ik_max_mm\": [2.0, 11.0], \"min_clear\": 0.03, \"min_table\": 0.01, \"flags\": [], \"ms\": 4.0}",
+  "{\"t\": 0.3, \"ik_ok\": [1.0, 1.0], \"ik_max_mm\": [1.0, 3.0], \"min_clear\": 0.05, \"min_table\": 0.02, \"flags\": [], \"ms\": 6.0}"
+ ],
+ "stdout": "{\n \"run\": \"<TMP>/act_dry_20261104_120000\",\n \"policy\": \"act\",\n \"ckpt\": \"ck\",\n \"dit_sampler\": null,\n \"go\": false,\n \"commit\": 1,\n \"cycles\": 6,\n \"secs\": 1.4,\n \"plan_hz\": 4.4,\n \"stop_reason\": \"max time 60s\",\n \"violation_cycles\": 2,\n \"assume_ready\": false,\n \"global_src\": \"REPLAY /takes/x\",\n \"ready_offset_deg\": {\n  \"left\": 1.0,\n  \"right\": 2.0\n },\n \"cams\": {\n  \"left\": {\n   \"location\": \"0x1\"\n  },\n  \"right\": {\n   \"location\": \"0x2\"\n  }\n },\n \"wave_test\": {\n  \"confirmed\": true\n },\n \"latency_ms\": {\n  \"loop\": {\n   \"p50\": 40.2,\n   \"p90\": 73.8,\n   \"max\": 80.9\n  },\n  \"obs\": {\n   \"p50\": 67.2,\n   \"p90\": 84.0,\n   \"max\": 86.5\n  },\n  \"policy\": {\n   \"p50\": 65.5,\n   \"p90\": 90.0,\n   \"max\": 94.4\n  },\n  \"ctrl_ik_safety\": {\n   \"p50\": 62.7,\n   \"p90\": 79.7,\n   \"max\": 81.1\n  },\n  \"obs_to_commit\": {\n   \"p50\": 20.0,\n   \"p90\": 82.4,\n   \"max\": 88.1\n  },\n  \"k0_steps_skipped\": {\n   \"p50\": 1.0,\n   \"p90\": 2.0,\n   \"max\": 2.0\n  },\n  \"preview\": {\n   \"p50\": 5.0,\n   \"p90\": 5.8,\n   \"max\": 6.0\n  }\n },\n \"dit_history_used_frac\": null,\n \"k1_disp_mm\": {\n  \"left\": {\n   \"p50\": 396.0,\n   \"p90\": 617.9,\n   \"max\": 674.2\n  },\n  \"right\": {\n   \"p50\": 257.0,\n   \"p90\": 493.1,\n   \"max\": 657.0\n  }\n },\n \"k32_disp_mm_median\": {\n  \"left\": [\n   59.0,\n   64.0,\n   -61.0\n  ],\n  \"right\": [\n   20.0,\n   84.0,\n   128.0\n  ]\n },\n \"k32_dz_mm\": {\n  \"left\": {\n   \"p50\": -60.9,\n   \"p90\": 410.6,\n   \"max\": 547.1\n  },\n  \"right\": {\n   \"p50\": 127.8,\n   \"p90\": 305.1,\n   \"max\": 420.1\n  }\n },\n \"k32_norm_mm\": {\n  \"left\": {\n   \"p50\": 516.8,\n   \"p90\": 644.9,\n   \"max\": 650.9\n  },\n  \"right\": {\n   \"p50\": 353.3,\n   \"p90\": 508.8,\n   \"max\": 543.5\n  }\n },\n \"chunk_y_median_m\": {\n  \"left\": 0.014,\n  \"right\": -0.008\n },\n \"left_on_plus_y\": true,\n \"grip_raw\": {\n  \"left\": {\n   \"all_steps\": {\n    \"p01\": -0.096,\n    \"p10\": -0.029,\n    \"p50\": 0.478,\n    \"p90\": 0.963,\n    \"p99\": 1.079\n   },\n   \"k1_by_third\": [\n    0.743,\n    0.596,\n    0.652\n   ],\n   \"k32_by_third\": [\n    0.372,\n    0.446,\n    0.6\n   ],\n   \"open_frac_k1\": 0.5,\n   \"open_frac_any_step\": 1.0,\n   \"out_of_0_1\": 0.135\n  },\n  \"right\": {\n   \"all_steps\": {\n    \"p01\": -0.069,\n    \"p10\": 0.02,\n    \"p50\": 0.496,\n    \"p90\": 0.954,\n    \"p99\": 1.077\n   },\n   \"k1_by_third\": [\n    0.437,\n    0.138,\n    0.852\n   ],\n   \"k32_by_third\": [\n    0.794,\n    0.588,\n    0.456\n   ],\n   \"open_frac_k1\": 0.333,\n   \"open_frac_any_step\": 1.0,\n   \"out_of_0_1\": 0.052\n  }\n },\n \"chunk_smoothness_mm\": {\n  \"k1\": {\n   \"p50\": 4.3,\n   \"p90\": 8.3,\n   \"max\": 8.6\n  },\n  \"k8\": {\n   \"p50\": 3.1,\n   \"p90\": 7.0,\n   \"max\": 7.1\n  },\n  \"k16\": {\n   \"p50\": 3.7,\n   \"p90\": 6.8,\n   \"max\": 8.6\n  },\n  \"k32\": {\n   \"p50\": 4.8,\n   \"p90\": 7.1,\n   \"max\": 8.5\n  }\n },\n \"preview\": {\n  \"n\": 2,\n  \"ik_ok\": [\n   1.0,\n   0.875\n  ],\n  \"ik_max_mm\": {\n   \"p50\": 7.0,\n   \"p90\": 10.2,\n   \"max\": 11.0\n  },\n  \"min_clear_mm\": {\n   \"p50\": 40.0,\n   \"p90\": 48.0,\n   \"max\": 50.0\n  },\n  \"min_table_mm\": {\n   \"p50\": 15.0,\n   \"p90\": 19.0,\n   \"max\": 20.0\n  }\n },\n \"ik_commit_mm\": {\n  \"p50\": 0.4,\n  \"p90\": 0.9,\n  \"max\": 1.0\n },\n \"ws_chunk_out_frac\": [\n  0.665,\n  0.368\n ],\n \"arm_clear_mm\": {\n  \"p50\": 327.6,\n  \"p90\": 822.0,\n  \"max\": 980.0\n },\n \"link_gap_mm\": {\n  \"p50\": 608.8,\n  \"p90\": 970.8,\n  \"max\": 997.6\n },\n \"flag_counts\": {\n  \"LIM:tcp_speed\": 6,\n  \"STOP:ik_l\": 4,\n  \"WARN:link_gap\": 2,\n  \"nocolon\": 1\n },\n \"img_age_ms\": {\n  \"p50\": 0.4,\n  \"p90\": 0.8,\n  \"max\": 1.0\n },\n \"workspace\": {\n  \"left\": [\n   [\n    -0.1,\n    -0.5,\n    0.0\n   ],\n   [\n    0.6,\n    0.5,\n    0.4\n   ]\n  ],\n  \"right\": [\n   [\n    -0.1,\n    -0.5,\n    0.0\n   ],\n   [\n    0.6,\n    0.5,\n    0.4\n   ]\n  ]\n }\n}\n기록 없음\n",
+ "topdown": "3b3caf2737a61f177545482560e5ffaa0cd5e3c4ce1fb800d7a16310c9f306d0"
+}

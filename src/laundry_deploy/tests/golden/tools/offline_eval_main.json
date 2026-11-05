@@ -1,0 +1,854 @@
+{
+ "act": {
+  "breakdown": {
+   "all": {
+    "deg_k16": 129.2,
+    "deg_k32": 128.5,
+    "mm_k16": 56.9,
+    "mm_k32": 73.0,
+    "n": 78,
+    "zero_mm_k16": 49.4,
+    "zero_mm_k32": 53.2
+   },
+   "free": {
+    "deg_k16": 128.8,
+    "deg_k32": 128.6,
+    "mm_k16": 59.1,
+    "mm_k32": 73.7,
+    "n": 41,
+    "zero_mm_k16": 47.1,
+    "zero_mm_k32": 51.6
+   },
+   "free_L": {
+    "deg_k16": 136.9,
+    "deg_k32": 136.9,
+    "mm_k16": 62.6,
+    "mm_k32": 72.9,
+    "n": 22,
+    "zero_mm_k16": 51.6,
+    "zero_mm_k32": 46.8
+   },
+   "free_R": {
+    "deg_k16": 119.3,
+    "deg_k32": 119.1,
+    "mm_k16": 55.1,
+    "mm_k32": 74.7,
+    "n": 19,
+    "zero_mm_k16": 42.0,
+    "zero_mm_k32": 57.1
+   },
+   "grasp": {
+    "deg_k16": 129.6,
+    "deg_k32": 128.4,
+    "mm_k16": 54.4,
+    "mm_k32": 72.1,
+    "n": 37,
+    "zero_mm_k16": 52.0,
+    "zero_mm_k32": 55.0
+   },
+   "grasp_L": {
+    "deg_k16": 121.3,
+    "deg_k32": 120.1,
+    "mm_k16": 54.9,
+    "mm_k32": 59.3,
+    "n": 17,
+    "zero_mm_k16": 49.1,
+    "zero_mm_k32": 49.6
+   },
+   "grasp_R": {
+    "deg_k16": 136.7,
+    "deg_k32": 135.5,
+    "mm_k16": 54.0,
+    "mm_k32": 83.0,
+    "n": 20,
+    "zero_mm_k16": 54.4,
+    "zero_mm_k32": 59.7
+   },
+   "phase_early": {
+    "deg_k16": 135.3,
+    "deg_k32": 135.3,
+    "mm_k16": 55.6,
+    "mm_k32": 74.1,
+    "n": 28,
+    "zero_mm_k16": 44.5,
+    "zero_mm_k32": 56.5
+   },
+   "phase_late": {
+    "deg_k16": 131.1,
+    "deg_k32": 131.3,
+    "mm_k16": 62.3,
+    "mm_k32": 70.8,
+    "n": 26,
+    "zero_mm_k16": 55.2,
+    "zero_mm_k32": 45.4
+   },
+   "phase_mid": {
+    "deg_k16": 119.9,
+    "deg_k32": 117.6,
+    "mm_k16": 52.5,
+    "mm_k32": 74.0,
+    "n": 24,
+    "zero_mm_k16": 48.9,
+    "zero_mm_k32": 57.8
+   }
+  },
+  "breakdown_def": "mean over every evaluated anchor and arm (no confidence filter); grasp = anchor within +-0.5 s of a jaw transition (per arm); phase = thirds of the episode; zero_mm = stay-still baseline",
+  "ckpt": "<CK>",
+  "confident_frames_metrics": {
+   "L_all_mm": {
+    "mean": 61.5,
+    "median": 61.4,
+    "n": 4
+   },
+   "L_all_zero": {
+    "mean": 41.3,
+    "median": 41.8,
+    "n": 4
+   },
+   "L_free_mm": {
+    "mean": 50.2,
+    "median": 50.2,
+    "n": 1
+   },
+   "L_free_zero": {
+    "mean": 22.0,
+    "median": 22.0,
+    "n": 1
+   },
+   "L_grasp_mm": {
+    "mean": 65.3,
+    "median": 72.6,
+    "n": 3
+   },
+   "L_grasp_zero": {
+    "mean": 47.8,
+    "median": 52.2,
+    "n": 3
+   },
+   "R_all_mm": {
+    "mean": 69.7,
+    "median": 58.9,
+    "n": 5
+   },
+   "R_all_zero": {
+    "mean": 64.2,
+    "median": 73.0,
+    "n": 5
+   },
+   "R_free_mm": {
+    "mean": 66.7,
+    "median": 58.1,
+    "n": 4
+   },
+   "R_free_zero": {
+    "mean": 66.4,
+    "median": 75.2,
+    "n": 4
+   },
+   "R_grasp_mm": {
+    "mean": 82.1,
+    "median": 82.1,
+    "n": 1
+   },
+   "R_grasp_zero": {
+    "mean": 55.2,
+    "median": 55.2,
+    "n": 1
+   },
+   "free_k32_mm": 63.4,
+   "free_stay_still_mm": 57.6,
+   "grasp_k32_mm": 69.5,
+   "grasp_stay_still_mm": 49.6,
+   "k32_trans_mm_conf": 66.1,
+   "stay_still_mm_conf": 54.0
+  },
+  "confident_rule": "anchor t and target t+32 both tag-backed or fgo gap <= 0.5 s (per arm); grasp = anchor within +-0.5 s of a jaw transition; cut-offs: < 60 mm meaningful, 40-50 promising, 30-40 rollout-worthy",
+  "data": "<DATA>",
+  "deviation": {
+   "L_deg_k1": {
+    "mean": 130.5,
+    "median": 145.0,
+    "p90": 173.3
+   },
+   "L_deg_k16": {
+    "mean": 130.1,
+    "median": 143.4,
+    "p90": 174.0
+   },
+   "L_deg_k32": {
+    "mean": 129.6,
+    "median": 140.6,
+    "p90": 174.7
+   },
+   "L_deg_k8": {
+    "mean": 129.9,
+    "median": 144.3,
+    "p90": 172.5
+   },
+   "L_mm_k1": {
+    "mean": 50.9,
+    "median": 50.4,
+    "p90": 70.7
+   },
+   "L_mm_k16": {
+    "mean": 59.2,
+    "median": 56.8,
+    "p90": 91.9
+   },
+   "L_mm_k32": {
+    "mean": 67.0,
+    "median": 70.6,
+    "p90": 99.8
+   },
+   "L_mm_k8": {
+    "mean": 56.2,
+    "median": 51.4,
+    "p90": 93.9
+   },
+   "L_zero_mm_k1": {
+    "mean": 51.0,
+    "median": 49.7,
+    "p90": 72.3
+   },
+   "L_zero_mm_k16": {
+    "mean": 50.5,
+    "median": 43.7,
+    "p90": 77.8
+   },
+   "L_zero_mm_k32": {
+    "mean": 48.0,
+    "median": 46.2,
+    "p90": 75.5
+   },
+   "L_zero_mm_k8": {
+    "mean": 51.3,
+    "median": 47.5,
+    "p90": 83.0
+   },
+   "R_deg_k1": {
+    "mean": 128.7,
+    "median": 134.1,
+    "p90": 171.7
+   },
+   "R_deg_k16": {
+    "mean": 128.2,
+    "median": 134.5,
+    "p90": 172.7
+   },
+   "R_deg_k32": {
+    "mean": 127.5,
+    "median": 135.4,
+    "p90": 168.9
+   },
+   "R_deg_k8": {
+    "mean": 128.2,
+    "median": 135.5,
+    "p90": 171.5
+   },
+   "R_mm_k1": {
+    "mean": 55.3,
+    "median": 53.0,
+    "p90": 87.6
+   },
+   "R_mm_k16": {
+    "mean": 54.5,
+    "median": 57.1,
+    "p90": 77.8
+   },
+   "R_mm_k32": {
+    "mean": 79.0,
+    "median": 77.8,
+    "p90": 119.6
+   },
+   "R_mm_k8": {
+    "mean": 49.5,
+    "median": 41.7,
+    "p90": 84.9
+   },
+   "R_zero_mm_k1": {
+    "mean": 54.7,
+    "median": 52.4,
+    "p90": 85.4
+   },
+   "R_zero_mm_k16": {
+    "mean": 48.4,
+    "median": 49.6,
+    "p90": 72.3
+   },
+   "R_zero_mm_k32": {
+    "mean": 58.4,
+    "median": 55.2,
+    "p90": 87.2
+   },
+   "R_zero_mm_k8": {
+    "mean": 47.5,
+    "median": 47.3,
+    "p90": 76.6
+   }
+  },
+  "gripper": {
+   "gt_events": 34,
+   "matched": 0,
+   "missed": 34,
+   "rule": "pred k=1 gripper > 0.5 = open; events matched within +-1 s",
+   "spurious": 0,
+   "state_agreement_LR": [
+    0.421,
+    0.444
+   ],
+   "timing_err_ms": null
+  },
+  "gripper_horizon": {
+   "k16": {
+    "acc": 0.564,
+    "copy_baseline_acc": 0.5,
+    "gt_open_frac": 0.436,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.641,
+    "switch_n": 39
+   },
+   "k32": {
+    "acc": 0.513,
+    "copy_baseline_acc": 0.526,
+    "gt_open_frac": 0.487,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.595,
+    "switch_n": 37
+   },
+   "k8": {
+    "acc": 0.487,
+    "copy_baseline_acc": 0.654,
+    "gt_open_frac": 0.513,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.593,
+    "switch_n": 27
+   }
+  },
+  "gripper_horizon_def": "10-29: k1 agreement is reachable by COPYING the input jaw state (Exp 1/2 did: 98 % here, never opened on the robot). acc_k = jaw at chunk row k vs target; switch_k = only anchors whose target jaw at k differs from row 1 (a copy-the-state policy scores ~0 there); copy_baseline_* = predicting the row-1 target for every row",
+  "lr_swap_check": {
+   "cos_pred_vs_other_arm_gt": {
+    "mean": 0.1,
+    "median": 0.3,
+    "p90": 0.8
+   },
+   "cos_pred_vs_same_arm_gt": {
+    "mean": -0.0,
+    "median": -0.1,
+    "p90": 0.8
+   },
+   "n": 72
+  },
+  "per_episode": [
+   {
+    "L_deg_k16": 131.1,
+    "L_deg_k32": 133.2,
+    "L_deg_k8": 130.2,
+    "L_mm_k16": 62.7,
+    "L_mm_k32": 71.0,
+    "L_mm_k8": 58.5,
+    "L_zero_mm_k16": 50.5,
+    "L_zero_mm_k32": 46.2,
+    "L_zero_mm_k8": 51.0,
+    "R_deg_k16": 145.6,
+    "R_deg_k32": 144.7,
+    "R_deg_k8": 145.8,
+    "R_mm_k16": 50.4,
+    "R_mm_k32": 82.3,
+    "R_mm_k8": 49.9,
+    "R_zero_mm_k16": 36.2,
+    "R_zero_mm_k32": 57.4,
+    "R_zero_mm_k8": 47.6,
+    "conf_k32_mm": 72.8,
+    "conf_k32_zero_mm": 56.1,
+    "conf_n": 4,
+    "episode_index": 0,
+    "key": "A",
+    "n": 14
+   },
+   {
+    "L_deg_k16": 130.5,
+    "L_deg_k32": 128.0,
+    "L_deg_k8": 131.1,
+    "L_mm_k16": 52.9,
+    "L_mm_k32": 72.1,
+    "L_mm_k8": 50.8,
+    "L_zero_mm_k16": 45.0,
+    "L_zero_mm_k32": 53.3,
+    "L_zero_mm_k8": 46.2,
+    "R_deg_k16": 110.2,
+    "R_deg_k32": 110.6,
+    "R_deg_k8": 110.1,
+    "R_mm_k16": 59.5,
+    "R_mm_k32": 92.4,
+    "R_mm_k8": 47.8,
+    "R_zero_mm_k16": 54.3,
+    "R_zero_mm_k32": 64.4,
+    "R_zero_mm_k8": 50.0,
+    "conf_k32_mm": null,
+    "conf_k32_zero_mm": null,
+    "conf_n": 0,
+    "episode_index": 1,
+    "key": "B",
+    "n": 10
+   },
+   {
+    "L_deg_k16": 129.0,
+    "L_deg_k32": 127.3,
+    "L_deg_k8": 128.8,
+    "L_mm_k16": 60.2,
+    "L_mm_k32": 59.8,
+    "L_mm_k8": 57.6,
+    "L_zero_mm_k16": 54.2,
+    "L_zero_mm_k32": 46.1,
+    "L_zero_mm_k8": 54.9,
+    "R_deg_k16": 124.0,
+    "R_deg_k32": 122.7,
+    "R_deg_k8": 123.9,
+    "R_mm_k16": 55.1,
+    "R_mm_k32": 66.9,
+    "R_mm_k8": 50.3,
+    "R_zero_mm_k16": 55.7,
+    "R_zero_mm_k32": 55.4,
+    "R_zero_mm_k8": 45.7,
+    "conf_k32_mm": 60.7,
+    "conf_k32_zero_mm": 52.4,
+    "conf_n": 5,
+    "episode_index": 2,
+    "key": null,
+    "n": 15
+   }
+  ],
+  "policy": "act",
+  "samples": 39,
+  "stride": 3,
+  "val_loss": 0.27132,
+  "val_score_def": "mean (not median: val is ~40 % near-static windows) L/R translation deviation (mm) at k=16 and k=32; early-stop metric",
+  "val_score_mm": 64.92
+ },
+ "multi_task_dit": {
+  "breakdown": {
+   "all": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 64.0,
+    "mm_k32": 103.6,
+    "n": 78,
+    "zero_mm_k16": 46.8,
+    "zero_mm_k32": 52.8
+   },
+   "free": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 63.4,
+    "mm_k32": 101.1,
+    "n": 41,
+    "zero_mm_k16": 43.8,
+    "zero_mm_k32": 52.6
+   },
+   "free_L": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 60.2,
+    "mm_k32": 102.6,
+    "n": 22,
+    "zero_mm_k16": 42.4,
+    "zero_mm_k32": 52.3
+   },
+   "free_R": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 67.1,
+    "mm_k32": 99.4,
+    "n": 19,
+    "zero_mm_k16": 45.5,
+    "zero_mm_k32": 52.8
+   },
+   "grasp": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 64.6,
+    "mm_k32": 106.4,
+    "n": 37,
+    "zero_mm_k16": 50.2,
+    "zero_mm_k32": 53.0
+   },
+   "grasp_L": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 64.0,
+    "mm_k32": 110.9,
+    "n": 17,
+    "zero_mm_k16": 47.8,
+    "zero_mm_k32": 57.7
+   },
+   "grasp_R": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 65.2,
+    "mm_k32": 102.6,
+    "n": 20,
+    "zero_mm_k16": 52.2,
+    "zero_mm_k32": 49.0
+   },
+   "phase_early": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 67.5,
+    "mm_k32": 104.8,
+    "n": 28,
+    "zero_mm_k16": 46.7,
+    "zero_mm_k32": 54.6
+   },
+   "phase_late": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 63.0,
+    "mm_k32": 96.9,
+    "n": 26,
+    "zero_mm_k16": 48.3,
+    "zero_mm_k32": 49.4
+   },
+   "phase_mid": {
+    "deg_k16": "nan",
+    "deg_k32": "nan",
+    "mm_k16": 60.9,
+    "mm_k32": 109.4,
+    "n": 24,
+    "zero_mm_k16": 45.4,
+    "zero_mm_k32": 54.4
+   }
+  },
+  "breakdown_def": "mean over every evaluated anchor and arm (no confidence filter); grasp = anchor within +-0.5 s of a jaw transition (per arm); phase = thirds of the episode; zero_mm = stay-still baseline",
+  "ckpt": "<CK>",
+  "confident_frames_metrics": {
+   "L_all_mm": {
+    "mean": 110.5,
+    "median": 115.3,
+    "n": 4
+   },
+   "L_all_zero": {
+    "mean": 61.4,
+    "median": 58.5,
+    "n": 4
+   },
+   "L_free_mm": {
+    "mean": 136.1,
+    "median": 136.1,
+    "n": 1
+   },
+   "L_free_zero": {
+    "mean": 96.9,
+    "median": 96.9,
+    "n": 1
+   },
+   "L_grasp_mm": {
+    "mean": 101.9,
+    "median": 94.5,
+    "n": 3
+   },
+   "L_grasp_zero": {
+    "mean": 49.5,
+    "median": 55.1,
+    "n": 3
+   },
+   "R_all_mm": {
+    "mean": 82.8,
+    "median": 90.5,
+    "n": 5
+   },
+   "R_all_zero": {
+    "mean": 47.7,
+    "median": 43.4,
+    "n": 5
+   },
+   "R_free_mm": {
+    "mean": 76.3,
+    "median": 78.3,
+    "n": 4
+   },
+   "R_free_zero": {
+    "mean": 45.3,
+    "median": 40.7,
+    "n": 4
+   },
+   "R_grasp_mm": {
+    "mean": 108.9,
+    "median": 108.9,
+    "n": 1
+   },
+   "R_grasp_zero": {
+    "mean": 57.2,
+    "median": 57.2,
+    "n": 1
+   },
+   "free_k32_mm": 88.3,
+   "free_stay_still_mm": 55.6,
+   "grasp_k32_mm": 103.7,
+   "grasp_stay_still_mm": 51.5,
+   "k32_trans_mm_conf": 95.1,
+   "stay_still_mm_conf": 53.8
+  },
+  "confident_rule": "anchor t and target t+32 both tag-backed or fgo gap <= 0.5 s (per arm); grasp = anchor within +-0.5 s of a jaw transition; cut-offs: < 60 mm meaningful, 40-50 promising, 30-40 rollout-worthy",
+  "data": "<DATA>",
+  "deviation": {
+   "L_deg_k1": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "L_deg_k16": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "L_deg_k32": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "L_deg_k8": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "L_mm_k1": {
+    "mean": 46.2,
+    "median": 43.3,
+    "p90": 69.1
+   },
+   "L_mm_k16": {
+    "mean": 61.8,
+    "median": 58.6,
+    "p90": 94.6
+   },
+   "L_mm_k32": {
+    "mean": 106.2,
+    "median": 104.7,
+    "p90": 143.9
+   },
+   "L_mm_k8": {
+    "mean": 48.8,
+    "median": 50.6,
+    "p90": 67.0
+   },
+   "L_zero_mm_k1": {
+    "mean": 46.4,
+    "median": 46.8,
+    "p90": 69.5
+   },
+   "L_zero_mm_k16": {
+    "mean": 44.7,
+    "median": 45.8,
+    "p90": 72.7
+   },
+   "L_zero_mm_k32": {
+    "mean": 54.7,
+    "median": 52.4,
+    "p90": 85.4
+   },
+   "L_zero_mm_k8": {
+    "mean": 45.6,
+    "median": 47.0,
+    "p90": 64.5
+   },
+   "R_deg_k1": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "R_deg_k16": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "R_deg_k32": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "R_deg_k8": {
+    "mean": "nan",
+    "median": "nan",
+    "p90": "nan"
+   },
+   "R_mm_k1": {
+    "mean": 45.4,
+    "median": 46.4,
+    "p90": 66.2
+   },
+   "R_mm_k16": {
+    "mean": 66.1,
+    "median": 68.1,
+    "p90": 93.1
+   },
+   "R_mm_k32": {
+    "mean": 101.0,
+    "median": 97.1,
+    "p90": 142.1
+   },
+   "R_mm_k8": {
+    "mean": 49.7,
+    "median": 51.5,
+    "p90": 86.9
+   },
+   "R_zero_mm_k1": {
+    "mean": 45.1,
+    "median": 45.3,
+    "p90": 66.6
+   },
+   "R_zero_mm_k16": {
+    "mean": 49.0,
+    "median": 43.8,
+    "p90": 72.3
+   },
+   "R_zero_mm_k32": {
+    "mean": 50.9,
+    "median": 48.2,
+    "p90": 81.0
+   },
+   "R_zero_mm_k8": {
+    "mean": 42.6,
+    "median": 42.6,
+    "p90": 68.2
+   }
+  },
+  "gripper": {
+   "gt_events": 37,
+   "matched": 0,
+   "missed": 37,
+   "rule": "pred k=1 gripper > 0.5 = open; events matched within +-1 s",
+   "spurious": 0,
+   "state_agreement_LR": [
+    0.454,
+    0.444
+   ],
+   "timing_err_ms": null
+  },
+  "gripper_horizon": {
+   "k16": {
+    "acc": 0.551,
+    "copy_baseline_acc": 0.603,
+    "gt_open_frac": 0.449,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.645,
+    "switch_n": 31
+   },
+   "k32": {
+    "acc": 0.513,
+    "copy_baseline_acc": 0.462,
+    "gt_open_frac": 0.487,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.571,
+    "switch_n": 42
+   },
+   "k8": {
+    "acc": 0.59,
+    "copy_baseline_acc": 0.564,
+    "gt_open_frac": 0.41,
+    "pred_open_frac": 0.0,
+    "switch_acc": 0.676,
+    "switch_n": 34
+   }
+  },
+  "gripper_horizon_def": "10-29: k1 agreement is reachable by COPYING the input jaw state (Exp 1/2 did: 98 % here, never opened on the robot). acc_k = jaw at chunk row k vs target; switch_k = only anchors whose target jaw at k differs from row 1 (a copy-the-state policy scores ~0 there); copy_baseline_* = predicting the row-1 target for every row",
+  "lr_swap_check": {
+   "cos_pred_vs_other_arm_gt": {
+    "mean": -0.0,
+    "median": -0.1,
+    "p90": 0.8
+   },
+   "cos_pred_vs_same_arm_gt": {
+    "mean": -0.1,
+    "median": -0.1,
+    "p90": 0.8
+   },
+   "n": 74
+  },
+  "per_episode": [
+   {
+    "L_deg_k16": "nan",
+    "L_deg_k32": "nan",
+    "L_deg_k8": "nan",
+    "L_mm_k16": 61.4,
+    "L_mm_k32": 107.0,
+    "L_mm_k8": 48.3,
+    "L_zero_mm_k16": 47.0,
+    "L_zero_mm_k32": 65.5,
+    "L_zero_mm_k8": 42.5,
+    "R_deg_k16": "nan",
+    "R_deg_k32": "nan",
+    "R_deg_k8": "nan",
+    "R_mm_k16": 64.1,
+    "R_mm_k32": 96.9,
+    "R_mm_k8": 54.4,
+    "R_zero_mm_k16": 44.9,
+    "R_zero_mm_k32": 46.7,
+    "R_zero_mm_k8": 46.8,
+    "conf_k32_mm": 105.4,
+    "conf_k32_zero_mm": 64.7,
+    "conf_n": 4,
+    "episode_index": 0,
+    "key": "A",
+    "n": 14
+   },
+   {
+    "L_deg_k16": "nan",
+    "L_deg_k32": "nan",
+    "L_deg_k8": "nan",
+    "L_mm_k16": 60.3,
+    "L_mm_k32": 101.3,
+    "L_mm_k8": 53.6,
+    "L_zero_mm_k16": 43.6,
+    "L_zero_mm_k32": 48.6,
+    "L_zero_mm_k8": 51.6,
+    "R_deg_k16": "nan",
+    "R_deg_k32": "nan",
+    "R_deg_k8": "nan",
+    "R_mm_k16": 58.9,
+    "R_mm_k32": 114.6,
+    "R_mm_k8": 43.8,
+    "R_zero_mm_k16": 45.1,
+    "R_zero_mm_k32": 66.4,
+    "R_zero_mm_k8": 40.6,
+    "conf_k32_mm": null,
+    "conf_k32_zero_mm": null,
+    "conf_n": 0,
+    "episode_index": 1,
+    "key": "B",
+    "n": 10
+   },
+   {
+    "L_deg_k16": "nan",
+    "L_deg_k32": "nan",
+    "L_deg_k8": "nan",
+    "L_mm_k16": 63.3,
+    "L_mm_k32": 108.7,
+    "L_mm_k8": 46.0,
+    "L_zero_mm_k16": 43.4,
+    "L_zero_mm_k32": 48.6,
+    "L_zero_mm_k8": 44.4,
+    "R_deg_k16": "nan",
+    "R_deg_k32": "nan",
+    "R_deg_k8": "nan",
+    "R_mm_k16": 72.9,
+    "R_mm_k32": 95.8,
+    "R_mm_k8": 49.2,
+    "R_zero_mm_k16": 55.3,
+    "R_zero_mm_k32": 44.3,
+    "R_zero_mm_k8": 40.0,
+    "conf_k32_mm": 86.9,
+    "conf_k32_zero_mm": 45.0,
+    "conf_n": 5,
+    "episode_index": 2,
+    "key": null,
+    "n": 15
+   }
+  ],
+  "policy": "multi_task_dit",
+  "samples": 39,
+  "stride": 3,
+  "val_loss": 0.26661,
+  "val_score_def": "mean (not median: val is ~40 % near-static windows) L/R translation deviation (mm) at k=16 and k=32; early-stop metric",
+  "val_score_mm": 83.79
+ }
+}
