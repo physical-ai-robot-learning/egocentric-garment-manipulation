@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Check every number in the technical report (report/report_en.tex) against the repository file it comes from.
 
-The report adds no new numbers: each number it prints was taken from one of the project's documents. This script
-extracts every number from the body of report/report_en.tex and asserts that it appears, as a whole number token, in
-the source file that SOURCES maps it to. A number that is in the report but not in SOURCES fails ("unmapped"); a
+The report adds no new numbers: each number it prints was taken from one of the project's documents (README.md,
+docs/pipeline.md, docs/history.md, docs/results.md, docs/details.md, docs/status_2026-11-0*.md or the archived
+report v0.1). This script extracts every number from the body of report/report_en.tex and asserts that it appears, as
+a whole number token, in the source file that SOURCES maps it to. A number that is in the report but not in SOURCES fails ("unmapped"); a
 mapping that is no longer used fails too ("stale"), so the map stays in step with the text.
 
 What is not a claim and is skipped: the preamble and the bibliography, LaTeX labels / references / citations, file
@@ -28,6 +29,8 @@ STATUS = "docs/status_2026-11-01.md"
 STATUS2 = "docs/status_2026-11-02.md"
 STATUS3 = "docs/status_2026-11-05.md"
 V01 = "report/archive/report_v0.1_en.tex"
+# 2026-11-05: the long parts of the README moved to docs/ (text unchanged); numbers that left the README point there
+PIPELINE, HISTORY = "docs/pipeline.md", "docs/history.md"
 
 # number as printed in the report -> the repository file it was taken from
 SOURCES = {
@@ -35,19 +38,19 @@ SOURCES = {
     "2026": README, "1": STATUS, "8": V01, "13": README, "16": RESULTS, "20": README, "21": V01, "22": README,
     "23": README, "25": V01, "26": README, "27": README, "28": README, "29": README, "30": STATUS,
     "0": V01, "0.1": V01, "2": README, "3": V01, "4": RESULTS, "5": V01, "6": README, "7": README, "9": STATUS,
-    "10": README, "12": V01, "14": RESULTS, "15": README, "17": V01, "18": V01, "19": RESULTS,
+    "10": README, "12": V01, "14": RESULTS, "15": PIPELINE, "17": V01, "18": V01, "19": RESULTS,
     # hardware
-    "48": README, "336": README, "38": RESULTS, "4.0": README, "1280": V01, "720": V01, "100": README, "113": README, "5090": README, "4090": STATUS,
+    "48": README, "336": README, "38": RESULTS, "4.0": README, "1280": V01, "720": V01, "100": PIPELINE, "113": README, "5090": PIPELINE, "4090": STATUS,
     # world frame and calibration
-    "32": README, "96": DETAILS, "105": DETAILS, "70": README, "89": README, "8.4": README, "0.98": RESULTS,
-    "1.3": RESULTS, "225": README, "166": README, "243": README, "194": README, "1.8": RESULTS, "4.8": RESULTS,
+    "32": README, "96": DETAILS, "105": DETAILS, "70": PIPELINE, "89": PIPELINE, "8.4": PIPELINE, "0.98": RESULTS,
+    "1.3": RESULTS, "225": PIPELINE, "166": PIPELINE, "243": PIPELINE, "194": PIPELINE, "1.8": RESULTS, "4.8": RESULTS,
     "400": README, "401": README,
     # pose
     "0.10": V01, "0.2": V01, "40": DETAILS, "42": RESULTS, "49": DETAILS, "77": DETAILS, "2.0": V01,
     "60": STATUS, "73": RESULTS, "1000": RESULTS, "0.07": RESULTS, "0.16": RESULTS, "0.25": RESULTS,
     "0.43": RESULTS, "24": V01, "35": STATUS,
     # jaw labels
-    "98": README, "80": README,
+    "98": PIPELINE, "80": HISTORY,
     # replay track
     "0.06": V01, "50": STATUS, "320": V01, "480": V01, "120": V01, "0.35": README, "33": STATUS, "94": README,
     "1.5": RESULTS, "0.9": RESULTS, "1.1": RESULTS, "5.5": RESULTS, "11.6": RESULTS, "14.5": RESULTS,
@@ -65,7 +68,7 @@ SOURCES = {
     "4.9": STATUS, "0.7": V01, "0.6": V01, "44": README, "65": README, "0.93": README, "127": README,
     # policies
     # pinching (status 2026-11-01)
-    "74": STATUS, "56": STATUS, "147": STATUS, "197": STATUS, "144": STATUS, "62160": STATUS, "55": STATUS, "46": STATUS, "4.7": STATUS, "31": README, "6207": STATUS, "19.89": STATUS, "19.13": STATUS,
+    "74": STATUS, "56": STATUS, "147": STATUS, "197": STATUS, "144": STATUS, "62160": STATUS, "55": STATUS, "46": STATUS, "4.7": STATUS, "31": HISTORY, "6207": STATUS, "19.89": STATUS, "19.13": STATUS,
     "17.1": STATUS, "17.7": STATUS, "150": STATUS, "500": STATUS, "2.6": STATUS,
     # pinching robot runs (status 2026-11-02)
     "17.29": STATUS2, "18.89": STATUS2,
