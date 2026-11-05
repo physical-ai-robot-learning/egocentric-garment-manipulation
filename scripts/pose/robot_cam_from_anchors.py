@@ -37,7 +37,16 @@ def main() -> None:
     if not P3: sys.exit(f"anchor tags seen {seen} -- none")
     if min(seen.values()) == 0: print(f"WARNING only one anchor tag seen {seen}: yaw / x-y rest on a single small tag (provisional)")
     P3, P2 = np.concatenate(P3), np.concatenate(P2).astype(float)
-    ok, rv, tv = cv2.solvePnP(P3, P2, K, None, flags=cv2.SOLVEPNP_ITERATIVE)
+    # 11-03: the anchors are two coplanar tags -> planar PnP ambiguity; the ITERATIVE init flipped the camera below the table (z ~ 0,
+    # 133 deg off, 47 px).  Take every IPPE solution of every frame's tags and keep the one with the camera highest above the table.
+    cands = []
+    for flags in (cv2.SOLVEPNP_IPPE, cv2.SOLVEPNP_ITERATIVE):
+        try:
+            n_, rvs, tvs, _ = cv2.solvePnPGeneric(P3, P2, K, None, flags=flags)
+            cands += list(zip(rvs, tvs))
+        except cv2.error: pass
+    def cam_z(rv_, tv_): Rm_ = R.from_rotvec(np.ravel(rv_)).as_matrix(); return float((-Rm_.T @ np.ravel(tv_))[2])
+    rv, tv = max(cands, key=lambda c: cam_z(*c)); print(f'PnP init: camera z {cam_z(rv, tv):.3f} m (of {len(cands)} candidates)')
     # table plane points (camera frame) from the first selected depth frame: RANSAC plane, inliers subsampled
     d = cv2.imread(str(E / f"depth_{s0:05d}.png"), -1).astype(np.float32) / 1000; H_, W_ = d.shape; vv, uu = np.mgrid[0:H_:4, 0:W_:4]; z = d[::4, ::4]
     X = np.stack([(uu - I["cx"]) / I["fx"] * z, (vv - I["cy"]) / I["fy"] * z, z], -1).reshape(-1, 3); X = X[(X[:, 2] > 0.3) & (X[:, 2] < 2.5)]

@@ -19,6 +19,10 @@ python scripts/evaluation/regress_replay_plan.py [--update]                     
 
 ## Layout
 - `replay_parity.py`, `replay_side_by_side.py`, `regress_replay_plan.py`
+- `epoch_eval_gateway.sh` (11-05): follows a cluster training run (`RUN`, `TAG`, `DSP` = local val / test set prefix,
+  `EPOCH_UPD`, optional `PGRASP`), pulls each new epoch checkpoint and runs the policy offline evaluator on val and test
+  (stride 16) → `reports/<TAG>/epoch_evals.jsonl`; keeps best-val + newest locally. Written for the training workspace of
+  the recording Mac (paths inside the script).
 
 ## Provenance
 Moved from flat `scripts/` in the 11-01 layout refactor.

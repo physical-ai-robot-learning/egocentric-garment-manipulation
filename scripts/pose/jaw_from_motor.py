@@ -43,6 +43,12 @@ def main():
             shift = float(np.median(pos)) - c
             if abs(shift) > SHIFT_TOL: c, o = c + shift, o + shift; print(f"{take.name} {side}: servo reading shifted by {shift:+.0f} ticks -> cal closed {c:.0f} open {o:.0f}")
             else: shift = 0.0
+            # 11-04 12:xx: the LEFT jaw was re-assembled between takes 105052 and 123741 -> its reading now FALLS when opening (was rising)
+            # with a ~600-tick stroke.  The jaw rests closed (median), so the open side is the side with the long tail: if that side is
+            # opposite to the calibrated direction, take open = the 1st/99th percentile on the observed side for this take.
+            med, p1, p99 = np.percentile(pos, [50, 1, 99]); obs = 1.0 if (p99 - med) > (med - p1) else -1.0
+            if obs != np.sign(o - c):
+                o = float(p99 if obs > 0 else p1); print(f"{take.name} {side}: jaw direction FLIPPED vs calibration -> cal closed {c:.0f} open {o:.0f} (stroke {abs(o - c):.0f})")
             g = np.clip((pos - c) / (o - c), 0.0, 1.0).astype(np.float32)
             st, ev = hysteresis(t, g, a.hi, a.lo, a.dwell)
             out = take / d; out.mkdir(exist_ok=True)

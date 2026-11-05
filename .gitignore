@@ -7,3 +7,6 @@ report/*.aux
 report/*.log
 *.egg-info/
 build/
+
+# local backups made next to edited files on the robot Mac
+*.bak_*

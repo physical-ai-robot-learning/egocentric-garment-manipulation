@@ -3229,7 +3229,10 @@
     "<TMP>/ego_ckpt_root/ckpts/runpod/pod1/DITFT-SFPRE300K-FLAT300-A-GOLD281-BS16-300K/checkpoints",
     "<TMP>/ego_ckpt_root/ckpts/runpod/h100/DITFT-MIX3PT100K-S03ALL281-B64-BCE-GSM-E150-NOCLIP/checkpoints",
     "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-S03PT50K-UMI50-S05-B64ACC4-BCE-GSM-E150-NOCLIP/checkpoints",
-    "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints"
+    "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints",
+    "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-E1000F227795-U200CG-S05-B64ACC4-BCE-GSM-AUG-E500-NOCLIP/checkpoints",
+    "<TMP>/ego_train_root/checkpoints/FLAT149_h100",
+    "<TMP>/ego_train_root/checkpoints/FLAT250_rollout"
    ],
    "xvla": [
     "<TMP>/ego_ckpt_root/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints"
@@ -3404,6 +3407,7 @@
    "PAGE",
    "UICtl",
    "ckpts",
+   "create_app",
    "dep_parser",
    "load_settings",
    "main",

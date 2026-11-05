@@ -15,6 +15,13 @@ from garment_pipeline.eval_deploy.tagrig_deploy.preview import Preview
 from garment_pipeline.eval_deploy.tagrig_deploy.report import summarize
 
 
+def scale_T(D, s):
+    """relative transform D scaled by s: translation x s, rotation angle x s (same axis)"""
+    from scipy.spatial.transform import Rotation as Rot
+    out = np.eye(4); out[:3, :3] = Rot.from_rotvec(Rot.from_matrix(D[:3, :3]).as_rotvec() * s).as_matrix(); out[:3, 3] = D[:3, 3] * s
+    return out
+
+
 def check_run_args(a):
     dit = a.policy == "dit"
     if a.commit is None: a.commit = 4 if (dit or a.policy == "label") else 1
@@ -69,6 +76,8 @@ def run_session(a, rig, ctl):
     if xvla:                                         # 10-29: X-VLA speed = time scale along the predicted path (amplitude scale stays 1)
         runner.time_scale = float(a.speed); say(f"X-VLA: 15 Hz 청크를 20 Hz 실행 행으로 재샘플, 속도 x{a.speed} = 시간 배율 (경로는 그대로)")
     elif dit: say(f"DiT: 속도 x{a.speed} = 시간 배율 (청크 경로를 그대로 천천히)")
+    amp = float(getattr(a, "amp", 1.0))
+    if amp != 1.0: say(f"움직임 크기 x{amp}: 커밋한 각 스텝의 이동(위치 + 회전)을 현재 자세 기준으로 줄임")
     # 10-29 indy7 c4fba14 look-ahead (continuous GO of X-VLA / DiT): the next forward starts while the current chunk still runs, the
     # chunk is anchored on the COMMANDED pose at the observation tick and merged into the streamer's indexed timeline (Streamer.merge)
     # 10-30 user (backstep at every chunk switch, 37/40 cycles -40 mm): --no-lookahead = run the whole commit, THEN observe + infer
@@ -263,6 +272,8 @@ def run_session(a, rig, ctl):
                 cand = {s: Tn[s] @ core.inv_T(Tc[s][k0 - 1] if k0 > 0 else Tm[s]) @ Tc[s][k - 1] for s in core.SIDES}   # T_now @ inv(dT_k0) @ dT_k
                 if a.temporal_ensemble > 0 and not look:     # look-ahead blends in the timeline instead
                     cand = {s: ensemble(ens, el + k * core.DT, s, a.temporal_ensemble) for s in core.SIDES}
+                if amp != 1.0:                              # 11-03 user "움직임이 너무 커": shrink each committed step's motion from T_now
+                    cand = {s: Tn[s] @ scale_T(core.inv_T(Tn[s]) @ cand[s], amp) for s in core.SIDES}
                 if hcal is not None:                        # plane follows the row xy; only the not-yet-carried part is added
                     ramp = 1.0 if z_off_done else min(1.0, j / 16.0)
                     for s_ in core.SIDES:

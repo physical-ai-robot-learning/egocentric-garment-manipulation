@@ -24,7 +24,7 @@ elementwise loss before the policy's own masked mean (USE_EPISODE_WEIGHT=0 disab
 Metrics (METRICS_EVERY steps, default 1) -> <output_dir>/metrics.jsonl: loss, global grad-norm BEFORE clipping, clip threshold,
 clipped flag, lr, per-group loss on normalised targets (pos = xyz L/R, rot = rot6d L/R, grip = gL/gR).  NaN/Inf loss or grad -> stop.
 """
-import json, math, pathlib, sys, time
+import json, math, os, pathlib, sys, time
 
 import numpy as np
 import torch
@@ -167,6 +167,10 @@ def chunk_mask(index):
     M[..., 3:9] = torch.minimum(M[..., 3:9], po[:, 1, None, None])
     M[..., 9:12] = torch.minimum(M[..., 9:12], po[:, 2, None, None]) * (po[:, 3] > 0)[:, None, None]
     M[..., 12:18] = torch.minimum(M[..., 12:18], po[:, 3, None, None])
+    if os.environ.get("MASK_CROSS_GAP", "0") == "1":                       # 11-04: once a future step's xyz is masked (gap >= FILL_MASK_S), every later
+        r0 = 0 if m["kind"] == "act" else 1                                # step of that chunk is masked too (the path across the gap is uncertain)
+        for sl in (slice(0, 3), slice(9, 12)):
+            M[:, r0:, sl] = torch.cummin(M[:, r0:, sl], dim=1).values
     if m["kind"] != "act": M[:, 0] = 1.0                                   # DiT row 0 = identity target
     return M
 
@@ -209,6 +213,7 @@ class ActRelDataset(LeRobotDataset):
 
 GRIP_STATE_MASK = __import__("os").environ.get("GRIP_STATE_MASK", "0") == "1"
 GRIP_STATE_DIMS = (18, 19)          # proprio30 [L pose9 | R pose9 | gL gR | T_LR pose9 | valid]
+PGRASP = __import__("os").environ.get("PGRASP", "")   # 11-05 FLAT250-PGRASP: jaw slots <- <root>/meta/pgrasp_<PGRASP>.npy (twin of laundry_training.datasets)
 
 
 # 11-01 user "이미지 증강 넣어보자": TRAIN-time image augmentation (AUG=1), applied per sample in the dataset (CPU workers, images in [0, 1],
@@ -219,20 +224,44 @@ GRIP_STATE_DIMS = (18, 19)          # proprio30 [L pose9 | R pose9 | gL gR | T_L
 import os as _os
 AUG = _os.environ.get("AUG", "0") == "1"
 AUG_P = {k: float(_os.environ.get(k, v)) for k, v in dict(AUG_G_SHIFT=0.045, AUG_G_ROT=2.0, AUG_G_ZOOM=0.02, AUG_W_SHIFT=0.08, AUG_W_ROT=5.0, AUG_W_ZOOM=0.05,
-                                                            AUG_BC=0.15, AUG_CH=0.05).items()}
+                                                            AUG_BC=0.15, AUG_CH=0.05, AUG_SAT=0.0, AUG_HUE=0.0).items()}
+# 11-02 user (UMI appendix "같게"): UMI ColorJitter = brightness 0.3 / contrast 0.4 / saturation 0.5 / hue 0.08 -> AUG_B / AUG_C (default AUG_BC),
+# AUG_SAT, AUG_HUE (default 0 = the 11-01 behaviour); UMI RandomCrop 0.95 ~ AUG_*_ZOOM 0.05 + shift 0.025, RandomRotation +-5 deg ~ AUG_*_ROT 5.
+AUG_P["AUG_B"] = float(_os.environ.get("AUG_B", AUG_P["AUG_BC"])); AUG_P["AUG_C"] = float(_os.environ.get("AUG_C", AUG_P["AUG_BC"]))
+
+
+# 11-02: TF.adjust_hue (RGB->HSV->RGB) cost 62 ms per camera sample on the CPU workers -> the 4xH100 run was data-bound at ~3 s/update.
+# Hue shift as a rotation of the chroma plane in YIQ (one 3x3 matrix, ~1 ms); hue_factor in turns like adjust_hue (0.08 = +-28.8 deg).
+_YIQ = torch.tensor([[0.299, 0.587, 0.114], [0.596, -0.274, -0.322], [0.211, -0.523, 0.312]], dtype=torch.float32)
+_YIQ_INV = torch.linalg.inv(_YIQ)
+
+
+def hue_rotate(y, hue_factor):
+    """y (N, 3, H, W) float in [0, 1]"""
+    a = 2.0 * math.pi * hue_factor; R = torch.tensor([[1.0, 0.0, 0.0], [0.0, math.cos(a), -math.sin(a)], [0.0, math.sin(a), math.cos(a)]])
+    M = (_YIQ_INV @ R @ _YIQ).to(y.dtype)
+    return torch.einsum("ij,njhw->nihw", M, y).clamp(0.0, 1.0)
 
 
 def aug_image(x, shift, rot_deg, zoom):
     """x (..., C, H, W) float in [0, 1]: one random similarity (shift, rotation, zoom; border padding) + brightness / contrast / channel
     gain, the SAME for all frames of this sample (n_obs_steps)"""
+    # 11-01: the 4090 video backend yields uint8 0..255 (the Mac pyav path float 0..1) -> work in float, return the input dtype/range
+    dt = x.dtype; isint = not torch.is_floating_point(x); x = x.float() / 255.0 if isint else x
     shp = x.shape; y = x.reshape(-1, *shp[-3:]); u = lambda r: (torch.rand(()) * 2 - 1) * r
     th = math.radians(float(u(rot_deg))); z = 1.0 + float(u(zoom)); tx, ty = float(u(2 * shift)), float(u(2 * shift))   # affine_grid units: [-1, 1]
     A = torch.tensor([[math.cos(th) / z, -math.sin(th) / z, tx], [math.sin(th) / z, math.cos(th) / z, ty]], dtype=y.dtype).expand(y.shape[0], 2, 3)
     g = torch.nn.functional.affine_grid(A, list(y.shape), align_corners=False)
     y = torch.nn.functional.grid_sample(y, g, mode="bilinear", padding_mode="border", align_corners=False)
-    b, c = 1.0 + float(u(AUG_P["AUG_BC"])), 1.0 + float(u(AUG_P["AUG_BC"])); ch = 1.0 + (torch.rand(3, dtype=y.dtype) * 2 - 1) * AUG_P["AUG_CH"]
+    b, c = 1.0 + float(u(AUG_P["AUG_B"])), 1.0 + float(u(AUG_P["AUG_C"])); ch = 1.0 + (torch.rand(3, dtype=y.dtype) * 2 - 1) * AUG_P["AUG_CH"]
     m = y.mean(dim=(-3, -2, -1), keepdim=True); y = ((y - m) * c + m) * b * ch.view(1, 3, 1, 1)
-    return y.clamp(0.0, 1.0).reshape(shp)
+    if AUG_P["AUG_SAT"] > 0 or AUG_P["AUG_HUE"] > 0:
+        import torchvision.transforms.functional as TF
+        y = y.clamp(0.0, 1.0)
+        if AUG_P["AUG_SAT"] > 0: y = TF.adjust_saturation(y, 1.0 + float(u(AUG_P["AUG_SAT"])))
+        if AUG_P["AUG_HUE"] > 0: y = hue_rotate(y, float(u(AUG_P["AUG_HUE"])))
+    y = y.clamp(0.0, 1.0).reshape(shp)
+    return (y * 255.0).round().to(dt) if isint else y.to(dt)
 
 
 class DitRelDataset(LeRobotDataset):
@@ -244,9 +273,14 @@ class DitRelDataset(LeRobotDataset):
         if a.ndim == 2 and a.shape[0] == 33:
             item["action"] = torch.from_numpy(to_contract33(a.numpy()))
         if GRIP_STATE_MASK and "observation.state" in item:
-            st = item["observation.state"].clone(); st[..., list(GRIP_STATE_DIMS)] = 0.0; item["observation.state"] = st
+            st = item["observation.state"].clone(); st[..., list(GRIP_STATE_DIMS)] = 0.0
+            if PGRASP:
+                if getattr(self, "_pg", None) is None: self._pg = np.load(self.root / "meta" / f"pgrasp_{PGRASP}.npy", mmap_mode="r")
+                i_, f_ = int(item["index"]), int(item["frame_index"]); rows = [i_ - 1 if f_ > 0 else i_, i_][-st.shape[0]:] if st.dim() == 2 else [i_]
+                st[..., list(GRIP_STATE_DIMS)] = torch.from_numpy(np.asarray(self._pg[rows], np.float32)).reshape(st.shape[:-1] + (2,))
+            item["observation.state"] = st
         if AUG:
-            for k in [k for k in item if k.startswith("observation.images.")]:
+            for k in [k for k in item if k.startswith("observation.images.") and not k.endswith("_is_pad") and torch.is_tensor(item[k]) and item[k].dim() >= 3]:   # 11-01: skip the <cam>_is_pad masks
                 g_ = k.endswith(".global"); P_ = AUG_P
                 item[k] = aug_image(item[k], P_["AUG_G_SHIFT"] if g_ else P_["AUG_W_SHIFT"], P_["AUG_G_ROT"] if g_ else P_["AUG_W_ROT"], P_["AUG_G_ZOOM"] if g_ else P_["AUG_W_ZOOM"])
         return item

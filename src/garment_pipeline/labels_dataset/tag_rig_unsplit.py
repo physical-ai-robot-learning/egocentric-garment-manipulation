@@ -19,7 +19,7 @@ Per frame, per arm (stored):
 Episode drop only if: measured < 50 % for BOTH arms after the trim, or a filled run > 5 s overlaps a grasp window (+-0.5 s of a close).
 Split: frozen by demo -- demos of the v1 split keep their split; new eligible demos get a stratified, seeded 85/8/7 assignment.
 usage: tag_rig_unsplit.py --out data/lerobot/tagrig_laundry_v2u --takes TAKE... [--old-split .../meta/split.json] [--render 4] [--cam-shift-ms 0]"""
-import argparse, csv, json, pathlib, shutil, sys, time
+import argparse, csv, json, os, pathlib, shutil, sys, time
 
 import cv2, numpy as np
 
@@ -32,6 +32,7 @@ from contracts.observation_contract import PROPRIO_DIM, PROPRIO_NAMES  # noqa: E
 
 EXCLUDE_TAKES = {"20261023_113219", "20261023_115848", "20261023_112832", "20261023_113038"}   # user 10-23: never use (aborted / empty)
 FILL_MASK_S, IK_FAIL_MM, GRASP_OK_MM, GRASP_WARN_MM, GRASP_W = 0.5, 10.0, 20.0, 50.0, 0.5
+FILL_MASK_S = float(os.environ.get("FILL_MASK_S", FILL_MASK_S))   # 11-04 user: gated, position masked in CoTracker/tag gaps >= 0.3 s
 DROP_MEASURED, DROP_FILL_IN_GRASP_S = 0.5, 5.0
 VARIANTS = ["strict", "relaxed_2s", "weighted"]   # tag-gap reference baselines; "imuconf" is appended when --pos-conf-dir is given (MAIN track)
 MASK_MODE = "gated"   # "stitched" (10-23 user GO): position weight 1.0 everywhere on the continuous stitched trajectory; hard masks only
@@ -187,6 +188,7 @@ def main():
     ap.add_argument("--mask-mode", default="gated", choices=["gated", "stitched"], help="stitched: pos weight 1.0 on the continuous stitched trajectory, masks = IK > 10 mm (pos+rot) + invalid jaw (grip); no drops")
     ap.add_argument("--grasp-fill-drop", default="on", choices=["on", "off"], help="off = v2u_all (10-23 decision): keep demos whose grasp is inside a > 5 s fill (positions stay masked)")
     ap.add_argument("--label", default="ikfk", choices=["ikfk", "rob", "fused"], help="10-26: rob = action_cartesian_robotized (A, policy target), ikfk = old IK->FK (B); 10-29: fused = human TCP without the table lift (F)")
+    ap.add_argument("--grip-label", default="binary", choices=["binary", "cont"], help="11-02: cont = gripper target is the continuous servo width (gripper_cont)")
     ap.add_argument("--speed", type=float, default=1.0, help="10-29: playback factor, 0.3 = demos 3.33x slower (pose, jaw and video on one timeline)"); ap.add_argument("--qa-only", default=""); ap.add_argument("--overwrite", action="store_true"); a = ap.parse_args()
     T2L.check_jaw_calib(); T2L.ROBOTIZE = "ik_v1"
     global MASK_MODE, IK_FAIL_MM, LABEL, SPEED; MASK_MODE = a.mask_mode; IK_FAIL_MM = a.ik_fail_mm; LABEL = a.label; SPEED = a.speed
@@ -259,7 +261,8 @@ def main():
     oldmap = {k: s for s, ks in old.items() for k in ks}; elig = [r["episode_key"] for r in rows if r["status"] == "eligible"]
     split = {k: oldmap[k] for k in elig if k in oldmap}; split.update(T2L.split_assign([k for k in elig if k not in oldmap], a.seed))
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
-    base = pathlib.Path(a.out).expanduser(); roots = {s: base.parent / f"{base.name}_{s}" for s in ("train", "val", "test")}
+    base = pathlib.Path(a.out).expanduser(); SPLITS = list(dict.fromkeys(["train", "val", "test"] + list(old.keys())))   # 11-04: extra splits (silver / reject) from --old-split
+    roots = {s: base.parent / f"{base.name}_{s}" for s in SPLITS}
     for r in roots.values():
         if r.exists():
             if not a.overwrite: sys.exit(f"{r} exists (pass --overwrite)")
@@ -288,6 +291,8 @@ def main():
             dss[sp] = LeRobotDataset.create(f"local/{base.name}_{sp}", fps=20, features=feats, root=roots[sp], robot_type="handumi_tagrig_x2",
                                             use_videos=True, image_writer_threads=0, streaming_encoding=True, encoder_threads=2)
         ds = dss[sp]; TL, TR, gL, gR = b["T_left"], b["T_right"], b["g_left"], b["g_right"]
+        if a.grip_label == "cont":       # 11-02 user: train the jaw CONTINUOUS (the measured servo width, = gripper_cont), binarise only at inference
+            gL, gR = np.asarray(b["gc_left"], np.float32), np.asarray(b["gc_right"], np.float32)
         st = proprio_rows_lr(TL, TR, gL, gR); act = abs_action_rows(TL, TR, gL, gR)
         pa = np.concatenate([T_to_pose9(TL), T_to_pose9(TR), gL[:, None], gR[:, None]], -1).astype(np.float32)
         for i in range(b["n"]):
@@ -321,8 +326,8 @@ def main():
         print(f"[assert] {sp_}: {len(conv)} demos == {chk.meta.total_episodes} episodes, every frame_index continuous", flush=True)
     cols = list(dict.fromkeys(k for r in rows for k in r))
     split_doc = dict(method="FROZEN by demo: v1 split kept for its demos; new eligible demos stratified (seed %d, 85/8/7)" % a.seed, seed=a.seed,
-                     episodes={s: sorted(k for k, v in split.items() if v == s) for s in ("train", "val", "test")}, old_split=a.old_split)
-    meta = dict(T2L.META, dataset="tagrig_laundry_v2u (unsplit + per-arm masks)", converter="tag_rig_unsplit.py", speed=SPEED, label=LABEL, pose_src=src, robotize="ik_v1", trim_csv=str(TRIM_CSV),
+                     episodes={s: sorted(k for k, v in split.items() if v == s) for s in SPLITS}, old_split=a.old_split)
+    meta = dict(T2L.META, dataset="tagrig_laundry_v2u (unsplit + per-arm masks)", converter="tag_rig_unsplit.py", speed=SPEED, label=LABEL, grip_label=a.grip_label, pose_src=src, robotize="ik_v1", trim_csv=str(TRIM_CSV),
                 fill_mask_s=FILL_MASK_S, ik_fail_mm=IK_FAIL_MM, ik_qa_flags="ik_warn: cutoff < err <= 50 mm, ik_severe: err > 50 mm (QA only, not weights); severe_flag = a > 50 mm run >= 1 s", grasp_gate=dict(ok_mm=GRASP_OK_MM, warn_mm=GRASP_WARN_MM, warn_weight=GRASP_W),
                 drop_rule=f"measured < {DROP_MEASURED * 100:.0f} % both arms" + (f", or a filled run > {DROP_FILL_IN_GRASP_S} s containing a jaw close" if a.grasp_fill_drop == "on" else " (grasp-fill drop OFF: v2u_all)"), cam_shift_ms=a.cam_shift_ms,
                 exclude_takes=sorted(EXCLUDE_TAKES), contract_version=__import__("contracts").CONTRACT_VERSION)

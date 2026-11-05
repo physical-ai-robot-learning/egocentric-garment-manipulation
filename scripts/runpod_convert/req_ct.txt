@@ -1,0 +1,10 @@
+# stage 4b CoTracker3 online (GPU pod), py3.11 like the Mac ego venv (run_cotracker_mps.py ran there). torch from the CUDA index, see pod_setup.sh (TORCH_INDEX). Mac ego venv had torch 2.5.0 / tv 0.20.0;
+# the 4090 env (~/ldt_tagrig/.venv on gpu-4090) versions were NOT inspected (OPEN in DEPS.md).
+torch==2.5.0
+torchvision==0.20.0
+numpy==2.4.6
+pillow==12.3.0
+einops==0.8.2
+imageio==2.37.4
+matplotlib==3.11.1
+tqdm==4.70.0

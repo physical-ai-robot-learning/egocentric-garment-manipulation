@@ -142,8 +142,13 @@ def start_preview(port: int) -> None:
     """10-17 (user: "녹화과정도 보고 싶어"): MJPEG of the Orbbec colour with tag overlays + phase/timer, http://localhost:<port>/"""
     class H(BaseHTTPRequestHandler):
         def do_GET(self):
+            if self.path.startswith("/space"):          # 11-03 user "브라우저 상에서 스페이스 누르면 다음 넘어가게": same as the terminal SPACE
+                PREV["space"] = True; self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(b'{"ok":true}'); return
             if self.path.startswith("/tags"):           # 10-20: for robot_cam_poses (tag 220 visible at this pose?)
                 b = json.dumps(PREV["tags"]).encode(); self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(b); return
+            if self.path.startswith("/frame"):          # 11-03: single JPEG polled by the page (MJPEG <img> went dark until a refresh)
+                b_ = PREV["jpg"] or b""; self.send_response(200); self.send_header("Content-Type", "image/jpeg"); self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Length", str(len(b_))); self.end_headers(); self.wfile.write(b_); return
             if self.path.startswith("/stream"):
                 self.send_response(200); self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=f"); self.end_headers()
                 try:
@@ -153,8 +158,15 @@ def start_preview(port: int) -> None:
                 except (BrokenPipeError, ConnectionResetError): return
             self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.end_headers()
             ws = "".join(f"<div style='display:inline-block;width:49.5%;color:#fff;font:bold 18px sans-serif;text-align:center'>{'왼손 LEFT' if h == 'left' else '오른손 RIGHT'}"
-                         f"<img src='http://localhost:{p}/stream' style='width:100%'></div>" for h, p in PREV.get("wrist_ports", []))      # 10-20: wrist previews; 10-29 user: left hand on the LEFT, labelled
-            self.wfile.write(("<html><body style='margin:0;background:#111'><img src='/stream' style='width:100%'>" + ws + "</body></html>").encode())
+                         f"<img class='pf' data-src='http://localhost:{p}/frame' style='width:100%'></div>" for h, p in PREV.get("wrist_ports", []))      # 10-20: wrist previews; 10-29 user: left hand on the LEFT, labelled
+            poll = ("<script>for(const im of document.querySelectorAll('img.pf')){const u=im.dataset.src;let busy=false;"   # 11-03: each image re-requests its next frame;
+                    "const next=()=>{busy=false};im.onload=next;im.onerror=()=>setTimeout(next,500);"                         # a dropped request just retries
+                    "setInterval(()=>{if(!busy){busy=true;im.src=u+'?t='+Date.now()}},90)}</script>")
+            js = ("<div id='sp' style='position:fixed;top:8px;right:8px;padding:10px 16px;background:#1d6;color:#000;font:bold 18px sans-serif;border-radius:8px;cursor:pointer'"
+                  " onclick='go()'>스페이스 = 이번 시연 끝 (브라우저)</div><script>function go(){fetch('/space');const e=document.getElementById('sp');"
+                  "e.style.background='#fd3';e.textContent='스페이스 보냄';setTimeout(()=>{e.style.background='#1d6';e.textContent='스페이스 = 이번 시연 끝 (브라우저)'},800)}"
+                  "document.addEventListener('keydown',ev=>{if(ev.code==='Space'){ev.preventDefault();if(!ev.repeat)go()}})</script>")
+            self.wfile.write(("<html><body style='margin:0;background:#111'><img class='pf' data-src='/frame' style='width:100%'>" + ws + js + poll + "</body></html>").encode())
         def log_message(self, *a): pass
     threading.Thread(target=ThreadingHTTPServer(("0.0.0.0", port), H).serve_forever, daemon=True).start()
     print(f"[태그] 미리보기 http://localhost:{port}/", flush=True)
@@ -335,6 +347,7 @@ def main() -> None:
         el = time.monotonic() - t_start
         if el >= acc: break
         p = max(i for i, s in enumerate(sched) if el >= s["t0"])
+        if PREV.pop("space", False): SKIP["req"] = True; print("[태그] 스페이스 입력 받음 (브라우저)", flush=True)
         if SKIP["req"]:
             SKIP["req"] = False
             if sched[p]["text"].startswith("자유:"):     # shorten this phase to now and pull every later phase forward

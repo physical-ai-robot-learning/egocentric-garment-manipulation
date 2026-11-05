@@ -1,0 +1,12 @@
+# stages 2 (tag_rig_to_lerobot --prep-only, which itself calls robotize_ik.py) and 6 (robotize_ik.py) -- mirrors ~/xvla-mac (py3.12).
+# Only the IK + prep subset; lerobot/torch/handumi/pyroki are NOT needed (pink backend; LeRobot build stays on the Mac).
+numpy==2.2.6
+scipy==1.18.1
+pandas==3.0.5
+pyarrow==25.0.1
+opencv-python-headless==4.13.0.92
+pyyaml==6.0.3
+pin==4.1.0
+pin-pink==4.4.0
+qpsolvers==4.13.0
+quadprog==0.1.13

@@ -25,7 +25,13 @@ CK_DIRS = {"act": [core.LDT / "checkpoints_pod/act_tagrig_v1_1m/checkpoints"],
                    # 10-30: today's pinching (A' 53, 0.5x) 1000-epoch run from E150, every 25 epochs; P10 test: 50 ep 18.5 mm vs E150 28.5
                    (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints"),
                    # 11-01: pinching 197 demos (all Cg, 0.5x, AUG) 500-epoch fine-tune from E1000 227795; P20: 25 ep 17.29, 50 ep 18.89
-                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-E1000F227795-U200CG-S05-B64ACC4-BCE-GSM-AUG-E500-NOCLIP/checkpoints")],
+                   (egopaths.CKPT_ROOT / "ckpts/4090/DITFT-E1000F227795-U200CG-S05-B64ACC4-BCE-GSM-AUG-E500-NOCLIP/checkpoints"),
+                   # 11-03: flattening 149 demos (10-30 48 + 11-02 101, Cg, 0.5x), UMI recipe 100 epochs from H100 663012, 4xH100;
+                   # CONTINUOUS jaw (no BCE head) -> deploy with grip_mode "binary"; val best ep80 012160 (60.89), test best ep90 013680 (64.36)
+                   (core.LDT / "checkpoints/FLAT149_h100"),
+                   # 11-05: flattening 250 demos (11-03 + 11-04, Cg, 0.3x, gated masks), UMI recipe 100 epochs from H100 663012, 2x4090 B1024;
+                   # CONTINUOUS jaw -> grip_mode "binary"; early rollout candidates ep08 (val 60.74) + ep10-12
+                   (core.LDT / "checkpoints/FLAT250_rollout")],
            "xvla": [XVLA_FT]}         # 10-28: Exp 3 X-VLA through deploy/xvla_server.py (:8775, separate venv)
 
 

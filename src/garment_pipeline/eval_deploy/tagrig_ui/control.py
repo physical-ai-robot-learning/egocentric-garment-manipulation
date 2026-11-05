@@ -104,6 +104,7 @@ class App:
             gm = s.get("grip_mode", "linear" if s.get("grip_cont", True) else "binary")   # 10-30: binary | linear | sigmoid
             ra.grip_continuous = gm == "linear"; ra.grip_mode = gm if gm in ("sigmoid", "relu") else ""; ra.grip_gain = float(s.get("grip_gain", 10.0))
             ra.z_offset_mm = float(s.get("z_offset_mm", 0.0))                       # 10-30 height correction (not a limit)
+            ra.amp = float(s.get("amp", 1.0))                                         # 11-03 motion amplitude scale (1 = as predicted)
             ra.height_calib = bool(s.get("height_calib", False))                     # 11-01 robot-measured per-arm table height (height_calib.py)
             # 10-30: temporal ensembling averaged old plans anchored on the MEASURED (lagging) TCP -> every new no-look-ahead chunk was
             # pulled ~45 mm back ("백포지션").  Off unless the user ticks it.
@@ -185,7 +186,8 @@ class App:
         import argparse
         def f(br):
             br.close()                                    # start_cmd opens its own live client; keep a single writer
-            dep.start_cmd(argparse.Namespace(go=True, episode=-1, start_lift=0.0, deg_s=10.0, assume_ready=False, root="flat300_A_gold281_train", label="", height_calib=bool(self.s.get("height_calib", False))))   # 10-29: GOLD-281 medoid start (ep 104), no lift: the training starts sit at the tag edge (L 291/148/33, R 305/-216/28 mm; plan: IK <= 3 mm, link-table 24 mm) -- was the OLD dataset ep 82 + 3 cm (5-6 cm off)
+            dep.start_cmd(argparse.Namespace(go=True, episode=-1, start_lift=0.0, deg_s=10.0, assume_ready=False, root=self.s.get("start_root") or "flat300_A_gold281_train", label="", height_calib=bool(self.s.get("height_calib", False))))   # 10-29: GOLD-281 medoid start (ep 104), no lift: the training starts sit at the tag edge (L 291/148/33, R 305/-216/28 mm; plan: IK <= 3 mm, link-table 24 mm) -- was the OLD dataset ep 82 + 3 cm (5-6 cm off)
+        # 11-03: settings "start_root" picks the medoid dataset (FLAT149 flatten: flatS05C_train149 -- its starts sit 19/31 mm (L/R) from GOLD-281's)
         return self._motion("시작 자세로 이동", f)
 
     def clear_estop(self):

@@ -14,17 +14,23 @@ from flask import Flask, Response, jsonify, request
 
 from egogarment import paths as egopaths  # noqa: E402
 TAKES = egopaths.TAG_RIG
-SRC = "http://127.0.0.1:8770/stream/global"
-REFS = {"20261030": "10-30 (E1000 학습 데이터, 집기)", "20261026": "10-26 (GOLD 학습 데이터 + 카메라 캘리브 v005)", "20261027": "10-27 (GOLD 학습 데이터)"}
+import os
+SRC = os.environ.get("CAM_ALIGN_SRC", "http://127.0.0.1:8770/stream/global")   # 11-03: or the orbbec_server single frame http://127.0.0.1:8092/frame
+REFS = {"20261030": "10-30 (E1000 학습 데이터, 집기)", "20261026": "10-26 (GOLD 학습 데이터 + 카메라 캘리브 v005)", "20261027": "10-27 (GOLD 학습 데이터)",
+        "20261102": "11-02 (펼치기 149 학습 데이터)", "20261103": "11-03 오전 (13:00 전, 카메라 옮기기 전)"}
+# 11-03 user "예전으로 돌리자": the Orbbec was re-aimed during take 20261103_130430 -> that take and later ones are not reference material
+REF_BEFORE = {"20261103": "20261103_130000"}
+VIEW_WH = (848, 480)               # 11-02+ takes are 1280x720: everything is compared at 848x480
 MASK_Y = 0.62                      # static scene = rows above 62 % of the height (robots, near table, people's hands below)
 
 
 def make_ref(day):
     ims = []
     for t in sorted(TAKES.glob(f"{day}_*")):
+        if day in REF_BEFORE and t.name >= REF_BEFORE[day]: continue
         for k in (0, 60):
             im = cv2.imread(str(t / f"color_{k:05d}.jpg"))
-            if im is not None and im.shape[:2] == (480, 848): ims.append(im)
+            if im is not None and abs(im.shape[1] / im.shape[0] - VIEW_WH[0] / VIEW_WH[1]) < 0.03: ims.append(cv2.resize(im, VIEW_WH))
     if not ims: raise SystemExit(f"{day}: 참조 프레임 없음")
     return np.median(np.stack(ims), 0).astype(np.uint8), len(ims)
 
@@ -36,6 +42,10 @@ class Live(threading.Thread):
 
     def run(self):
         while True:
+            if SRC.endswith("/frame"):                 # single-JPEG endpoint (orbbec_server): poll
+                try: self.jpg = urllib.request.urlopen(SRC, timeout=5).read(); self.t = time.time()
+                except Exception: time.sleep(1.0)
+                time.sleep(0.2); continue
             try:
                 r = urllib.request.urlopen(SRC, timeout=5); buf = b""
                 while True:
@@ -74,7 +84,7 @@ def advice(s):
 
 
 app = Flask(__name__); live = Live(); live.start()
-ST = dict(day="20261030"); REF = {}; LAST = {}
+ST = dict(day=os.environ.get("CAM_ALIGN_DAY", "20261030")); REF = {}; LAST = {}
 
 
 def ref_img():
@@ -84,7 +94,8 @@ def ref_img():
 
 def cur_img():
     if live.jpg is None: return None
-    return cv2.imdecode(np.frombuffer(live.jpg, np.uint8), cv2.IMREAD_COLOR)
+    im = cv2.imdecode(np.frombuffer(live.jpg, np.uint8), cv2.IMREAD_COLOR)
+    return None if im is None else cv2.resize(im, VIEW_WH)
 
 
 def view(mode):

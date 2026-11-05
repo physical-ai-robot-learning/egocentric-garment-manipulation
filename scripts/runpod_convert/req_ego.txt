@@ -1,0 +1,10 @@
+# CPU stages 0,1,3,4(pack),5,7 -- mirrors ~/ego_collector/.venv (py3.11) pins for the modules the chain actually imports.
+# cv2: the Mac venv has BOTH opencv-python 4.11.0.86 and opencv-contrib-python 4.14.0.94; the loaded cv2 is 4.11.0 (has cv2.aruco) -> pin 4.11.0.86 headless.
+numpy==2.4.6
+scipy==1.17.1
+pandas==3.0.5
+pyarrow==25.0.1
+python-dateutil==2.9.0.post0
+opencv-python-headless==4.11.0.86
+pillow==12.3.0
+pyyaml==6.0.3
