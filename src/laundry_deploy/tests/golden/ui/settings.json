@@ -2,8 +2,8 @@
  "HB_TIMEOUT_S": 3.0,
  "broken": {
   "active_arms": "both",
-  "ckpt_act": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
-  "ckpt_dit": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
+  "ckpt_act": "~/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
+  "ckpt_dit": "~/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
   "ckpt_xvla": "/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints/100000",
   "commit_act": 1,
   "commit_dit": 4,
@@ -52,8 +52,8 @@
  ],
  "file": {
   "active_arms": "both",
-  "ckpt_act": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
-  "ckpt_dit": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
+  "ckpt_act": "~/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
+  "ckpt_dit": "~/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
   "ckpt_xvla": "/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints/100000",
   "commit_act": 1,
   "commit_dit": 4,
@@ -76,8 +76,8 @@
  },
  "nofile": {
   "active_arms": "both",
-  "ckpt_act": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
-  "ckpt_dit": "/Users/jeonghwanlee/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
+  "ckpt_act": "~/laundry_dit_training/checkpoints_pod/act_tagrig_v1_1m/checkpoints/0500000",
+  "ckpt_dit": "~/laundry_dit_training/checkpoints_pod/dit_tagrig_v1/checkpoints/last",
   "ckpt_xvla": "/Volumes/PortableSSD/laundry_dit/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints/100000",
   "commit_act": 1,
   "commit_dit": 4,

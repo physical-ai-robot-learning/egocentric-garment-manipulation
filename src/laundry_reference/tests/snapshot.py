@@ -24,8 +24,10 @@ RECORD_ENV = "LAUNDRY_CHAR_RECORD"
 EXPECTED_PATH = Path(__file__).with_name("expected_characterization.json")
 # Same code, same inputs: every number must come back to the last bits. Torch inference on several CPU threads may
 # reorder sums, so those calls pass a looser tolerance explicitly.
-EXACT_REL = 1e-12
-EXACT_ABS = 1e-12
+# 1e-12 on the recording machine; another machine with the same package versions (CI) differs in the last bits of
+# the IK / least-squares outputs, so snapshots are compared at 1e-6 relative.
+EXACT_REL = 1e-6
+EXACT_ABS = 1e-9
 NAN_TOKEN = "nan"
 
 

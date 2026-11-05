@@ -18,6 +18,7 @@ GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
 REGEN_ENV = "LAUNDRY_DEPLOY_REGEN"
 REL_TOL = 1e-9
 ABS_TOL = 1e-12
+HOME = str(Path.home())
 
 
 def normalise(value):
@@ -36,7 +37,9 @@ def normalise(value):
     if isinstance(value, bytes):
         return "sha256:" + hashlib.sha256(value).hexdigest()
     if hasattr(value, "__fspath__"):
-        return str(value)
+        return normalise(str(value))
+    if isinstance(value, str) and value.startswith(HOME + "/"):
+        return "~" + value[len(HOME):]                                # machine-independent: the user's home as ~
     if isinstance(value, argparse.Namespace):
         return normalise(vars(value))
     return value

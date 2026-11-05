@@ -9,13 +9,16 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 
 import numpy as np
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
 RECORD_ENV = "LT_RECORD_GOLDEN"
-REL_TOL = 1e-7          # same code, same machine: equal to the last bits; the tolerance only absorbs summation order in the sums
+# Same code, same machine: equal to the last bits. Another machine with the same package versions (CI) differs by up to
+# ~1e-6 relative in the least-squares stages (BLAS / CPU), so the goldens are compared at 1e-5 relative.
+REL_TOL = 1e-5
 ABS_TOL = 1e-9
 MAX_VERBATIM_CHARS = 60000
 
@@ -85,7 +88,19 @@ def diff(expected, actual, path: str = "") -> list[str]:
         return tOut
     if isinstance(expected, (int, float)) and isinstance(actual, (int, float)) and not isinstance(expected, bool):
         return [] if _close(float(expected), float(actual)) else [f"{path}: {expected!r} != {actual!r}"]
+    if isinstance(expected, str) and isinstance(actual, str) and _numbersClose(expected, actual):
+        return []                                                     # csv / json text: same text, numbers within tolerance
     return [] if expected == actual else [f"{path}: {str(expected)[:300]!r} != {str(actual)[:300]!r}"]
+
+
+NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?")
+
+
+def _numbersClose(expected: str, actual: str) -> bool:
+    """two texts are equal apart from numbers, and every number pair is close"""
+    if NUMBER_RE.sub("#", expected) != NUMBER_RE.sub("#", actual):
+        return False
+    return all(_close(float(tE), float(tA)) for tE, tA in zip(NUMBER_RE.findall(expected), NUMBER_RE.findall(actual)))
 
 
 def _jsonSafe(value):
