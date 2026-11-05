@@ -7,7 +7,7 @@
 \usetikzlibrary{positioning,arrows.meta}
 \usepackage{fontspec}\setmainfont{Times New Roman}\usepackage{xeCJK}\setCJKmainfont[AutoFakeBold=2.5]{AppleMyungjo}\setCJKsansfont[AutoFakeBold=2.5]{Apple SD Gothic Neo}\setCJKmonofont{Apple SD Gothic Neo}\xeCJKsetup{CJKecglue={},CJKspace=true}
 \newcommand{\mm}{\,mm\xspace}
-\def\UrlBreaks{\do\/\do\_\do\.\do\-}\def\UrlFont{\small\ttfamily}\newcommand{\code}[1]{\path{#1}}
+\def\UrlBreaks{\do\/\do\_\do\.\do\-}\def\UrlFont{\small\ttfamily}\newcommand{\code}[1]{\path{#1}}\newcommand{\cmd}[1]{\texttt{\detokenize{#1}}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \definecolor{humF}{HTML}{E3F2FD}\definecolor{humS}{HTML}{1E88E5}
 \definecolor{trjF}{HTML}{E8F5E9}\definecolor{trjS}{HTML}{43A047}
@@ -225,7 +225,7 @@ GPU & 점 추적·집게 모델·3-D 풀이와 일부 정책 학습용 임대 RT
 
 \textbf{현실에서 측정한 로봇 모델 보정.} 로봇 모델의 오차 세 가지는 실제 로봇을 줄자와 카메라로 재서야 발견되었다. URDF의 그리퍼
 TCP가 실제 집게 끝보다 89\mm 앞에 있었고, 왼팔 베이스가 URDF보다 70\mm 안쪽에 3$^\circ$ 기울어 있었으며, 왼팔 두 번째 관절에
-$-8.4^\circ$의 영점 오프셋이 있었다. 세 가지 모두 IK 모델 안에서 덮어쓰기로 적용하고(\code{configs/robot/}), URDF 파일은 건드리지
+$-8.4^\circ$의 영점 오프셋이 있었다. 세 가지 모두 IK 모델 안에서 덮어쓰기로 적용하고(\code{configs/laundry/robot/}), URDF 파일은 건드리지
 않는다. 모델을 모델 자신과 비교하는 FK 기반 일치도 검사로는 보이지 않았다.
 
 \begin{table}[t]
@@ -291,7 +291,7 @@ VIO도 발산했고, 그 카메라는 10월 16일에 뺐다. (ii) \emph{이전 �
 통과했지만 외부 카메라가 본 집게 위치와 4--6\,cm 떨어져 있었다. 오래된 카메라--IMU 회전(17--24$^\circ$ 어긋남), 20--35\,cm
 잘못 수렴한 레버 암, 잘못된 앵커 때문이었고, 내부 잔차로는 보이지 않았다. 이것이 마커 리그의 동기가 되었다. (iii) 재생 트랙에서
 쓴 \emph{마커 + IMU 채움}은 잡는 구간을 보간으로 남긴다(재생한 시연의 오른손 프레임 약 5분의 1). (i)과 (ii)의 코드는
-\code{legacy/}에 있다.
+\code{archive/}에 있다.
 
 % =====================================================================
 \section{집게 라벨}\label{sec:jaw}
@@ -601,7 +601,7 @@ GOLD 281개 + 서보 라벨 시연 48개로 파인튜닝한 펴기 정책(라벨
 \end{table*}
 
 표~\ref{tab:superseded}는 무엇이 대체되었는지, 현재 파이프라인이 언제 만들어졌는지, 그리고 그 이유를 정리한다. 버린 방법의 코드는
-날짜와 이유를 정리한 README 표와 함께 \code{legacy/}에 있다.
+날짜와 이유를 정리한 README 표와 함께 \code{archive/}에 있다.
 
 % =====================================================================
 \section{교훈}\label{sec:lessons}
@@ -635,21 +635,25 @@ GOLD 281개 + 서보 라벨 시연 48개로 파인튜닝한 펴기 정책(라벨
 
 % =====================================================================
 \section{재현성}\label{sec:repro}
-\textbf{저장소 구성.} \code{src/garment_pipeline/}: 설치 가능한 패키지로서의 학습 데이터 파이프라인(융합, 게이트, 트림, 등급, 라벨,
-LeRobot 데이터셋, DiT 학습기, 오프라인 평가, 배포), \code{python -m garment_pipeline.<stage>.<module>}로 실행;
-\code{src/visual_teleop/}: 녹화기, 집게 분류기, reBot IK, 한계, 안전, 재생 계획기; \code{src/rebot_prep/}: 공유 마커 리그 자세 코드;
-\code{scripts/pose/}, \code{scripts/retarget/}, \code{scripts/evaluation/}, \code{scripts/deploy/}: 캘리브레이션, 서보 집게 라벨,
-재생용 로봇화, 일치도 채점, 로봇 브리지; \code{src/egogarment/}: \code{examples/}의 합성 데이터에서 도는 궤적 단계의 작은 독립
-재구현; \code{configs/}: 캘리브레이션 결과와 로봇 덮어쓰기; \code{hardware/umihand/}: 우리 수정이 들어간 HandUMI 빌드 사본(업스트림
-Apache-2.0 라이선스 유지); \code{legacy/}: 대체된 코드; \code{docs/}, \code{media/}, \code{report/}: 문서, 미디어, 이 보고서.
+\textbf{저장소 구성.} 파이프라인 단계마다 설치 가능한 패키지 하나이고, 각각 \cmd{python -m <package>.<module>}로 실행한다.
+\code{src/laundry_tracking/}: 카메라--로봇과 마커 리그 캘리브레이션, 점 추적, 마커와 IMU 융합, 게이트, 트림, 등급;
+\code{src/laundry_jaw/}: 서보와 손목 영상에서 집게 라벨; \code{src/laundry_dataset/}: 라벨, IK 진단, LeRobot 데이터셋;
+\code{src/laundry_training/}: DiT 학습기; \code{src/laundry_deploy/}: receding-horizon 배포, 오프라인 평가, 높이 캘리브레이션,
+로봇 브리지; \code{src/laundry_shared/}: 녹화기, 집게 분류기, reBot IK, 한계, 안전, 재생 계획기, 공유 마커 리그 자세 코드;
+\code{src/laundry_common/}: 데이터와 체크포인트 경로; \code{scripts/laundry/}: 재생용 로봇화와 일치도 채점;
+\code{src/laundry_reference/}: \code{assets/laundry/examples/}의 합성 데이터에서 도는 궤적 단계의 작은 독립 재구현;
+\code{configs/laundry/}: 캘리브레이션 결과와 로봇 덮어쓰기; \code{hardware/umihand/}: 우리 수정이 들어간 HandUMI 빌드 사본(업스트림
+Apache-2.0 라이선스 유지); \code{archive/}: 대체된 코드; \code{docs/}, \code{media/}, \code{report/}: 문서, 미디어, 이 보고서.
+이전 저장소 경로와의 대응은 \code{docs/refactor_2026-11.md}에 있다.
 
 \textbf{포함하지 않은 것.} 원시 녹화, 학습된 체크포인트, reBot 제조사 플러그인과 URDF, ORB-SLAM3 소스, X-VLA 파인튜닝 코드. 실제
 데이터 단계는 녹화가 필요하고, 일부는 GPU나 로봇이 필요하다.
 
-\textbf{검증 방법.} 체크아웃에서 \code{pip install -e ".[test]"} 후 \code{python -m pytest -q}(합성 예제에서 독립 도구의 회귀, import와
-설정 경로 스모크 테스트), \code{python scripts/evaluation/replay_parity.py --synthetic}과 \code{python scripts/pose/robot_cam_solve.py --synthetic}
-(모의 데이터에서 일치도 채점기와 카메라--로봇 풀이기의 자체 시험)을 실행하며, 모두 CI에서 돈다. \code{python analysis/verify_claims.py}는
-영문 보고서의 모든 숫자가 그것을 옮겨 온 저장소 안 문서(README, \code{docs/results.md}, \code{docs/details.md},
+\textbf{검증 방법.} 체크아웃에서 \cmd{pip install -e ".[test]"}(또는 \cmd{uv sync}) 후 \cmd{python -m pytest -q}(모든 패키지의
+특성화 테스트, 합성 예제에서 독립 도구의 회귀, import와 설정 경로 스모크 테스트), \texttt{python scripts/laundry/eval/replay\_parity.py -\/-synthetic}과
+\texttt{python -m laundry\_tracking.calib.robot\_cam\_solve -\/-synthetic}
+(모의 데이터에서 일치도 채점기와 카메라--로봇 풀이기의 자체 시험)을 실행하며, 모두 CI에서 돈다. \cmd{python analysis/verify_claims.py}는
+영문 보고서의 모든 숫자가 그것을 옮겨 온 저장소 안 문서(README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md},
 \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, 보관한 보고서 v0.1)에도 있는지 확인한다. 이는 프로젝트 기록과의 일관성 검사이며, 데이터에서 숫자를
 다시 계산하는 것은 아니다. 또한 한국어
 보고서에 영문판에 없는 숫자가 없는지도 확인한다.

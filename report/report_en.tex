@@ -7,7 +7,7 @@
 \usepackage{array,tikz}
 \usetikzlibrary{positioning,arrows.meta}
 \newcommand{\mm}{\,mm\xspace}
-\def\UrlBreaks{\do\/\do\_\do\.\do\-}\def\UrlFont{\small\ttfamily}\newcommand{\code}[1]{\path{#1}}
+\def\UrlBreaks{\do\/\do\_\do\.\do\-}\def\UrlFont{\small\ttfamily}\newcommand{\code}[1]{\path{#1}}\newcommand{\cmd}[1]{\texttt{\detokenize{#1}}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \definecolor{humF}{HTML}{E3F2FD}\definecolor{humS}{HTML}{1E88E5}
 \definecolor{trjF}{HTML}{E8F5E9}\definecolor{trjS}{HTML}{43A047}
@@ -248,7 +248,7 @@ maps coordinates in frame $Y$ to frame $X$. The frame is set up in four steps:
 \textbf{Robot model corrections measured in the world.} Three errors of the robot model were found only by measuring
 the real robot with tape and camera: the URDF gripper TCP lies 89\mm in front of the real jaw tips; the left arm base is
 70\mm inward of the URDF with a 3$^\circ$ tilt; and the left arm's second joint has a $-8.4^\circ$ zero offset. All three
-are applied as overrides inside the IK model (\code{configs/robot/}); the URDF file is untouched. They were invisible to
+are applied as overrides inside the IK model (\code{configs/laundry/robot/}); the URDF file is untouched. They were invisible to
 FK-based parity, which compares the model with itself.
 
 \begin{table}[t]
@@ -323,7 +323,7 @@ tracking + IMU) passed all its own quality checks yet was 4--6\,cm from the jaw 
 because of a stale camera--IMU rotation (17--24$^\circ$ off), a lever arm that converged 20--35\,cm wrong, and a wrong
 anchor; internal residuals could not see them. This motivated the marker rig. (iii) \emph{Markers with IMU fill}, used
 for the replay track, leave the grasp phases interpolated (about a fifth of the right-hand frames of the replayed demo).
-The code of (i) and (ii) is in \code{legacy/}.
+The code of (i) and (ii) is in \code{archive/}.
 
 % =====================================================================
 \section{Jaw Labels}\label{sec:jaw}
@@ -756,7 +756,7 @@ Execution & receding-horizon deploy, 4 steps per plan (DiT default) & whole-demo
 \end{table*}
 
 Table~\ref{tab:superseded} lists what was replaced, when the current pipeline was built, and why. The code of dropped
-approaches is in \code{legacy/}, with a README table of dates and reasons.
+approaches is in \code{archive/}, with a README table of dates and reasons.
 
 % =====================================================================
 \section{Lessons}\label{sec:lessons}
@@ -799,24 +799,29 @@ approaches is in \code{legacy/}, with a README table of dates and reasons.
 
 % =====================================================================
 \section{Reproducibility}\label{sec:repro}
-\textbf{Repository layout.} \code{src/garment_pipeline/}: the training-data pipeline as an installable package (fusion,
-gates, trims, grades, labels, LeRobot dataset, DiT trainer, offline evaluation, deploy), run with
-\code{python -m garment_pipeline.<stage>.<module>}; \code{src/visual_teleop/}: recorder, jaw classifier, reBot IK, limits,
-safety and replay planner; \code{src/rebot_prep/}: shared marker-rig pose code; \code{scripts/pose/},
-\code{scripts/retarget/}, \code{scripts/evaluation/}, \code{scripts/deploy/}: calibration, servo jaw labels, replay
-robotization, parity scoring and the robot bridge; \code{scripts/flatten_builds/}, \code{scripts/grasp/}, \code{scripts/ray_jobs/}: the flattening split and builds, grasp labels and $p_\mathrm{grasp}$, cluster jobs; \code{src/egogarment/}: small standalone re-implementations of the
-trajectory stages that run on the synthetic data in \code{examples/}; \code{configs/}: calibration results and robot
-overrides; \code{hardware/umihand/}: the HandUMI build copy with our modifications (upstream Apache-2.0 licence kept);
-\code{legacy/}: superseded code; \code{docs/}, \code{media/}, \code{report/}: documentation, media and this report.
+\textbf{Repository layout.} One installable package per pipeline stage, each run as
+\cmd{python -m <package>.<module>}: \code{src/laundry_tracking/}: camera-to-robot and marker-rig calibration, point
+tracking, marker and IMU fusion, gates, trims and grades; \code{src/laundry_jaw/}: jaw labels from the servo and from the
+wrist video; \code{src/laundry_dataset/}: labels, IK diagnostics, the LeRobot dataset and the flattening split and
+builds; \code{src/laundry_training/}: the DiT trainer; \code{src/laundry_deploy/}: receding-horizon deploy, offline
+evaluation, height calibration and the robot bridge; \code{src/laundry_shared/}: recorder, jaw classifier, reBot IK,
+limits, safety, replay planner and shared marker-rig pose code; \code{src/laundry_common/}: data and checkpoint paths;
+\code{scripts/laundry/}: replay robotization and parity scoring, grasp labels and $p_\mathrm{grasp}$, cluster jobs;
+\code{src/laundry_reference/}: small standalone re-implementations of the trajectory stages that run on the synthetic
+data in \code{assets/laundry/examples/}; \code{configs/laundry/}: calibration results and robot overrides;
+\code{hardware/umihand/}: the HandUMI build copy with our modifications (upstream Apache-2.0 licence kept);
+\code{archive/}: superseded code; \code{docs/}, \code{media/}, \code{report/}: documentation, media and this report. The
+mapping from earlier repository paths is in \code{docs/refactor_2026-11.md}.
 
 \textbf{Not included.} Raw recordings, trained checkpoints, the reBot vendor plugin and URDF, ORB-SLAM3 source, and the
 X-VLA fine-tuning code. Real-data stages need the recordings, some need a GPU or the robot.
 
-\textbf{How to verify.} From a checkout, \code{pip install -e ".[test]"}, then \code{python -m pytest -q} (regression of
-the standalone tools on the synthetic example, import and config-path smoke tests),
-\code{python scripts/evaluation/replay_parity.py --synthetic} and \code{python scripts/pose/robot_cam_solve.py --synthetic}
-(self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \code{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
-document it was taken from (README, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md} or
+\textbf{How to verify.} From a checkout, \cmd{pip install -e ".[test]"} (or \cmd{uv sync}), then \cmd{python -m pytest -q}
+(characterization tests of every package, regression of the standalone tools on the synthetic example, import and
+config-path smoke tests), \texttt{python scripts/laundry/eval/replay\_parity.py -\/-synthetic} and
+\texttt{python -m laundry\_tracking.calib.robot\_cam\_solve -\/-synthetic}
+(self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \cmd{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
+document it was taken from (README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md} or
 the archived report v0.1). This is a check of consistency with the project's records, not a re-computation of the
 numbers from data.
 
