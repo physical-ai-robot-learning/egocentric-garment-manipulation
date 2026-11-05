@@ -110,7 +110,9 @@ The tests are characterization tests of every package (outputs recorded before t
 recordings, fake IK and golden files), layout / import smoke tests and the reference regression on the synthetic
 example: 596 pass and 3 skip with torch, Pink IK and Flask installed (lerobot not installed, reBot URDF not included;
 2026-11-05). A base install (`uv sync` or `pip install -e ".[test]"` alone) runs everything else: 425 pass, 41 skip (the
-tests that need torch, Pink or Flask). Dependency groups: `vision`, `robot`, `train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
+tests that need torch, Pink or Flask). CI runs on Apple Silicon with the pinned versions of
+`configs/laundry/envs/requirements-test.txt`; it skips the IK tests (the reBot URDF is a vendor file, not included) and two
+goldens of iterative optimizers whose outputs differ by up to ~1e-4 on another machine. Dependency groups: `vision`, `robot`, `train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
 
 **Not reproducible from this repository:** the real-system numbers come from recorded data that is not included (raw
 takes, trained checkpoints); the reBot vendor plugin and URDF, the robot-PC driver stack and the X-VLA training patch are

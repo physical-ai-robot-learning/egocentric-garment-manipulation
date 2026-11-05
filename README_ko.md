@@ -104,7 +104,8 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # 시뮬레이
 테스트는 모든 패키지의 특성화 테스트(코드 구조를 바꾸기 전에 합성 녹화, 가짜 IK, golden 파일로 기록한 출력), 구조·import smoke
 test, 합성 예제에 대한 참고 구현 회귀 검사입니다. torch, Pink IK, Flask가 있는 환경에서
 596개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함, 2026-11-05). 기본 설치(`uv sync`나 `pip install -e ".[test]"`만)에서는
-나머지가 모두 돌아서 425개 통과, 41개 건너뜀(torch, Pink, Flask가 필요한 테스트). dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
+나머지가 모두 돌아서 425개 통과, 41개 건너뜀(torch, Pink, Flask가 필요한 테스트). CI는 `configs/laundry/envs/requirements-test.txt`의 고정 버전으로 Apple Silicon에서
+돌고, IK 테스트(reBot URDF는 제조사 파일이라 포함하지 않음)와 다른 기계에서 출력이 1e-4 정도까지 달라지는 반복 최적화 golden 두 개를 건너뜁니다. dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
 
 **이 저장소만으로 재현할 수 없는 것:** 실제 시스템의 숫자는 포함하지 않은 녹화 데이터(원본 take, 학습된 checkpoint)에서
 나왔습니다. reBot 제조사 플러그인과 URDF, 로봇 PC 드라이버, X-VLA 학습 패치는 포함하지 않았습니다. CoTracker와 학습은 GPU,
