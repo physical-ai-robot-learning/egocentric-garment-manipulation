@@ -8,7 +8,7 @@ jobs:
   test:
     # The characterization goldens compare floats exactly; they were recorded on Apple Silicon with the package versions
     # pinned in configs/laundry/envs/requirements-test.txt, so CI runs the same platform and versions.
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
