@@ -100,7 +100,7 @@ are not in this repository. Options, outputs and the replay track: [docs/pipelin
 ```bash
 git clone https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation && cd egocentric-garment-manipulation
 uv sync --group vision --group robot && uv run pytest -q   # Python 3.12; the tests need torch (CPU is enough) and Pink IK
-# without uv, as in CI: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -e ".[test]" pin pin-pink flask requests
+# exact test environment of CI (Apple Silicon): pip install -r configs/laundry/envs/requirements-test.txt && pip install -e . --no-deps
 python analysis/verify_claims.py                   # every number in the report vs. the document it came from: "227 claims checked, 0 failed."
 python scripts/laundry/eval/replay_parity.py --synthetic          # parity scorer self-test; ends with "합성 시험 PASS"
 python -m laundry_tracking.calib.robot_cam_solve --synthetic      # camera ↔ robot solver on simulated data; ends with "합성 시험 PASS"

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -56,6 +57,8 @@ def _codeAndWork(tmp: Path) -> tuple[Path, Path]:
 
 @pytest.fixture(scope="module")
 def world(tmp_path_factory):
+    if shutil.which("ffmpeg") is None:
+        pytest.skip("the pipeline run renders QA videos with ffmpeg (not installed)")
     tTmp = tmp_path_factory.mktemp("lt_world")
     tCode, tWork = _codeAndWork(tTmp)
     W.writeWorld(tTmp, tWork, withTrims=False)

@@ -6,19 +6,21 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # The characterization goldens compare floats exactly; they were recorded on Apple Silicon with the package versions
+    # pinned in configs/laundry/envs/requirements-test.txt, so CI runs the same platform and versions.
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install (package + CPU torch / IK / web deps so that the characterization tests run instead of skipping)
+      - name: Install (pinned test environment; the package itself without re-resolving its dependencies)
         run: |
-          sudo apt-get update -q && sudo apt-get install -y -q libgl1
+          brew install ffmpeg
           python -m pip install --upgrade pip
-          python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -e ".[test]" pin pin-pink flask requests
-      - name: Compile (whole repository)
+          python -m pip install -r configs/laundry/envs/requirements-test.txt
+          python -m pip install -e . --no-deps
+      - name: Compile
         run: python -m compileall -q src scripts tests analysis
       - name: Claims check (every number in report/report_en.tex vs. the repository file it comes from)
         run: python analysis/verify_claims.py
@@ -31,6 +33,6 @@ jobs:
       - name: Pipeline entry points parse (python -m laundry_...)
         run: |
           for m in laundry_dataset.tag_rig_unsplit laundry_dataset.tag_rig_to_lerobot laundry_dataset.robotize_ik \
-                   laundry_deploy.tools.height_calib laundry_tracking.new_take_prep; do
+                   laundry_deploy.tools.height_calib laundry_tracking.new_take_prep laundry_grasp.events; do
             python -m $m --help > /dev/null || { echo "FAIL $m"; exit 1; }
           done

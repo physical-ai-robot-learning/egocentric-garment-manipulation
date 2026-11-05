@@ -95,7 +95,7 @@
 ```bash
 git clone https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation && cd egocentric-garment-manipulation
 uv sync --group vision --group robot && uv run pytest -q   # Python 3.12, 테스트에는 torch(CPU면 충분)와 Pink IK가 필요
-# uv 없이, CI와 같게: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -e ".[test]" pin pin-pink flask requests
+# CI와 같은 테스트 환경(Apple Silicon): pip install -r configs/laundry/envs/requirements-test.txt && pip install -e . --no-deps
 python analysis/verify_claims.py                   # 리포트의 모든 숫자를 옮겨 온 문서와 대조: "227 claims checked, 0 failed."
 python scripts/laundry/eval/replay_parity.py --synthetic          # 비교 채점기 자체 시험, 마지막 줄 "합성 시험 PASS"
 python -m laundry_tracking.calib.robot_cam_solve --synthetic      # 시뮬레이션 데이터로 카메라 ↔ 로봇 풀이, 마지막 줄 "합성 시험 PASS"

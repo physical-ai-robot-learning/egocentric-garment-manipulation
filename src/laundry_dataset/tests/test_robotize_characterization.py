@@ -14,7 +14,7 @@ from laundry_dataset import robot_arm
 from laundry_dataset import robotize_ik as R
 from laundry_dataset.takes import demoWindows
 
-from .conftest import fakeArmClass, installFakeSolvers, robotizeArgs
+from .conftest import fakeArmClass, installFakeSolvers, requireRebotUrdf, robotizeArgs
 from .synthetic import ROBOTIZE_DEFAULTS
 
 
@@ -39,6 +39,7 @@ def test_smooth_bump_pose_err_demos(golden, world):
 
 @pytest.fixture(scope="module")
 def arms():
+    requireRebotUrdf()
     return {tS: installFakeSolvers(R.Arm(tS, robotizeArgs(level_max=25.0))) for tS in ("left", "right")}
 
 

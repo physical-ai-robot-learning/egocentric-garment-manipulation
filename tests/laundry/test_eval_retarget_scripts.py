@@ -305,6 +305,9 @@ def test_align_cli(monkeypatch):
 
 def test_align_holds(tmp_path, monkeypatch):
     pytest.importorskip("pinocchio")
+    from laundry_common import paths
+    if not (paths.HANDUMI_SW_ROOT / "assets/rebot_b601/rebot_b601_bimanual.urdf").exists():
+        pytest.skip("needs the reBot URDF (vendor file, not in this repository)")
     tModule = _load(ALIGN, "umi_align_under_test")
     tTake = tmp_path / "20261020_150000"
     tTake.mkdir()

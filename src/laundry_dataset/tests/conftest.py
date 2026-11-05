@@ -22,6 +22,7 @@ collect_ignore_glob = ["test_*.py"] if torch is None else []
 
 GOLDEN_FILE = Path(__file__).with_name("golden_dataset.npz")
 RECORD = os.environ.get("LAUNDRY_CHAR_RECORD") == "1"
+REBOT_URDF = "assets/rebot_b601/rebot_b601_bimanual.urdf"
 
 
 def _flatten(prefix, value, out):
@@ -103,12 +104,21 @@ def robotizeArgs(**over):
     return SimpleNamespace(**{**ROBOTIZE_DEFAULTS, **over})
 
 
+def requireRebotUrdf():
+    """Skip the calling test / fixture when the reBot URDF (vendor file, not in this repository) is not installed."""
+    from laundry_common import paths
+    if not (paths.HANDUMI_SW_ROOT / REBOT_URDF).exists():
+        pytest.skip(f"needs the reBot URDF ({REBOT_URDF} under EGO_HANDUMI_SW; vendor file, not in this repository)")
+
+
 @pytest.fixture(scope="session")
 def world(tmp_path_factory):
     import json
+    from laundry_common import paths
     from laundry_dataset import calibration
     from laundry_dataset import robotize_ik as R
     from . import synthetic as syn
+    requireRebotUrdf()
     tRoot = tmp_path_factory.mktemp("world")
     tEgo, tTrain = tRoot / "ego_collector", tRoot / "laundry_dit_training"
     tTagRig = tEgo / "datasets/tag_rig"
