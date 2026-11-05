@@ -8,9 +8,9 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 
 [![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report (PDF, 11-02)](report/report_en.pdf)** ([한국어](report/report_ko.pdf)) · [earlier versions](report/archive/)
+· **[Technical Report (PDF, 11-05)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project details](docs/details.md)
-· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-02
+· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-05
 
 > **Update, 27 October 2026.** The replay stage is finished and the project has moved on to **policy training data**:
 > 300 successful T-shirt flattening demonstrations, a new pose source (fixed-camera point tracking anchored by the
@@ -32,6 +32,13 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 > it. Successful grasps were observed in real-robot trials on 2 November; **trials were not counted**, so there is
 > still no success rate. After a miss the policy grabs elsewhere instead of retrying (the data have no recovery
 > demonstrations). See [Pinching](#pinching-10-30--11-02-first-real-robot-grasps-trials-not-counted).
+>
+> **Update, 5 November 2026.** Back to **flattening** with both hands. The fixed camera was re-aimed on 3 November and a
+> new set was collected under it; demos are now split by the point-tracking gaps inside them. A DiT trained with the
+> cloth-folding recipe of UMI on **250** of them improves its held-out score from epoch to epoch (72 → 52 mm by epoch 13).
+> Because the jaw servo has no load signal, a wrist-camera classifier now estimates, frame by frame, whether a closed jaw
+> actually holds the cloth (p_grasp). No counted robot trials yet. See
+> [Flattening after the pinching test](#flattening-after-the-pinching-test-11-02--11-05).
 
 > **What is in this repository.** The full project code as it ran: the recorder and robot-side package
 > ([`src/visual_teleop/`](src/visual_teleop/README.md)), the tag-rig pose modules ([`src/rebot_prep/`](src/rebot_prep/README.md)),
@@ -722,6 +729,30 @@ re-cabling (fixed in the launch configuration, not code); the left jaw has mecha
 zero, with the squeeze ramped in over the last 30° ([robot bridge](scripts/deploy/robot_bridge/README.md)); the START
 move now closes both jaws (a parked jaw relaxes open); a robot wrist camera stalled once and the UI was restarted.
 
+### Flattening after the pinching test (11-02 → 11-05)
+
+Numbers: [status note 11-05](docs/status_2026-11-05.md); report Section XII.
+
+![tracking, 11-04 demo](media/flatten_1104_125556_d01_gold_tracking.gif)
+
+*A GOLD flattening demo under the re-aimed camera (4 November, train split): fixed camera with the point tracks and the
+fused jaw tips of both hands.*
+
+| step | what was done | result |
+|---|---|---|
+| **FLAT149** (11-02/03) | 149 flattening demos (10-30 48 + 11-02 101), 0.5×, continuous jaw; the UMI cloth-folding recipe item by item (100 epochs, LR 3e-4, DDIM 50/16, crop / rotation / colour jitter incl. hue as a YIQ chroma rotation), 4×H100 | best val epoch 80 (`val_score_mm` 60.89), best test epoch 90 (64.36); no counted robot result |
+| **Deploy** (11-03) | `amp` (motion-amplitude scale about the current pose), `start_root` (medoid start of any dataset), camera-alignment check against a reference day | — |
+| **Camera re-aimed** (11-03) | new calibration from the two table anchor tags + table plane (all IPPE solutions tried: the coplanar tags flipped the camera below the table); data before / after kept apart | 3 Nov: 7 takes, 100 demos; collection continued 4 and 5 Nov |
+| **Split by tracking gaps** (11-04) | trim idle ends (both arms < 3 cm/s for 0.5 s); **train** = GOLD whose longest tracking gap inside the trimmed window is < 0.25 s, longer-gap GOLD alternates val / test, gap-free SILVER → train, other SILVER and REJECT separate; gaps ≥ 0.3 s masked in the loss, and the rest of a predicted chunk after a masked step too | `scripts/flatten_builds/` |
+| **FLAT250** (11-04/05) | train 250 (444217 frames), val 39, test 38; FLAT149 recipe, batch 1024, 100 epochs on 2×RTX 4090 (DDP), a checkpoint and an offline eval every epoch | val / test 71.67 / 72.27 (initial) → 102.36 / 101.78 (epoch 1) → 60.74 / 59.85 (8) → **52.56 / 52.32** (13, best; stopped there for the next run); epochs 8, 10–13 copied to the robot as rollout candidates, no counted result |
+| **Grasp held / empty** (11-05) | the servo is read torque-off (no load / current), so a closed jaw does not say whether cloth is held → wrist-camera labels: 343 demos' close events, 585 gold labels by the user (543 mapped: 372 held, 171 empty), ResNet-18 on a jaw-tip crop | take-grouped 5-fold CV, per event: F1 held 0.90, empty 0.78; causal p_grasp(t) (15 Hz, last 0.4 s): median 0.99 on held, 0.03 on empty events |
+| **FLAT-PGRASP** (11-05) | the same recipe, but the (otherwise masked) jaw slots of the observation state carry p_grasp of each hand; data of 11-03 + 11-04 + 11-05: train 301, val 46, test 45 | val / test 68.79 / 68.43 after 2 epochs (other held-out sets than FLAT250), training; a 0.3× vs 1.0× time-stretch comparison being set up; the deploy loop does not compute p_grasp yet |
+
+![p_grasp, 11-04 demo](media/flatten_1104_125556_d01_pgrasp.gif)
+
+*The same demo through both wrist cameras with the causal grasp probability (green = held, red = not held; bars = whole
+demo, white line = now). A review render made before the window length was frozen at 0.4 s.*
+
 ### Research directions
 
 1. **Egocentric capture.** Wearable demonstration hardware and a recording protocol that yields synchronized wrist
@@ -757,7 +788,10 @@ move now closes both jaws (a parked jaw relaxes open); a robot wrist camera stal
 * **Status (Nov 2):** one-sleeve left-hand pinching test with 197 Cg-sourced demonstrations (§8, Pinching): first
   real-robot grasps observed (50-epoch checkpoint); trials were not counted, so no success rate. After a miss the
   policy grabs elsewhere instead of retrying.
-* **Next:** record recovery demonstrations for the pinching test (re-grasp after a miss) and run counted pinching
+* **Status (Nov 5):** flattening under the re-aimed camera: FLAT250 (250 train demos, gap-based split) trains with the
+  UMI recipe, held-out score 72 → 52 mm by epoch 13; wrist-camera grasp labels and p_grasp; a p_grasp-conditioned run on 301
+  demos (incl. 11-05) is training. No counted robot trials yet.
+* **Next:** counted robot trials of the FLAT250 checkpoints; p_grasp in the deploy loop; record recovery demonstrations for the pinching test (re-grasp after a miss) and run counted pinching
   trials; re-mount the robot wrist cameras and evaluate on the robot, with counted trials, policies trained on the
   corrected labels and the servo-labelled demos (one such flattening fine-tune was run on the robot on 11-01 without
   counted trials; §8, Pinching). ~~Per-grasp error analysis; a cloth-placement reference before each replay; an offline smoother for

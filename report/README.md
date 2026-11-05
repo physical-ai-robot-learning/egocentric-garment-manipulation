@@ -1,7 +1,8 @@
 # report
 
-The technical report of the project, status of 1 November 2026: one document in English and Korean, with LaTeX source
-and figures. Earlier versions are in [`archive/`](archive/).
+The technical report of the project: English `report_en` status of 5 November 2026 (adds Section XII, flattening after
+the pinching test: FLAT149, re-aimed camera, gap-based split, FLAT250, grasp labels); Korean `report_ko` status of
+2 November 2026 (not updated). LaTeX source and figures. Earlier versions are in [`archive/`](archive/).
 
 **Status:** current (`report_en`, `report_ko`); `archive/` kept for reference
 
@@ -12,14 +13,14 @@ macOS AppleMyungjo / Apple SD Gothic Neo fonts).
 
 ## Checking the numbers
 Every number in `report_en.tex` is mapped to the repository file it was taken from (README, `docs/results.md`,
-`docs/details.md`, `docs/status_2026-11-01.md`, `docs/status_2026-11-02.md` or `archive/report_v0.1_en.tex`) and checked by
+`docs/details.md`, `docs/status_2026-11-01.md`, `docs/status_2026-11-02.md`, `docs/status_2026-11-05.md` or `archive/report_v0.1_en.tex`) and checked by
 [`../analysis/verify_claims.py`](../analysis/verify_claims.py) (run from the repository root; prints
 `N claims checked, 0 failed`; also run in CI). The Korean version may print no number the English one lacks.
 
 ## Layout
 - `report_en.{tex,pdf}`, `report_ko.{tex,pdf}` — the current report.
 - `figures/` — figures of the current report (`fig_scene`, `fig_umi`, `fig_start_markers`, `fig_fusion_qa`,
-  `fig_sidebyside`, `fig_close_height`, `fig_deploy_ui`, `fig_pinching_cg`, `fig_pinching_robot_1102` — a 2×2 grid of four fixed-camera frames from the 11:37 run of 2 November) and of the archived versions; `make_fig_robotize.py`
+  `fig_sidebyside`, `fig_close_height`, `fig_deploy_ui`, `fig_pinching_cg`, `fig_fusion_qa_1104` (11-04 QA frame of a GOLD demo under the re-aimed camera), `fig_pinching_robot_1102` — a 2×2 grid of four fixed-camera frames from the 11:37 run of 2 November) and of the archived versions; `make_fig_robotize.py`
   is the script of the archived `fig_robotize.pdf`.
 - `archive/` — Technical Report v0.1 (10-27, "Egocentric Laundry Folding"), v0 (10-21) and the short technical note,
   each as LaTeX source + PDF. They were built from this folder (figure paths `figures/...`), so to rebuild one, copy it

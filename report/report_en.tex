@@ -19,7 +19,7 @@
 \begin{document}
 \title{Egocentric Human Demonstrations for\\Bimanual Garment Manipulation:\\[1mm]\Large From Hand-Worn-Gripper Recordings to Robot Policies}
 \author{\IEEEauthorblockN{Jeong Hwan Lee}
-\IEEEauthorblockA{Technical report, status of 2 November 2026\\
+\IEEEauthorblockA{Technical report, status of 5 November 2026\\
 Repository: \texttt{egocentric-garment-manipulation}}}
 \maketitle
 
@@ -42,7 +42,10 @@ early. Two causes were recorded (the policy copied the jaw state from its input;
 from the hand-worn ones), and checking the labels found three more data problems (a label clamp, demonstration speed,
 video jaw labels). In a reduced feasibility test, pinching one sleeve with the left hand, a policy fine-tuned on 197
 demonstrations grasped the sleeve in real-robot trials on 2 November 2026; the trials were not counted, and after a miss
-the policy grasps elsewhere instead of retrying. We report no success rate.
+the policy grasps elsewhere instead of retrying. Back on flattening, a policy trained with the cloth-folding recipe of
+UMI on 250 demonstrations under a re-aimed camera improves its offline score from epoch to epoch, and a vision
+classifier now labels whether a closed jaw holds the cloth, because the jaw servo has no load signal. We report no
+success rate.
 \end{abstract}
 
 % =====================================================================
@@ -645,6 +648,89 @@ stalled once and the deploy UI was restarted.
 and successes, whatever the outcome.
 
 % =====================================================================
+\section{Flattening after the Pinching Test (2--5 November)}\label{sec:flat}
+After the first pinching grasps the work returned to flattening, with both hands, Cg trajectories and servo jaw labels.
+The numbers of this section are in \code{docs/status_2026-11-05.md}.
+
+\textbf{FLAT149: the UMI recipe.} 149 flattening demonstrations (48 of 30 October and 101 of 2 November; a demo was kept
+only if the shirt ended flat in the fixed-camera frame) were built at 0.5$\times$ speed with a continuous jaw target.
+Training followed the cloth-folding recipe of the UMI appendix~\cite{chi2024umi} item by item: 100 epochs, learning rate
+$3\cdot10^{-4}$ (vision encoder $3\cdot10^{-5}$), DDIM with 50 training and 16 inference steps, and image augmentation
+matching UMI's random crop (zoom 0.05, shift 0.025), rotation ($\pm5^\circ$) and colour jitter (brightness 0.3,
+contrast 0.4, saturation 0.5, hue 0.08). The jaw is learned as a continuous value (no BCE head) and binarised at
+deployment. Training started from the H100 checkpoint of the GOLD-281 flattening fine-tune and ran on four H100s. The
+hue shift is a rotation of the chroma plane in YIQ space (one $3\times3$ matrix): the library hue adjustment cost about
+62\,ms per camera sample on the CPU data workers and made the run data-bound at about 3\,s per update. On the held-out
+sets the best validation checkpoint is at epoch 80 (\code{val_score_mm} 60.89) and the best test checkpoint at epoch 90
+(64.36). No counted robot result exists.
+
+\textbf{Deploy changes (3 November).} A motion-amplitude scale (\code{amp}) shrinks each committed step's translation
+and rotation about the current pose (the user found the motion too large); the start move can use the medoid start of
+any dataset (\code{start_root}; the FLAT149 starts lie 19 / 31\mm (left / right) from those of GOLD-281); a
+camera-alignment tool compares the live view with a reference day.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_fusion_qa_1104.jpg}
+\caption{Per-demo QA video of a GOLD flattening demo under the re-aimed camera (4 November, train split). Top left: fixed
+camera with the fused jaw tips (filled dots), the estimate made with that marker hidden (orange ring), the marker itself
+(white +) and raw CoTracker points (yellow). Bottom left: both wrist cameras. Right: $x$, $y$, $z$ of each hand over time
+and the hidden-marker error (bottom row).}
+\label{fig:fusqa1104}
+\end{figure*}
+
+\textbf{Camera re-aimed, new collection, split by tracking gaps (3--4 November).} The fixed camera was re-aimed during a
+take on 3 November; that take and later ones use a re-solved calibration from the two table anchor tags and the table
+plane (the two coplanar tags make the PnP initialisation ambiguous, so every IPPE solution is tried and the one with the
+camera highest above the table is kept), and are kept apart from earlier data. On 3 November 7 takes with 100
+demonstrations were recorded (Fig.~\ref{fig:fusqa1104}). Every demo is trimmed at both ends (both arms slower than
+3\,cm/s for 0.5\,s, margin 0.3\,s), and the longest point-tracking gap is measured \emph{inside} the trimmed window:
+\textbf{train} = GOLD with a longest gap below 0.25\,s; GOLD with a longer gap alternates between \textbf{validation}
+and \textbf{test}; SILVER without any gap also goes to train, other SILVER and REJECT form separate sets for auxiliary
+evaluation and analysis. Datasets are built at
+0.3$\times$ with label F and the continuous jaw; timelines and images are never cut. Positions inside a tracking or marker
+gap of at least 0.3\,s are masked in the loss, and once one future step of a predicted chunk is masked, every later step
+of that chunk is masked too, because the path across a gap is uncertain.
+
+\begin{table}[t]
+\caption{FLAT250: offline score (val\_score\_mm) per epoch, mm, lower is better (stride 16)}\label{tab:flat250}
+\centering\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+epoch & validation & test \\
+\midrule
+0 (initial checkpoint) & 71.67 & 72.27 \\
+1 & 102.36 & 101.78 \\
+4 & 82.81 & 82.42 \\
+8 & 60.74 & 59.85 \\
+10 & 57.64 & 56.95 \\
+12 & 53.56 & 54.16 \\
+13 & 52.56 & 52.32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{FLAT250 (4--5 November).} The per-take sets of 3 and 4 November were aggregated into 250 training demonstrations
+(444217 frames), 39 for validation and 38 for test, and trained with the FLAT149 recipe (global batch 1024, 100 epochs)
+on two RTX 4090 GPUs with distributed data parallel, saving a checkpoint every epoch. Every epoch is evaluated offline on
+both held-out sets (Table~\ref{tab:flat250}): the score first rises, then falls below the initial checkpoint from
+epoch 6 on (validation). The run was stopped after epoch 13, its best checkpoint, to free the GPUs for the run below;
+epochs 8 and 10--13 were copied to the robot computer as rollout candidates; no counted robot result exists.
+
+\textbf{Does the closed jaw hold the cloth? (5 November).} The jaw servo is read with torque off, position only: it has no
+load or current signal, and the closed position does not separate cloth from nothing. The cue therefore comes from the
+wrist camera. Jaw close events of 343 flattening demos were segmented with a tighter hysteresis for this purpose (which
+uncovered 148 partial re-opens hidden in the earlier segmentation); the user labeled 585 events blind to any prediction
+over four rounds, of which 543 map onto the new events (372 held, 171 empty). A ResNet-18 on a crop around the jaw tips
+of the wrist image reaches, in take-grouped 5-fold cross-validation, per-event F1 0.90 for held and 0.78 for empty. A
+causal per-frame probability $p_\mathrm{grasp}(t)$ at 15\,Hz (mean over the last 0.4\,s, restarted at every jaw state
+change) has a median of 0.99 on held and 0.03 on empty events; 12\,\% of held events dip below 0.2 and 17\,\% of empty
+events touch 0.9 at least once. A frozen generator writes $p_\mathrm{grasp}$ for every frame of a dataset. A new run
+with the same recipe feeds it into the (otherwise masked) jaw slots of the observation state, on the data of 3, 4 and 5
+November (301 training, 46 validation and 45 test demonstrations); after two epochs its offline score is 68.79 /
+68.43 (validation / test; other held-out sets than FLAT250). The deploy loop does not compute $p_\mathrm{grasp}$ yet.
+
+% =====================================================================
 \section{Superseded Approaches}\label{sec:superseded}
 \begin{table*}[t]
 \caption{Current pipeline and what it replaced}\label{tab:superseded}
@@ -706,6 +792,8 @@ approaches is in \code{legacy/}, with a README table of dates and reasons.
 \item \emph{Jaw labels} from the wrist video have no held-out accuracy number on the older demonstrations, and agree with
   the servo on only about 70--80\,\% of frames where both exist.
 \item \emph{Offline scores} such as \code{val_score_mm} measure agreement with held-out human motion, not task success.
+\item \emph{Grasp labels} come from one labeler; the frozen $p_\mathrm{grasp}$ generator is trained on all labeled
+  events, so its output on those events is in-sample.
 \item \emph{Hardware.} The left robot wrist connector has dropped out repeatedly.
 \end{itemize}
 
@@ -716,7 +804,7 @@ gates, trims, grades, labels, LeRobot dataset, DiT trainer, offline evaluation, 
 \code{python -m garment_pipeline.<stage>.<module>}; \code{src/visual_teleop/}: recorder, jaw classifier, reBot IK, limits,
 safety and replay planner; \code{src/rebot_prep/}: shared marker-rig pose code; \code{scripts/pose/},
 \code{scripts/retarget/}, \code{scripts/evaluation/}, \code{scripts/deploy/}: calibration, servo jaw labels, replay
-robotization, parity scoring and the robot bridge; \code{src/egogarment/}: small standalone re-implementations of the
+robotization, parity scoring and the robot bridge; \code{scripts/flatten_builds/}, \code{scripts/grasp/}, \code{scripts/ray_jobs/}: the flattening split and builds, grasp labels and $p_\mathrm{grasp}$, cluster jobs; \code{src/egogarment/}: small standalone re-implementations of the
 trajectory stages that run on the synthetic data in \code{examples/}; \code{configs/}: calibration results and robot
 overrides; \code{hardware/umihand/}: the HandUMI build copy with our modifications (upstream Apache-2.0 licence kept);
 \code{legacy/}: superseded code; \code{docs/}, \code{media/}, \code{report/}: documentation, media and this report.
@@ -728,7 +816,7 @@ X-VLA fine-tuning code. Real-data stages need the recordings, some need a GPU or
 the standalone tools on the synthetic example, import and config-path smoke tests),
 \code{python scripts/evaluation/replay_parity.py --synthetic} and \code{python scripts/pose/robot_cam_solve.py --synthetic}
 (self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \code{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
-document it was taken from (README, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md} or
+document it was taken from (README, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md} or
 the archived report v0.1). This is a check of consistency with the project's records, not a re-computation of the
 numbers from data.
 
@@ -742,8 +830,8 @@ servo jaw labels and slowed timing. The first policies, observed in uncounted ro
 the recorded causes and the label problems found afterwards are changed, except the camera re-mount. In the reduced
 pinching test, a policy fine-tuned on 197 demonstrations grasped the sleeve in uncounted robot trials on 2 November; it
 does not recover from a miss. Next: record recovery demonstrations, re-mount the robot wrist cameras, finish the
-pinching test with counted robot trials, then evaluate flattening policies
-trained on the corrected labels and the servo-labelled demonstrations with counted trials.
+pinching test with counted robot trials, then evaluate the flattening policies trained under the re-aimed camera
+(FLAT250, and its variant conditioned on $p_\mathrm{grasp}$) with counted trials.
 
 \section*{Acknowledgements}
 The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI~\cite{chi2024umi}. Pretraining

@@ -26,6 +26,7 @@ README, README_KO = "README.md", "README_ko.md"
 RESULTS, DETAILS, DETAILS_KO = "docs/results.md", "docs/details.md", "docs/details_ko.md"
 STATUS = "docs/status_2026-11-01.md"
 STATUS2 = "docs/status_2026-11-02.md"
+STATUS3 = "docs/status_2026-11-05.md"
 V01 = "report/archive/report_v0.1_en.tex"
 
 # number as printed in the report -> the repository file it was taken from
@@ -69,6 +70,50 @@ SOURCES = {
     # pinching robot runs (status 2026-11-02)
     "17.29": STATUS2, "18.89": STATUS2,
 }
+
+# 11-05: flattening after the pinching test (report section sec:flat)
+SOURCES.update({
+    "250": STATUS3,
+    "149": STATUS3,
+    "101": STATUS3,
+    "0.025": STATUS3,
+    "0.08": STATUS3,
+    "62": STATUS3,
+    "60.89": STATUS3,
+    "90": STATUS3,
+    "64.36": STATUS3,
+    "71.67": STATUS3,
+    "72.27": STATUS3,
+    "102.36": STATUS3,
+    "101.78": STATUS3,
+    "82.81": STATUS3,
+    "82.42": STATUS3,
+    "60.74": STATUS3,
+    "59.85": STATUS3,
+    "57.64": STATUS3,
+    "56.95": STATUS3,
+    "53.56": STATUS3,
+    "54.16": STATUS3,
+    "52.56": STATUS3,
+    "52.32": STATUS3,
+    "444217": STATUS3,
+    "39": STATUS3,
+    "1024": STATUS3,
+    "343": STATUS3,
+    "148": STATUS3,
+    "585": STATUS3,
+    "543": STATUS3,
+    "372": STATUS3,
+    "171": STATUS3,
+    "0.90": STATUS3,
+    "0.78": STATUS3,
+    "0.99": STATUS3,
+    "0.03": STATUS3,
+    "301": STATUS3,
+    "45": STATUS3,
+    "68.79": STATUS3,
+    "68.43": STATUS3,
+})
 
 def norm_source(text):
     t = re.sub(r"(\d)\\,(\d{3})(?!\d)", r"\1\2", text)          # 1\,524 -> 1524

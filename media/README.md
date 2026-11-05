@@ -30,3 +30,6 @@ shown at the replay speed (94 s at 0.35×).
 
 Raw recordings are not included. `media/umi_hand_current.jpg` of the former `egocentric-laundry-folding` repository was
 byte-identical to `umi_hands.jpg` and was not kept.
+| `flatten_1104_125556_d01_gold_tracking.gif` | a GOLD flattening demo under the re-aimed camera (4 November, take 125556, demo 1, train split): point tracks and fused jaw tips on the fixed camera | [README §8](../README.md#flattening-after-the-pinching-test-11-02--11-05) |
+| `flatten_1104_125556_d01_gold_conversion_qa.gif` | conversion QA video of the same demo (fused jaw tips, hidden-marker estimate, wrist cameras, x / y / z over time) | report Fig. 11 (still) |
+| `flatten_1104_125556_d01_pgrasp.gif` | the same demo through both wrist cameras with the causal grasp probability p_grasp (green = held, red = not held; bars = whole demo); a review render of 5 November made before the window was frozen at 0.4 s | [README §8](../README.md#flattening-after-the-pinching-test-11-02--11-05) |
