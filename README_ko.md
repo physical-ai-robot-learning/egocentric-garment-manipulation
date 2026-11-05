@@ -92,15 +92,17 @@
 
 ```bash
 git clone https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation && cd egocentric-garment-manipulation
-uv sync && uv run pytest -q                        # Python 3.12, 또는: python -m pip install -e ".[test]" && python -m pytest -q
+uv sync --group vision --group robot && uv run pytest -q   # Python 3.12, 테스트에는 torch(CPU면 충분)와 Pink IK가 필요
+# uv 없이, CI와 같게: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -e ".[test]" pin pin-pink flask requests
 python analysis/verify_claims.py                   # 리포트의 모든 숫자를 옮겨 온 문서와 대조: "227 claims checked, 0 failed."
 python scripts/laundry/eval/replay_parity.py --synthetic          # 비교 채점기 자체 시험, 마지막 줄 "합성 시험 PASS"
 python -m laundry_tracking.calib.robot_cam_solve --synthetic      # 시뮬레이션 데이터로 카메라 ↔ 로봇 풀이, 마지막 줄 "합성 시험 PASS"
 ```
 
 테스트는 모든 패키지의 특성화 테스트(코드 구조를 바꾸기 전에 합성 녹화, 가짜 IK, golden 파일로 기록한 출력), 구조·import smoke
-test, 합성 예제에 대한 참고 구현 회귀 검사입니다. 529개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함). 무거운 의존성은
-dependency group입니다(`uv sync --group vision|robot|train|collector`, [코드 안내](docs/codebase_ko.md#설치-참고)).
+test, 합성 예제에 대한 참고 구현 회귀 검사입니다. 개발 환경에서 529개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함), `uv sync --group vision --group robot`로
+만든 새 clone에서 527개 통과, 5개 건너뜀(2026-11-05). 기본 설치(`uv sync`만)로는 숫자 검사와 두 자체 시험은 돌지만, 테스트 수집에
+torch가 필요합니다. dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
 
 **이 저장소만으로 재현할 수 없는 것:** 실제 시스템의 숫자는 포함하지 않은 녹화 데이터(원본 take, 학습된 checkpoint)에서
 나왔습니다. reBot 제조사 플러그인과 URDF, 로봇 PC 드라이버, X-VLA 학습 패치는 포함하지 않았습니다. CoTracker와 학습은 GPU,

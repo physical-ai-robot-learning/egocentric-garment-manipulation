@@ -41,7 +41,7 @@ uv sync --group train                 # + torch, diffusers, accelerate, safetens
 uv sync --group collector             # + pyserial, feetech-servo-sdk, av, mcap, tqdm, pupil-apriltags (recorder)
 # without uv:
 python -m pip install -e ".[test]"    # base deps + pytest
-python -m pytest -q
+python -m pytest -q                   # needs torch and Pink IK as well (uv: --group vision --group robot; see the README)
 ```
 
 The training, deploy and robot-bridge environments (pinned versions recorded from the machines that produced the

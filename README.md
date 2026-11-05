@@ -97,7 +97,8 @@ are not in this repository. Options, outputs and the replay track: [docs/pipelin
 
 ```bash
 git clone https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation && cd egocentric-garment-manipulation
-uv sync && uv run pytest -q                        # Python 3.12; or: python -m pip install -e ".[test]" && python -m pytest -q
+uv sync --group vision --group robot && uv run pytest -q   # Python 3.12; the tests need torch (CPU is enough) and Pink IK
+# without uv, as in CI: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -e ".[test]" pin pin-pink flask requests
 python analysis/verify_claims.py                   # every number in the report vs. the document it came from: "227 claims checked, 0 failed."
 python scripts/laundry/eval/replay_parity.py --synthetic          # parity scorer self-test; ends with "합성 시험 PASS"
 python -m laundry_tracking.calib.robot_cam_solve --synthetic      # camera ↔ robot solver on simulated data; ends with "합성 시험 PASS"
@@ -105,8 +106,10 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # camera ↔ r
 
 The tests are characterization tests of every package (outputs recorded before the code was restructured, on synthetic
 recordings, fake IK and golden files), layout / import smoke tests and the reference regression on the synthetic
-example; 529 pass and 3 skip (lerobot not installed, reBot URDF not included). Heavy dependencies are dependency groups
-(`uv sync --group vision|robot|train|collector`; [codebase guide](docs/codebase.md#installation-details)).
+example: 529 pass and 3 skip in the development environment (lerobot not installed, reBot URDF not included); 527 pass
+and 5 skip in a fresh clone with `uv sync --group vision --group robot` (2026-11-05). A base install (`uv sync` alone)
+runs the claims check and the two self-tests, but test collection needs torch. Dependency groups: `vision`, `robot`,
+`train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
 
 **Not reproducible from this repository:** the real-system numbers come from recorded data that is not included (raw
 takes, trained checkpoints); the reBot vendor plugin and URDF, the robot-PC driver stack and the X-VLA training patch are

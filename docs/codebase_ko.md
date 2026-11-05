@@ -39,7 +39,7 @@ uv sync --group train                 # + torch, diffusers, accelerate, safetens
 uv sync --group collector             # + pyserial, feetech-servo-sdk, av, mcap, tqdm, pupil-apriltags (녹화기)
 # uv 없이:
 python -m pip install -e ".[test]"    # 기본 의존성 + pytest
-python -m pytest -q
+python -m pytest -q                   # torch와 Pink IK도 필요 (uv: --group vision --group robot, README 참고)
 ```
 
 학습·배포·로봇 브리지 환경(결과를 만든 장비에서 기록한 고정 버전, 이 레포만으로는 재현할 수 없는 부분)은
