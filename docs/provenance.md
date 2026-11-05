@@ -1,5 +1,15 @@
 # Provenance of vendored modules
 
+**Current state (2026-11-05).** The vendored modules now live in `src/laundry_shared/` under their original names
+(`laundry_shared.contracts`, `laundry_shared.xvla_core`, `laundry_shared.umi_to_lerobot`, `laundry_shared.visual_teleop`,
+`laundry_shared.rebot_prep`, `laundry_shared.handumi_collector`, `laundry_shared.ego_collector`,
+`laundry_shared.ego_teleop`). Only the modules the laundry code imports are kept (90 Python files), in their original
+code style; the full shared-package copies of 11-02 and the `umi` stand-in were removed from the tree (they are in git
+history before commit `3fbf473` and in egocentric-cube-stacking). Old → new paths:
+[refactor_2026-11.md](refactor_2026-11.md). The sections below are the record of 11-01 / 11-02; the file paths in their
+tables (`src/contracts/…`, `src/ego_teleop/…`) are those of that date.
+
+
 The pipeline code imported a few modules that lived outside this repository on the original machine (the shared
 action / observation contract, two dataset helpers, a UMI pose helper and parts of the earlier `ego_collector`
 workspace). They were copied into `src/` (refactor v3, 2026-11-01) so that every import resolves from a clean clone.
@@ -42,13 +52,14 @@ Sources: `~/laundry_system` (git `5006650`), `~/laundry_dit_training` (git `7650
 
 ## Imports that are still not resolvable from this repository
 
+Current as of 2026-11-05 (the stereo-VIO modules that imported `stereo_openvins_eval` / `stereo_basalt_eval` are no longer in the tree).
+
 | import | used by | why it is not copied |
 |---|---|---|
-| `rel_relonly_bce` | `garment_pipeline.eval_deploy.xvla_server` | X-VLA training patch from the cube project's X-VLA deploy tree (`~/xvla_deploy/umi_bridge/umi76`, `~/ego_cart20/launch/rel32bin`); the server runs in a separate X-VLA environment set up with `PYTHONPATH` (see the module docstring) |
-| `ego_cart20.*` | `umi_to_lerobot` (lazy, ego-data branches only), `ego_teleop.ego_cart20_link` (lazy), `legacy/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
-| `lerobot_plugin_rebot.*`, `bh_indy7_lerobot*`, `usb_arm_ports` | `scripts/deploy/robot_bridge/` | reBot driver stack of the robot PC (`~/robot-cockpit`), third-party / company code |
-| `stereo_openvins_eval`, `stereo_basalt_eval` | `visual_teleop.vision.stereo_vio_tracker` | stereo VIO experiment (dropped 10-16, see `legacy/`), needs native OpenVINS / Basalt bridges |
-| `jaw_redx` | `visual_teleop.vision.fingertip_detector` (red-tape detector, lazy) | lives in `legacy/scripts/umi_fusion/` (tape removed 10-20) and itself needs `ego_cart20` |
+| `rel_relonly_bce` | `laundry_deploy.xvla_server` | X-VLA training patch from the cube project's X-VLA deploy tree (`~/xvla_deploy/umi_bridge/umi76`, `~/ego_cart20/launch/rel32bin`); the server runs in a separate X-VLA environment set up with `PYTHONPATH` (see the module docstring) |
+| `ego_cart20.*` | `laundry_shared.umi_to_lerobot` (lazy, ego-data branches only), `archive/scripts/umi_fusion/jaw_redx.py` | cube-project package (`egocentric-cube-stacking`) |
+| `lerobot_plugin_rebot.*`, `bh_indy7_lerobot*`, `usb_arm_ports` | `laundry_deploy.robot_service` | reBot driver stack of the robot PC (`~/robot-cockpit`), third-party / company code |
+| `jaw_redx` | `laundry_shared.visual_teleop.vision.fingertip_detector` (red-tape detector, lazy) | lives in `archive/scripts/umi_fusion/` (tape removed 10-20) and itself needs `ego_cart20` |
 
 The modules `ego_teleop.hand3d.*`, `ego_collector.hands.mediapipe_tracker` and `ego_teleop.tracking.backends.openvins`
 (imported lazily by `visual_teleop.vision.rgbd_pose`, `visual_teleop.tools.sensor_hub` and
@@ -61,7 +72,7 @@ apply).
 `handumi_collector`, `ego_collector`, `ego_teleop` and `umi` are the HandUMI / teleop packages of the cube-stacking
 project ([egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking)). Both repositories hold
 them in `src/` as identical copies: every Python file has the same bytes in both (236 files; md5 list in
-[`shared_packages_MANIFEST.md`](shared_packages_MANIFEST.md)). Only the three package `README.md` files differ (each
+[`archive/docs/shared_packages_MANIFEST.md`](../archive/docs/shared_packages_MANIFEST.md)). Only the three package `README.md` files differ (each
 repository's own links). Import names are unchanged.
 
 History:

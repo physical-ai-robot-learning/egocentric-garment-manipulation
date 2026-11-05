@@ -1,6 +1,6 @@
 # Results
 
-> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [README §8](../README.md#8-current-vs-superseded) and [docs/status_2026-11-01.md](status_2026-11-01.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
+> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [history.md](history.md#current-vs-superseded) (README §8 before 11-05) and [docs/status_2026-11-05.md](status_2026-11-05.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
 
 All results are from one physical setup (two low-cost 6-DoF arms, one fixed RGB-D camera, two hand-worn grippers) and
 one demonstrator, measured in October 2026. They are reported as measured, including failures. No success rate is
@@ -29,7 +29,7 @@ For a comparison window:
   amplitude ratio 0.9–1.1, no jumps. Single-axis strokes are compared on normalised progress along the human chord,
   with gates on main-axis ratio, cross-axis leakage (< 10 %), endpoint (< 20 mm), RMSE and p95.
 
-A generic implementation of the position/rotation/lag part is in [`../src/egogarment/evaluation/parity_metrics.py`](../src/egogarment/evaluation/parity_metrics.py).
+A generic implementation of the position/rotation/lag part is in [`../src/laundry_reference/parity_metrics.py`](../src/laundry_reference/parity_metrics.py).
 
 ## 1. Calibration accuracy
 
@@ -113,7 +113,7 @@ The markers are hidden exactly when the hand grasps, palm down, so wrist-camera 
 | ORB-SLAM3 monocular-inertial | initialised with good rotation, but **translation scale diverged by 30–1000×**; hand accelerations (median 0.07–0.16 m/s²) were below the accelerometer bias (0.25–0.43 m/s²), so scale was not observable |
 | Stereo VIO (earlier stereo wrist camera) | stereo-inertial diverged; stereo VO alone ran but the camera was dropped |
 
-Consequence: SLAM is kept only as an optional filler, accepted per segment where it agrees with the markers. *(11-01: SLAM moved to `legacy/` on 10-27 and is not used.)*
+Consequence: SLAM is kept only as an optional filler, accepted per segment where it agrees with the markers. *(11-01: SLAM moved to `legacy/` (now `archive/`) on 10-27 and is not used.)*
 
 An earlier label pipeline (SLAM + external body tracking + IMU) passed all of its own quality checks yet was 4–6 cm from
 the jaw position seen by the external camera, because of three calibration/anchoring errors that internal residuals
@@ -137,11 +137,11 @@ no gap at a grasp).
 and ≈ 58 mm at grasps. About 20 % of frames need a large IK correction; by cause: wrist-roll relaxation (mostly left),
 tool flip (mostly right), one joint at its limit, and ≈ 1 % truly out of reach.
 
-**Policy.** ~~Not yet trained on these labels~~ (10-27). *(11-01: fine-tuned from 10-28; see README §8.)*
+**Policy.** ~~Not yet trained on these labels~~ (10-27). *(11-01: fine-tuned from 10-28; see [history.md](history.md#current-vs-superseded).)*
 
 ## 8. Synthetic example (this repository)
 
-On the synthetic data in [`../examples/`](../examples), the tools in `src/egogarment/` (run via `scripts/` or `python -m egogarment.<component>.<module>`) give (seed 0):
+On the synthetic data in [`../assets/laundry/examples/`](../assets/laundry/examples), the tools in `src/laundry_reference/` (run as `python -m laundry_reference.<module>`) give (seed 0):
 
 | comparison | right | left |
 |---|---|---|

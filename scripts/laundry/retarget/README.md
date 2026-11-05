@@ -4,10 +4,10 @@ Human → robot mapping for the open-loop replay track: UMI gripper frame ↔ re
 robotization of a two-hand demo into a reBot-feasible trajectory.
 
 **Status:** current for calibration (`umi_align.py`); replay track only for `umi_robotize_bi.py` (training labels are
-built by `src/garment_pipeline/labels_dataset/robotize_ik.py`)
+built by `laundry_dataset.robotize_ik`)
 
 ## Inputs → Outputs
-`umi_traj_{right,left}.npz` from `scripts/pose/umi_tcp_traj.py` → `umi_traj_<arm>_robot.npz` (robotized path, per-frame
+`umi_traj_{right,left}.npz` from `laundry_tracking.calib.umi_tcp_traj` → `umi_traj_<arm>_robot.npz` (robotized path, per-frame
 quality); an align take → `configs/laundry/calibration/umi_gripper_align[_left]_v001.json` (R_U_E).
 
 ## Entry points

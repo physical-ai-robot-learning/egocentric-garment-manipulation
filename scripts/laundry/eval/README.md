@@ -2,7 +2,7 @@
 
 Offline comparison of human demo, robot command and executed robot motion, plus a regression test for the replay planner.
 
-**Status:** current for the replay track; the policy offline eval is `src/garment_pipeline/eval_deploy/tagrig_offline_eval.py`
+**Status:** current for the replay track; the policy offline eval is `python -m laundry_deploy.tools.offline_eval`
 
 ## Inputs → Outputs
 A take `datasets/tag_rig/<take>` and a replay run `datasets/replay/<run>` → per-segment RMSE / pass tables

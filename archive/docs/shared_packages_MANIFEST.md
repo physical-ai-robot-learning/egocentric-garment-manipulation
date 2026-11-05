@@ -1,3 +1,5 @@
+> **Archived 2026-11-05.** Since 11-05 this repository no longer holds the full shared-package copies listed here; only the modules the laundry code imports are kept, in `src/laundry_shared/` ([docs/provenance.md](../../docs/provenance.md), [docs/refactor_2026-11.md](../../docs/refactor_2026-11.md)). Kept as a record of the 11-02 copy.
+
 # Shared packages: file manifest (2026-11-02)
 
 `handumi_collector`, `ego_collector`, `ego_teleop` and `umi` are kept as identical copies in two repositories,

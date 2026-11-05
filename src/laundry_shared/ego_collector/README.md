@@ -1,5 +1,7 @@
 # ego_collector
 
+> **In this repository** (since 2026-11-05) this package is `laundry_shared.ego_collector` and holds only the modules the laundry code imports. The text below is the package's original README: read `ego_collector.…` as `laundry_shared.ego_collector.…` and `src/ego_collector/` as `src/laundry_shared/ego_collector/`; modules it names that are not in `src/laundry_shared/ego_collector/` are not in this tree. Provenance: [docs/provenance.md](../../../docs/provenance.md).
+
 V0 egocentric collector: head C922 + AprilTag gloves and world tags → offline pseudo-action pipeline (`record → process-tags → process-hands[3d] → generate-actions → qa`).
 
 **Status:** superseded (by `handumi_collector`). Kept because `ego_collector.camera` (UVC/Orbbec capture, ChArUco helpers) is imported by `handumi_collector` and the calibration scripts.
@@ -26,5 +28,5 @@ python -m ego_collector --help
 
 ## Provenance
 
-Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/ego_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/laundry/provenance/README.md)). The guides below are in egocentric-cube-stacking.
+Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/ego_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/provenance.md)). The guides below are in egocentric-cube-stacking.
 See [`docs/experimental/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/experimental/README.md) and [`docs/provenance/experimental_MANIFEST.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/provenance/experimental_MANIFEST.md). Tests: `tests/experimental/v0/`.

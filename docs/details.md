@@ -1,8 +1,8 @@
 # Project details
 
-> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [README §8](../README.md#8-current-vs-superseded) and [docs/status_2026-11-01.md](status_2026-11-01.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
+> **Snapshot of 27 October 2026.** This page describes the state of 27 October; see [history.md](history.md#current-vs-superseded) (README §8 before 11-05) and [docs/status_2026-11-05.md](status_2026-11-05.md) for the current state. Lines that are out of date are annotated *(11-01: …)* rather than rewritten.
 
-*Long-form sections moved out of the top-level [README](../README.md) in the 11-01 layout refactor (text unchanged, only paths updated). Section numbers follow the old README so the § references inside the text still match.*
+*Long-form sections moved out of the top-level [README](../README.md) in the 11-01 layout refactor (text unchanged, only paths updated). Section numbers follow the old README so the § references inside the text still match. Since 11-05 the old README §5–6 are in [pipeline.md](pipeline.md) and [codebase.md](codebase.md), §8 in [history.md](history.md); code paths are those of the current layout ([refactor map](refactor_2026-11.md)).*
 
 ## 1. Overview
 
@@ -12,19 +12,19 @@
 | **Input** | A human folds the shirt wearing two HandUMI grippers with AprilTags; a fixed RGB-D camera, wrist cameras and IMUs record it |
 | **Output** | Two reBot B601-DM arms: first by replaying the converted motion (done), now by running a policy trained on it |
 | **Key idea** | **One world frame** (the robot base): the camera is calibrated to the robot and every take starts with the grippers at markers whose positions in robot coordinates are known. Pose from the fixed camera (**point tracking + AprilTags + depth + IMU**), not wrist SLAM. Labels are Cartesian targets before IK; IK and safety checks run online before anything moves. |
-| **Where we are** | Replay: both arms replay reliably and the jaws close at the human's height and time; the robot grasps and drags the cloth but does not fold. Policy: 300 successful flattening demos recorded (10-26/27) and converted into training labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs; fine-tuning on our GOLD demos is next *(11-01: fine-tunes ran from 10-28; see README §8)*. **No policy success rate yet.** |
+| **Where we are** | Replay: both arms replay reliably and the jaws close at the human's height and time; the robot grasps and drags the cloth but does not fold. Policy: 300 successful flattening demos recorded (10-26/27) and converted into training labels; a Soft-Fold-pretrained DiT runs safely on the robot in dry runs; fine-tuning on our GOLD demos is next *(11-01: fine-tunes ran from 10-28; see [history.md](history.md#current-vs-superseded))*. **No policy success rate yet.** |
 
 ## 3. Current pipeline: policy training data (2026-10-26 / 27)
 
 For learning a policy (not open-loop replay) the pose source and the labels were rebuilt on top of the replay track's
-calibration, recorder and robot tools. Code and the 12-stage map: [src/garment_pipeline/README.md](../src/garment_pipeline/README.md).
+calibration, recorder and robot tools. Code: the packages `laundry_tracking`, `laundry_dataset`, `laundry_training` and `laundry_deploy` ([codebase guide](codebase.md), [commands](pipeline.md#commands-on-real-data-stages-07)).
 
 ### 3.1 Data: 300 flattening demonstrations
 
 **Collection.** 318 demonstrations of *flattening* a crumpled T-shirt, **300 successful** (beige 72 · black 92 · white 82 · blue 54).
 Success is judged on the frame 0.5 s before each demo ends. The Orbbec was raised to 113 cm so both hands stay in view;
 each camera move got its own camera ↔ robot calibration (`robot_cam_v002…v005`), re-solved from two fixed 70 mm table
-tags plus the table plane (`scripts/pose/robot_cam_from_anchors.py`).
+tags plus the table plane (`laundry_tracking.calib.robot_cam_from_anchors`).
 
 **Pose = markers + point tracking + IMU.** Markers alone drop out whenever the cloth or the other hand covers them.
 1. **CoTracker3** follows 40 points on each gripper through the fixed-camera video; depth lifts them to 3-D and a rigid
@@ -73,7 +73,7 @@ CPU-heavy 3-D solve run on rented RTX 5090 pods; results come back to the laptop
 
 ### 3.2 Training plan
 
-*(11-01: both were fine-tuned from 10-28 and observed in uncounted robot trials; the 4090 DiT fine-tunes start from a DiT pretrained 100k steps on a Soft-Fold / iPhUMI / PrimeBot mix; Exp 1's initialisation is not recorded here. See README §8.)* No policy result is reported yet. Two experiments run first, both fine-tuned on **our GOLD demos only** with label A:
+*(11-01: both were fine-tuned from 10-28 and observed in uncounted robot trials; the 4090 DiT fine-tunes start from a DiT pretrained 100k steps on a Soft-Fold / iPhUMI / PrimeBot mix; Exp 1's initialisation is not recorded here. See [history.md](history.md#current-vs-superseded).)* No policy result is reported yet. Two experiments run first, both fine-tuned on **our GOLD demos only** with label A:
 
 | | pretrain | fine-tune | checkpoints |
 |---|---|---|---|
@@ -102,7 +102,7 @@ gap).*
   table, joint limits) → only the first 4 steps are committed, then re-plan (≈ 7 Hz). *(11-01: the re-plan rate was not measured in a recorded run; the commit length is UI-selectable — DiT 4, ACT 1, X-VLA 8 by default.)*
 - **Gripper safety (10-27):** after a restart without the left-jaw opening limit, the left jaw opened to the end of its
   travel and broke the holder. Deploy now refuses GO unless the bridge limits each jaw (left ≤ 0.5 of −270°), and a
-  jaw-only re-zero tool fixes a jaw that reads −43° while closed (`scripts/deploy/robot_bridge/`).
+  jaw-only re-zero tool fixes a jaw that reads −43° while closed (`src/laundry_deploy/robot_service/`).
 
 ### 3.4 Decisions, 10-22 → 10-27
 
@@ -119,13 +119,13 @@ gap).*
 ## 4. Earlier track: open-loop replay (10-08 → 10-22)
 
 Demonstrations converted into one robot trajectory and replayed as a whole. This track produced the calibration,
-recorder, jaw model and robot safety tools reused above; its pose and label steps are replaced for training ([README, *Current vs superseded*](../README.md#8-current-vs-superseded)).
+recorder, jaw model and robot safety tools reused above; its pose and label steps are replaced for training ([history, *Current vs. superseded*](history.md#current-vs-superseded)).
 
 ![pipeline](../media/pipeline.png)
 
 1. **Record** — both grippers start at the start markers; Orbbec RGB-D, wrist fisheyes and IMUs record on one clock.
 2. **Pose** — AprilTags + depth → gripper pose → jaw tip, directly in robot coordinates.
-3. **Fill gaps + jaw state** — IMU bridges frames where the markers are hidden (~~optional MASt3R-SLAM~~, moved to `legacy/` 10-27). Jaw state: a YOLO-pose model finds the two jaw tips in the wrist video; their distance gives a continuous aperture g (0 = closed, 1 = open), checked against hand labels at 100 % (left) / 98 % (right) on a re-angled take (10-22). The earlier binary ResNet classifier is kept as a fallback. **Since 10-29** the jaw state of new demos comes from the jaw servo on each UMI instead (Feetech STS3215, torque off, read ≈100 Hz on the host clock → `scripts/pose/jaw_from_motor.py`, same `umi_jaw.npz` format); on those takes the video classifier agrees with the servo on only ~70–80 % of frames. Video- and servo-derived labels are never mixed in one comparison.
+3. **Fill gaps + jaw state** — IMU bridges frames where the markers are hidden (~~optional MASt3R-SLAM~~, moved to `archive/` 10-27). Jaw state: a YOLO-pose model finds the two jaw tips in the wrist video; their distance gives a continuous aperture g (0 = closed, 1 = open), checked against hand labels at 100 % (left) / 98 % (right) on a re-angled take (10-22). The earlier binary ResNet classifier is kept as a fallback. **Since 10-29** the jaw state of new demos comes from the jaw servo on each UMI instead (Feetech STS3215, torque off, read ≈100 Hz on the host clock → `laundry_jaw.from_motor`, same `umi_jaw.npz` format); on those takes the video classifier agrees with the servo on only ~70–80 % of frames. Video- and servo-derived labels are never mixed in one comparison.
 4. **Robotize** — smooth warps keep each hand on its side and above the table; every frame gets a quality label.
 5. **Plan + check** — joint-limit-aware IK; IK error, speed, table and arm-distance checks must pass offline.
 6. **Replay + compare** — both arms execute; human, command and robot are compared on one clock and filmed by the same camera.
@@ -148,7 +148,7 @@ Details: [Technical Report](../report/report_en.pdf) (replay track in full: [v0.
 4. **Open-loop replay needs the same scene.** The cloth must start where the human's did.
 
 **Replay results** (take 171057 demo 2, run 195745; left: human, right: robot; same camera, human speed). In this run the
-shirt lay 15–20 cm farther away than in the demo, so the jaws closed on the empty table; in run 200335 (robot-speed GIF in [README §7](../README.md#7-results)) they
+shirt lay 15–20 cm farther away than in the demo, so the jaws closed on the empty table; in run 200335 (robot-speed GIF in [history.md](history.md#overview-as-of-2-november)) they
 caught the shirt edge and dragged it.
 
 ![Replay run 195745](../media/replay2_195745_human_time_33s_large.gif)
@@ -160,6 +160,6 @@ caught the shirt edge and dragged it.
 | 17–30 mm RMSE vs the replayed human path over the demo; the error at the grasp itself is not yet measured | per-grasp xy error table: a constant bias means calibration; a varying one needs visual correction at the grasp |
 | cloth position differs from the demo | placement reference before each replay |
 | ~~tag-hidden grasp phases~~ | ~~offline smoother (tags + IMU + depth + gated MASt3R)~~ → solved by CoTracker + marker fusion (10-24, §3.1) |
-| no policy yet *(11-01: policies fine-tuned from 10-28, README §8)* | Exp 1 (DiT) and Exp 3 (X-VLA mixture) fine-tuned on GOLD (§3.2), then real-robot evaluation |
+| no policy yet *(11-01: policies fine-tuned from 10-28, [history.md](history.md#current-vs-superseded))* | Exp 1 (DiT) and Exp 3 (X-VLA mixture) fine-tuned on GOLD (§3.2), then real-robot evaluation |
 | ≈ 18–24 % of label frames need a large IK correction (wrist roll, tool flip, right j4 at its limit) | report per cause, no mask for now *(11-01: with F, IK never masks; code `tag_rig_unsplit.py`, `if LABEL in ("rob", "fused")`; on the first 139 demos the large-correction share is 20.3 %)*; check how often the online IK hits them during deploy |
 | replay-track items above (grasp error, cloth placement) | parked; open-loop replay is no longer the main path |

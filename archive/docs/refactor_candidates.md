@@ -1,3 +1,5 @@
+> **Archived 2026-11-05.** This list described the 11-01 layout (`src/garment_pipeline/`, `src/egogarment/`); the OA layout of 11-05 restructured the modules it lists ([docs/refactor_2026-11.md](../../docs/refactor_2026-11.md)). Kept as a record; its paths and links are those of its date.
+
 # Refactor candidates
 
 Refactor v3 (2026-11-01) was behaviour-preserving: it moved the training-data pipeline into the package

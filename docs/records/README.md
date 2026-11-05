@@ -1,5 +1,7 @@
 # records
 
+> Paths in this record are those of its date; see [docs/refactor_2026-11.md](../refactor_2026-11.md) for the current ones.
+
 Data records kept with the code that produced or used them.
 
 | folder | what | used by |

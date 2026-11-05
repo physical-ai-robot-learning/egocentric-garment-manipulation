@@ -30,7 +30,7 @@ the upstream HandUMI design, which keeps its Apache-2.0 licence ([LICENSE](hardw
 | SQPnP | multi-marker pose initialisation | G. Terzakis and M. Lourakis, ECCV 2020 |
 | Robot-world/hand-eye calibration | initialisation of camera-to-robot calibration | M. Shah, J. Mechanisms and Robotics 2013 |
 | CoTracker3 | point tracking on the fixed camera (current pose source) | N. Karaev et al., "CoTracker3: Simpler and better point tracking by pseudo-labelling real videos," 2024 |
-| MASt3R-SLAM (with MASt3R, DUSt3R) | evaluated as pose source and as a gap filler; rejected (now in `legacy/`) | R. Murai, E. Dexheimer, A. J. Davison, CVPR 2025; V. Leroy et al., ECCV 2024; S. Wang et al., CVPR 2024 |
+| MASt3R-SLAM (with MASt3R, DUSt3R) | evaluated as pose source and as a gap filler; rejected (now in `archive/`) | R. Murai, E. Dexheimer, A. J. Davison, CVPR 2025; V. Leroy et al., ECCV 2024; S. Wang et al., CVPR 2024 |
 | ORB-SLAM3 | evaluated (mono-inertial); rejected | C. Campos et al., IEEE T-RO 2021 |
 | Basalt, OpenVINS, AirSLAM | evaluated with an earlier stereo camera | V. Usenko et al., RA-L 2020; P. Geneva et al., ICRA 2020; K. Xu et al., T-RO 2025 |
 | Kalibr | camera–IMU calibration in an earlier pipeline | P. Furgale, J. Rehder, R. Siegwart, IROS 2013 |
@@ -51,22 +51,24 @@ SpeedFolding (Y. Avigal et al., IROS 2022), FlingBot (H. Ha and S. Song, CoRL 20
 
 ## This repository
 
-The full project code is here: `src/visual_teleop/`, `src/rebot_prep/`, `src/garment_pipeline/`, `scripts/{pose,retarget,evaluation,deploy}/`,
-`configs/` and `legacy/` (merged on 1 November 2026 from the project's former working repository,
-`egocentric-laundry-folding`). The code in `src/egogarment/` (with thin command wrappers in `scripts/`) and the
-generator in `examples/` are small standalone re-implementations written for this repository; they depend only on
-numpy, scipy and matplotlib. The data in `examples/` is synthetic.
+The full project code is here: one package per pipeline stage in `src/` (`laundry_tracking`, `laundry_jaw`,
+`laundry_dataset`, `laundry_training`, `laundry_deploy`, `laundry_common`), operational scripts in `scripts/laundry/`,
+calibration and robot files in `configs/laundry/`, and superseded code in `archive/` (merged on 1 November 2026 from the
+project's former working repository, `egocentric-laundry-folding`; restructured on 5 November 2026, see
+[docs/refactor_2026-11.md](docs/refactor_2026-11.md)). The code in `src/laundry_reference/` and the generator in
+`assets/laundry/examples/` are small standalone re-implementations written for this repository; they depend only on
+numpy, scipy and matplotlib. The data in `assets/laundry/examples/` is synthetic.
 
-Modules copied from the project's other working folders so that imports resolve from a clean clone (`src/contracts`,
-`src/xvla_core.py`, `src/umi_to_lerobot.py`) are our own code; sources and md5 are listed in
-[docs/provenance.md](docs/provenance.md). `ego_collector`, `ego_teleop` and `handumi_collector` (our own code) are in
-`src/`; they are shared with the cube-stacking project, which holds identical copies. `src/umi/common/pose_util.py`
-(also shared) is `umi.common.pose_util`, our minimal stand-in for UMI's pose helper (same function names and conventions);
-UMI's MIT licence is kept in [upstream/umi/LICENSE](upstream/umi/LICENSE) ([upstream/README.md](upstream/README.md)).
+Modules copied from the project's other working folders so that imports resolve from a clean clone are in
+`src/laundry_shared/` (`contracts`, `xvla_core.py`, `umi_to_lerobot.py`, and the modules this code imports from
+`visual_teleop`, `rebot_prep`, `ego_collector`, `ego_teleop` and `handumi_collector`); they are our own code, and
+sources and md5 are listed in [docs/provenance.md](docs/provenance.md). The action contract
+(`laundry_shared.contracts`) follows the rot6d convention of UMI's pose helper (first two rows of R); UMI's MIT licence
+is kept in [upstream/umi/LICENSE](upstream/umi/LICENSE) ([upstream/README.md](upstream/README.md)).
 
 Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot UMI (CC BY-SA 4.0); not redistributed
 here.
 
-* **ORB-SLAM3** (UZ-SLAMLab, GPL v3): `legacy/orbslam3/patch*.py` modify ORB-SLAM3's source and are therefore
+* **ORB-SLAM3** (UZ-SLAMLab, GPL v3): `archive/orbslam3/patch*.py` modify ORB-SLAM3's source and are therefore
   distributed under the GPL v3, not under this repository's licence; see
-  [legacy/orbslam3/LICENSE_NOTICE.md](legacy/orbslam3/LICENSE_NOTICE.md). ORB-SLAM3 itself is not included.
+  [archive/orbslam3/LICENSE_NOTICE.md](archive/orbslam3/LICENSE_NOTICE.md). ORB-SLAM3 itself is not included.

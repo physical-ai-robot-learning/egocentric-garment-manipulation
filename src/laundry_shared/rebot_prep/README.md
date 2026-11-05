@@ -1,5 +1,7 @@
 # rebot_prep
 
+> **In this repository** (since 2026-11-05) this package is `laundry_shared.rebot_prep` and holds only the modules the laundry code imports. The text below is the package's original README: read `rebot_prep.…` as `laundry_shared.rebot_prep.…` and `src/rebot_prep/` as `src/laundry_shared/rebot_prep/`; modules it names that are not in `src/laundry_shared/rebot_prep/` are not in this tree. Provenance: [docs/provenance.md](../../../docs/provenance.md).
+
 Importable reBot preprocessing code shared by several entry scripts. Package name follows the company refactor plan
 (`rebot_prep.parity` = tag-rig pose modules).
 
@@ -9,8 +11,8 @@ Importable reBot preprocessing code shared by several entry scripts. Package nam
 Orbbec tag detections + depth + IMU of a take → rig poses `T_C_rig`, fused with IMU orientation (`tag_rig_fuse.fuse_take`).
 
 ## Entry points
-Library: `from rebot_prep.parity.tag_rig_pose import rig_pose`, `from rebot_prep.parity.tag_rig_fuse import fuse_take`.
-CLIs: `PYTHONPATH=src python -m rebot_prep.parity.tag_rig_corners <take>`, `... -m rebot_prep.parity.tag_rig_imu <take> ...`.
+Library: `from laundry_shared.rebot_prep.parity.tag_rig_pose import rig_pose`, `from laundry_shared.rebot_prep.parity.tag_rig_fuse import fuse_take`.
+CLIs: `PYTHONPATH=src python -m laundry_shared.rebot_prep.parity.tag_rig_corners <take>`, `... -m laundry_shared.rebot_prep.parity.tag_rig_imu <take> ...`.
 
 ## Layout
 - `parity/tag_rig_pose.py` — multi-corner PnP, tag sizes, depth lookup, guard-tag rules

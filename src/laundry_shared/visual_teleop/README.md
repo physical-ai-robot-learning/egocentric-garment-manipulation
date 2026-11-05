@@ -1,5 +1,7 @@
 # visual_teleop — reBot bimanual visual teleoperation (Agent C)
 
+> **In this repository** (since 2026-11-05) this package is `laundry_shared.visual_teleop` and holds only the modules the laundry code imports. The text below is the package's original README: read `visual_teleop.…` as `laundry_shared.visual_teleop.…` and `src/visual_teleop/` as `src/laundry_shared/visual_teleop/`; modules it names that are not in `src/laundry_shared/visual_teleop/` are not in this tree. Provenance: [docs/provenance.md](../../../docs/provenance.md).
+
 Robot-side tools and libraries: the take recorder, jaw classifier, reBot IK / limits / safety, bridge client, and the
 open-loop replay planner (its original purpose, live visual teleoperation, is parked — see the status note below).
 
@@ -12,10 +14,10 @@ Orbbec RGB-D, wrist cameras, IMUs, reBot bridge `/status` → recorded takes (`d
 ## Entry points
 Run from the repo root with `src/` importable (`pip install -e .` or `PYTHONPATH=src`):
 ```bash
-python -m visual_teleop.tools.tag_rig_record --proto task --wrist      # recorder (sudo for the Orbbec on macOS)
-python -m visual_teleop.tools.umi_jaw infer <take>/wrist               # jaw state
-python -m visual_teleop.tools.bridge_start --sides left,right --go     # reBot MIT bridge
-python -m visual_teleop.tools.umi_replay_bi <take> ... --offline|--go  # plan + check / replay
+python -m laundry_shared.visual_teleop.tools.tag_rig_record --proto task --wrist      # recorder (sudo for the Orbbec on macOS)
+python -m laundry_shared.visual_teleop.tools.umi_jaw infer <take>/wrist               # jaw state
+python -m laundry_deploy.robot_service.mit_bridge                                     # reBot MIT bridge (was tools.bridge_start + robot_service_mit.py)
+python -m laundry_shared.visual_teleop.tools.umi_replay_bi <take> ... --offline|--go  # plan + check / replay
 ```
 Most tools also import `ego_teleop` (`src/ego_teleop/`, shared with the cube-stacking project), e.g. `umi_replay_bi` and the live-teleop pipeline.
 `config/` stays inside the package: `config.py` reads `config/*.yaml` next to itself and `tools/calib_right.py` writes
@@ -31,7 +33,7 @@ Most tools also import `ego_teleop` (`src/ego_teleop/`, shared with the cube-sta
 ## Provenance
 Moved from top-level `visual_teleop/` to `src/visual_teleop/` in the 11-01 layout refactor; root lookups changed from
 `parents[2]` to `parents[3]`. Imports `ego_teleop` / `ego_collector` / `handumi_collector` in places — those packages are in `src/`
-too (identical copies shared with the cube-stacking project, [`docs/provenance.md`](../../../docs/laundry/provenance/README.md)).
+too (identical copies shared with the cube-stacking project, [`docs/provenance.md`](../../../docs/provenance.md)).
 
 ## Details (original package README)
 

@@ -1,5 +1,7 @@
 # ego_teleop
 
+> **In this repository** (since 2026-11-05) this package is `laundry_shared.ego_teleop` and holds only the modules the laundry code imports. The text below is the package's original README: read `ego_teleop.…` as `laundry_shared.ego_teleop.…` and `src/ego_teleop/` as `src/laundry_shared/ego_teleop/`; modules it names that are not in `src/laundry_shared/ego_teleop/` are not in this tree. Provenance: [docs/provenance.md](../../../docs/provenance.md).
+
 Wearable teleoperation research stack: wrist fisheye + IMU (tag-free VIO) → relative SE(3) for the reBot arm, head RGB-D hand pose → DexPilot → Aero Hand, with calibration tooling.
 
 **Status:** experimental (research, not deployed; live wrist VIO is the blocker — see the docs)
@@ -27,5 +29,5 @@ python -m ego_teleop.tools.kalibr_export ... / kalibr_import ... / imu_allan ...
 
 ## Provenance
 
-Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/ego_teleop/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/laundry/provenance/README.md)). The guides below are in egocentric-cube-stacking.
+Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/ego_teleop/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/provenance.md)). The guides below are in egocentric-cube-stacking.
 See [`docs/experimental/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/experimental/README.md) and [`docs/provenance/experimental_MANIFEST.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/provenance/experimental_MANIFEST.md). Tests: `tests/experimental/teleop/`.

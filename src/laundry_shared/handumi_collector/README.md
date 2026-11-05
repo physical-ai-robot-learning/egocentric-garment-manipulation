@@ -1,5 +1,7 @@
 # handumi_collector
 
+> **In this repository** (since 2026-11-05) this package is `laundry_shared.handumi_collector` and holds only the modules the laundry code imports. The text below is the package's original README: read `handumi_collector.…` as `laundry_shared.handumi_collector.…` and `src/handumi_collector/` as `src/laundry_shared/handumi_collector/`; modules it names that are not in `src/laundry_shared/handumi_collector/` are not in this tree. Provenance: [docs/provenance.md](../../../docs/provenance.md).
+
 Raw recorder for the human (HandUMI) side: head C922 + one or two HandUMI wrist units (fisheye camera, wrist IMU, jaw encoder) → per-episode mp4 + `sensors.mcap`, plus calibration and QA tools.
 
 **Status:** current
@@ -31,5 +33,5 @@ python -m handumi_collector.tools.inspect_episode ...
 
 ## Provenance
 
-Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/handumi_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/laundry/provenance/README.md)). The guides below are in egocentric-cube-stacking.
+Shared with [egocentric-cube-stacking](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking) (`src/handumi_collector/`): both repositories hold identical copies of the Python files of this package (see [`docs/provenance.md`](../../../docs/provenance.md)). The guides below are in egocentric-cube-stacking.
 Copied from `~/ego_collector` on 2026-10-07 (HEAD `12db478` + working tree). Full guide: [`docs/collector/README.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/collector/README.md); file-level source table: [`docs/provenance/collection_MANIFEST.md`](https://github.com/physical-ai-robot-learning/egocentric-cube-stacking/blob/main/docs/provenance/collection_MANIFEST.md). Tests: `tests/collector/`.
