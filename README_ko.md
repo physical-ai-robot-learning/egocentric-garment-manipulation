@@ -78,7 +78,7 @@
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | 합성(SYNTHETIC) 시연 + 시뮬레이션 재생 | 참고 구현을 돌릴 데이터가 필요할 때 |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | 리포트의 모든 숫자를 그것을 옮겨 온 문서와 대조 | 리포트를 확인하고 싶을 때 |
 | [`docs/`](docs/) | [파이프라인](docs/pipeline_ko.md), [코드 안내](docs/codebase_ko.md), [이력](docs/history_ko.md), [세부 내용](docs/details_ko.md), [결과](docs/results.md)(영어), [환경](docs/environments.md), 상태 노트 [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md), [경로 대응표](docs/refactor_2026-11.md) | 긴 설명을 원할 때 |
-| [`report/`](report/README.md) | 테크니컬 리포트(영어 11-05, 한국어 11-02), LaTeX + PDF | 방법과 결과 전체를 한 문서로 보고 싶을 때 |
+| [`report/`](report/README.md) | 테크니컬 리포트(영어 11-07, 한국어 11-02), LaTeX + PDF | 방법과 결과 전체를 한 문서로 보고 싶을 때 |
 | [`media/`](media/README.md) | 실제 장치의 GIF, 영상, 사진 | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI 제작 사본(BrikHMP18의 설계) + 우리 변경 부품, IMU 펌웨어 | 집게를 만들고 싶을 때 |
 | [`archive/`](archive/README.md) | 더 이상 안 쓰는 코드: MASt3R / ORB-SLAM3 위치, UMIalign, 스테레오 VIO, 빨간 테이프 집게, 맨손 수집기 | 무엇을 시도하고 버렸는지 보고 싶을 때 |
