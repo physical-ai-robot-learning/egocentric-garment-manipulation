@@ -11,14 +11,14 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[Technical Report (PDF, 11-05)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project history](docs/history.md) · [Pipeline](docs/pipeline.md)
-· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-05
+· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-07
 
 ![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
 *Human demonstration (left) vs. robot replay of the converted trajectory (right). Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.*
 
-## Status (5 November 2026)
+## Status (7 November 2026)
 
 > **What works, and how it was measured**
 > * **Replay (10-08 → 10-22).** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and the jaws
@@ -37,9 +37,26 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   re-aimed on 3 November, FLAT250 (250 train demos, split by the tracking gaps inside each demo): held-out score
 >   72 → 52 mm by epoch 13. Because the jaw servo has no load signal, a wrist-camera classifier estimates per frame
 >   whether a closed jaw holds the cloth (p_grasp; 3–5 November). No counted robot trials of these policies yet.
+> * **Flattening with p_grasp on the robot (11-05 → 11-07).** FLAT-PGRASP: the FLAT250 recipe on the data of 3–5
+>   November (train 301 / val 46 / test 45 demos), p_grasp in the jaw slots of the state. At 0.3× time-stretch the
+>   held-out score reached 46.04 / 46.61 mm (val / test, epoch 53). On the robot (6 November) the 0.3× policy looked
+>   better than the same recipe at 1.0×, and on 7 November both jaws took the shirt edges and spread it between the arms
+>   ([interim report below](#latest-robot-run-interim-report-7-november)); the shirt is not laid flat yet. On the robot,
+>   p_grasp comes from the jaw state, not the wrist camera: the human-trained classifier calls the robot's closed empty
+>   jaws "held". Robot runs were not counted.
 >
 > **What is not shown:** no success rate (no robot trials were counted, for replay or for any policy); one setup, one
-> demonstrator; folding is not achieved.
+> demonstrator; flattening is not finished and folding is not achieved.
+
+### Latest robot run (interim report, 7 November)
+
+![Flattening policy on the robot, run 165051](media/flatten_policy_rollout_20261107_165051.gif)
+
+*FLAT-PGRASP at 0.3× (checkpoint at epoch 77) on the robot, run 165051, fixed camera, first 97 s, one frame per control
+cycle (~1.3 s), shown at about 6×. Starting from a crumpled shirt, both jaws take an edge within about 25 s, spread the
+shirt between the arms and keep it spread; later in the run the shirt bunches up again. This is an interim progress
+report, not a result: the clip is the clearest of 27 runs that day, and **the runs were not counted or scored**, so it
+shows what the policy can do, not how often it does it. Details: [status note](docs/status_2026-11-07.md).*
 
 **Research question.** *If a robot simply replays the converted human motion, open loop, does it do what the human
 did?* Replay exercises every stage at once (calibration, pose, jaw state, robotization, IK, timing, control), puts
@@ -65,7 +82,7 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke tests and per-package characterization tests | you want to check that the code runs |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | SYNTHETIC demo + simulated replay | you want data to run the reference code on |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | checks every number in the report against the document it came from | you want to check the report |
-| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [codebase guide](docs/codebase.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [environments](docs/environments.md), [status notes](docs/status_2026-11-05.md), [refactor map](docs/refactor_2026-11.md) | you want the long form |
+| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [codebase guide](docs/codebase.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [environments](docs/environments.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md), [refactor map](docs/refactor_2026-11.md) | you want the long form |
 | [`report/`](report/README.md) | technical report (English 11-05, Korean 11-02), LaTeX + PDF | you want the whole method and results in one document |
 | [`media/`](media/README.md) | GIFs, videos and photos of the real setup | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI build copy (BrikHMP18's design) + our modified parts, IMU firmware | you want to build the gripper |
@@ -117,15 +134,6 @@ demonstrated motion and its jaws catch the shirt edge and drag it; folding itsel
 
 ![Human demonstration vs. robot replay, robot speed](media/replay3_200335_robot_time_94s_large.gif)
 
-**Interim report: learned flattening policy on the robot (7 November).** A DiT fine-tuned on about 300 flattening demonstrations
-(time-stretched 0.3× data set, p_grasp in the jaw slots of the state; checkpoint at epoch 77), run 165051, fixed camera,
-first 97 s, one frame per control cycle (~1.3 s), shown at about 6×. Starting from a crumpled shirt, both jaws take an
-edge within about 25 s, spread the shirt between the arms and keep it spread; later in the run the shirt bunches up
-again. This is an interim progress report, not a result: the clip is the clearest of 27 runs that day, and **the runs were not
-counted or scored**, so it shows what the policy can do, not how often it does it.
-
-![Flattening policy on the robot, run 165051](media/flatten_policy_rollout_20261107_165051.gif)
-
 ## Install and test
 
 ```bash
@@ -153,8 +161,8 @@ records, not a re-computation from data. Environments that produced the results:
 ## Results
 
 Measured in October and November 2026 on one setup with one demonstrator. Full tables and metric definitions:
-[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf); the 11-05 numbers:
-[status note](docs/status_2026-11-05.md).
+[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 5 November); the 11-05 and
+11-07 numbers: status notes [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md).
 
 | milestone | result |
 |---|---|
@@ -177,6 +185,8 @@ Measured in October and November 2026 on one setup with one demonstrator. Full t
 | Pinching one sleeve, left hand (11-02) | DiT fine-tuned on 197 pinching demos (50-epoch checkpoint): successful grasps observed in real-robot trials on 2 November; trials were not counted — **no success rate**. After a miss it grabs elsewhere instead of retrying |
 | Flattening, FLAT250 (11-04/05) | val / test `val_score_mm` 71.67 / 72.27 (initial) → **52.56 / 52.32** (epoch 13, best); no counted robot result |
 | Grasp held / empty (11-05) | wrist-camera classifier, take-grouped 5-fold CV per event: F1 held 0.90, empty 0.78 |
+| Flattening, FLAT-PGRASP 0.3× (11-05 → 11-07) | train 301 / val 46 / test 45 demos; val / test `val_score_mm` 75.88 / 76.08 (epoch 1) → **46.04 / 46.61** (epoch 53, best); not comparable with FLAT250 (different held-out sets) |
+| Flattening on the robot (11-06/07) | 0.3× looked better than 1.0× on the robot (6 November); on 7 November both jaws took the shirt edges and spread it, then it bunched up again; the shirt was not laid flat. 27 runs, not counted or scored — **no success rate** |
 
 ![Pinching on the real robot, 2 November](media/pinching_robot_20261102_113704.gif)
 
@@ -203,6 +213,8 @@ list: [history](docs/history.md#limitations).
 | 10-30 | the policy copied the jaw state from its observation | jaw state masked in training and deploy (`GRIP_STATE_MASK=1`) |
 | 11-04 | point-tracking gaps inside demos | split by the longest gap inside the trimmed window, gated loss masks |
 | 11-05 | a closed jaw does not say whether cloth is held | wrist-camera grasp labels → p_grasp in the jaw slots of the state (`PGRASP`) |
+| 11-06 | the human-trained grasp classifier calls the robot's closed empty jaws "held" (0.97 / 0.94) | on the robot, p_grasp = jaw state (closed → 1) until a robot-domain classifier exists |
+| 11-06 | on the robot the 0.3× policy looked better than the 1.0× one (uncounted) | keep the 0.3× time-stretch for flattening |
 
 Earlier decisions (robot model corrections, controller model, continuous warps instead of clipping) and the reasons:
 [history](docs/history.md#what-was-hard-and-what-i-changed); dated narrative from replay to flattening:
