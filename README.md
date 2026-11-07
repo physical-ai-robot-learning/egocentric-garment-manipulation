@@ -117,6 +117,15 @@ demonstrated motion and its jaws catch the shirt edge and drag it; folding itsel
 
 ![Human demonstration vs. robot replay, robot speed](media/replay3_200335_robot_time_94s_large.gif)
 
+**Learned flattening policy on the robot (7 November).** A DiT fine-tuned on about 300 flattening demonstrations
+(time-stretched 0.3× data set, p_grasp in the jaw slots of the state; checkpoint at epoch 77), run 165051, fixed camera,
+first 97 s, one frame per control cycle (~1.3 s), shown at about 6×. Starting from a crumpled shirt, both jaws take an
+edge within about 25 s, spread the shirt between the arms and keep it spread; later in the run the shirt bunches up
+again. Picked as the clearest of 27 runs that day; **the runs were not counted or scored**, so this shows what the policy
+can do, not how often it does it.
+
+![Flattening policy on the robot, run 165051](media/flatten_policy_rollout_20261107_165051.gif)
+
 ## Install and test
 
 ```bash
