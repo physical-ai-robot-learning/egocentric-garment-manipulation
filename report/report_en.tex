@@ -19,7 +19,7 @@
 \begin{document}
 \title{Egocentric Human Demonstrations for\\Bimanual Garment Manipulation:\\[1mm]\Large From Hand-Worn-Gripper Recordings to Robot Policies}
 \author{\IEEEauthorblockN{Jeong Hwan Lee}
-\IEEEauthorblockA{Technical report, status of 5 November 2026\\
+\IEEEauthorblockA{Technical report, status of 7 November 2026\\
 Repository: \texttt{egocentric-garment-manipulation}}}
 \maketitle
 
@@ -44,7 +44,9 @@ video jaw labels). In a reduced feasibility test, pinching one sleeve with the l
 demonstrations grasped the sleeve in real-robot trials on 2 November 2026; the trials were not counted, and after a miss
 the policy grasps elsewhere instead of retrying. Back on flattening, a policy trained with the cloth-folding recipe of
 UMI on 250 demonstrations under a re-aimed camera improves its offline score from epoch to epoch, and a vision
-classifier now labels whether a closed jaw holds the cloth, because the jaw servo has no load signal. We report no
+classifier now labels whether a closed jaw holds the cloth, because the jaw servo has no load signal. Trained on 301
+demonstrations with that label in its state, a flattening policy on the robot took both edges of a crumpled shirt and
+spread it between the arms (7 November 2026, uncounted runs); it does not yet lay the shirt flat. We report no
 success rate.
 \end{abstract}
 
@@ -75,10 +77,11 @@ fails visibly. The follow-up question is whether the same conversion yields labe
   recorded causes of their failure and the data problems found afterwards (Secs.~\ref{sec:data}--\ref{sec:policy}).
 \end{itemize}
 
-\textbf{Status} (2 November 2026). Replay is finished; folding by replay does not succeed. Policies fine-tuned on the
-flattening data were run on the robot in uncounted trials and did not grasp. In a one-sleeve pinching test
+\textbf{Status} (7 November 2026). Replay is finished; folding by replay does not succeed. The first policies fine-tuned
+on the flattening data were run on the robot in uncounted trials and did not grasp. In a one-sleeve pinching test
 (Sec.~\ref{sec:pinch}), successful grasps were observed in real-robot trials on 2 November; the trials were not
-counted. No success rate is reported anywhere in this report, because no counted
+counted. A flattening policy that sees whether each closed jaw holds the cloth took both shirt edges and spread the shirt
+between the arms on 7 November (Sec.~\ref{sec:flat}, an interim observation from uncounted runs). No success rate is reported anywhere in this report, because no counted
 trials were run.
 
 \textbf{Relation to earlier versions.} This report replaces version 0.1 (27 October) and version 0 (21 October), which
@@ -648,9 +651,9 @@ stalled once and the deploy UI was restarted.
 and successes, whatever the outcome.
 
 % =====================================================================
-\section{Flattening after the Pinching Test (2--5 November)}\label{sec:flat}
+\section{Flattening after the Pinching Test (2--7 November)}\label{sec:flat}
 After the first pinching grasps the work returned to flattening, with both hands, Cg trajectories and servo jaw labels.
-The numbers of this section are in \code{docs/status_2026-11-05.md}.
+The numbers of this section are in \code{docs/status_2026-11-05.md} and \code{docs/status_2026-11-07.md}.
 
 \textbf{FLAT149: the UMI recipe.} 149 flattening demonstrations (48 of 30 October and 101 of 2 November; a demo was kept
 only if the shirt ended flat in the fixed-camera frame) were built at 0.5$\times$ speed with a continuous jaw target.
@@ -728,7 +731,35 @@ change) has a median of 0.99 on held and 0.03 on empty events; 12\,\% of held ev
 events touch 0.9 at least once. A frozen generator writes $p_\mathrm{grasp}$ for every frame of a dataset. A new run
 with the same recipe feeds it into the (otherwise masked) jaw slots of the observation state, on the data of 3, 4 and 5
 November (301 training, 46 validation and 45 test demonstrations); after two epochs its offline score is 68.79 /
-68.43 (validation / test; other held-out sets than FLAT250). The deploy loop does not compute $p_\mathrm{grasp}$ yet.
+68.43 (validation / test; other held-out sets than FLAT250).
+
+\textbf{FLAT-PGRASP and the time-stretch (5--7 November).} The same $p_\mathrm{grasp}$ recipe was trained at 0.3$\times$
+on rented GPUs and at 1.0$\times$ on the cluster. At 0.3$\times$ the offline score falls from 75.88 / 76.08 after
+epoch 1 to 48.89 / 49.05 after epoch 14 and reaches its best, 46.04 / 46.61, at epoch 53 (validation / test); it is not
+comparable with FLAT250 (other held-out sets) or with the 1.0$\times$ run (other time base). On the robot the user judged
+the 0.3$\times$ policy to behave better than the 1.0$\times$ one (6 November, uncounted), so the 0.3$\times$ time-stretch
+is kept.
+
+\textbf{$p_\mathrm{grasp}$ on the robot (6 November).} The deploy loop can run the frozen classifier on the robot wrist
+cameras, but on the robot's closed, \emph{empty} jaws it outputs $P(\text{held})$ 0.97 (left) and 0.94 (right): the
+robot jaw looks larger and glossier than the HandUMI jaw. Until a classifier for the robot jaw exists, the deploy feeds
+the jaw state instead ($P(\text{held})=1$ while the jaw is closed, 0 while open, same window rule).
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_flatpg_robot_1107.jpg}
+\caption{FLAT-PGRASP at 0.3$\times$ on the robot, 7 November, run \texttt{165051}, fixed camera (the time stamp of each
+frame is printed at its top left). From a crumpled shirt (top left), both jaws take an edge (top right), spread the shirt
+between the arms (bottom left) and still hold it spread (bottom right); later in the run the shirt bunches up again. The
+clearest of the day's runs; the runs were not counted.}
+\label{fig:flatpg1107}
+\end{figure}
+
+\textbf{Robot runs (7 November): an interim observation.} 27 policy runs used 0.3$\times$ FLAT-PGRASP checkpoints
+(epochs 53 to 81; one run used a 1.0$\times$ checkpoint), each lasting 14--174\,s, with no safety-violation cycle. The
+typical behaviour is new compared with the first policies (Sec.~\ref{sec:policy}): both jaws take an edge of the crumpled
+shirt, spread it between the arms and hold it (Fig.~\ref{fig:flatpg1107}); later the shirt bunches up again, and no run
+laid it flat on the table. The runs were not counted or scored, so this shows what the policy can do, not how often.
 
 % =====================================================================
 \section{Superseded Approaches}\label{sec:superseded}
@@ -794,6 +825,8 @@ approaches is in \code{archive/}, with a README table of dates and reasons.
 \item \emph{Offline scores} such as \code{val_score_mm} measure agreement with held-out human motion, not task success.
 \item \emph{Grasp labels} come from one labeler; the frozen $p_\mathrm{grasp}$ generator is trained on all labeled
   events, so its output on those events is in-sample.
+\item \emph{$p_\mathrm{grasp}$ on the robot} comes from the jaw state, not from the wrist camera: the classifier trained on
+  the human jaw does not transfer to the robot jaw.
 \item \emph{Hardware.} The left robot wrist connector has dropped out repeatedly.
 \end{itemize}
 
@@ -821,7 +854,7 @@ X-VLA fine-tuning code. Real-data stages need the recordings, some need a GPU or
 config-path smoke tests), \texttt{python scripts/laundry/eval/replay\_parity.py -\/-synthetic} and
 \texttt{python -m laundry\_tracking.calib.robot\_cam\_solve -\/-synthetic}
 (self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \cmd{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
-document it was taken from (README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md} or
+document it was taken from (README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md}, \code{docs/status_2026-11-07.md} or
 the archived report v0.1). This is a check of consistency with the project's records, not a re-computation of the
 numbers from data.
 
@@ -834,9 +867,11 @@ the jaw-tip pose through grasps, and the training labels are now the fused jaw t
 servo jaw labels and slowed timing. The first policies, observed in uncounted robot trials, stopped short of the cloth;
 the recorded causes and the label problems found afterwards are changed, except the camera re-mount. In the reduced
 pinching test, a policy fine-tuned on 197 demonstrations grasped the sleeve in uncounted robot trials on 2 November; it
-does not recover from a miss. Next: record recovery demonstrations, re-mount the robot wrist cameras, finish the
-pinching test with counted robot trials, then evaluate the flattening policies trained under the re-aimed camera
-(FLAT250, and its variant conditioned on $p_\mathrm{grasp}$) with counted trials.
+does not recover from a miss. Back on flattening, the policy conditioned on $p_\mathrm{grasp}$ and trained at
+0.3$\times$ takes both shirt edges and spreads the shirt between the arms in uncounted robot runs, but does not yet lay
+it flat. Next: teach the policy to put the spread shirt down flat, train a $p_\mathrm{grasp}$ classifier on the robot
+jaw, record recovery demonstrations, re-mount the robot wrist cameras, and evaluate the flattening policy with counted
+trials.
 
 \section*{Acknowledgements}
 The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI~\cite{chi2024umi}. Pretraining

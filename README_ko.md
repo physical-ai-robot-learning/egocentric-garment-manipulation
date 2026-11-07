@@ -8,7 +8,7 @@
 
 [![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[테크니컬 리포트 (PDF, 영문 11-05)](report/report_en.pdf)** ([한국어 11-02](report/report_ko.pdf)) · [이전 버전](report/archive/)
+· **[테크니컬 리포트 (PDF, 영문 11-07)](report/report_en.pdf)** ([한국어 11-02](report/report_ko.pdf)) · [이전 버전](report/archive/)
 · [자세한 결과](docs/results.md) · [프로젝트 이력](docs/history_ko.md) · [파이프라인](docs/pipeline_ko.md)
 · [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-07
 
