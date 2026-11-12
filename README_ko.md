@@ -40,13 +40,13 @@
 >   가장자리를 잡아 두 팔 사이로 폈습니다([아래 중간 보고](#최근-로봇-실행-중간-보고-11월-7일)). 셔츠를 평평하게 내려놓는 데까지는
 >   아직 못 갑니다. 로봇에서 p_grasp는 손목 카메라가 아니라 집게 상태에서 얻습니다. 사람 데이터로 학습한 분류기가 로봇의 닫힌 빈
 >   집게를 '잡음'으로 보기 때문입니다. 로봇 시행 횟수는 세지 않았습니다.
-> * **배포 (11-06/07).** 로봇 컴퓨터가 이제 이 저장소의 `laundry_deploy`를 돌립니다. 추가한 것: UMI식 지연 맞추기(측정한 만큼
->   팔 명령은 58–64 ms, 집게 명령은 171–173 ms 앞당겨 보냄), 로봇 쪽 p_grasp, 토크 기반 접촉 바닥(만들었지만 꺼 둠), 관절 한계
->   유지.
-> * **펴기 데이터로 X-VLA (11-10 →).** 우리 SoftFold X-VLA 체크포인트(650k)에서 새 domain id로 파인튜닝: RTX 4090 2장에서
+> * **로봇의 지연 (11-06).** 로봇 집게가 늦게 닫혔습니다. 명령→동작 지연을 재 보니 팔 58–64 ms, 집게 171–173 ms였고, UMI처럼
+>   이 지연만큼 명령을 앞당겨 보내고 상태는 영상을 찍은 시각 기준으로 잡습니다.
+> * **두 번째 정책 계열: 같은 데이터로 X-VLA (11-10 →).** 우리 SoftFold X-VLA 체크포인트(650k)에서 새 domain id로 파인튜닝: RTX 4090 2장에서
 >   5 에포크, 이어서(11-12, 학습 중) H100 4장에서 시연 330개(위 301개 + tag-free 29개)로 100 에포크까지. 오프라인·로봇 결과는
 >   아직 없습니다.
-> * **태그 없는 수집 (11-11 →).** AprilTag를 모두 뗐습니다(손 장치, 테이블 시작 태그). 시연은 검은 L 테이프에서 시작하고, 위치
+> * **마커 없는 수집 (11-11 →).** 정책은 상대 동작으로 움직이므로 라벨에 필요한 것은 마커의 절대 위치가 아니라 시작 자세와
+>   방향입니다. AprilTag를 모두 뗐습니다(손 장치, 테이블 시작 태그). 시연은 검은 L 테이프에서 시작하고, 위치
 >   체인은 시작 시드를 depth에서, 방향을 정지 때의 IMU에서 얻습니다. 태그가 있는 take를 태그 없이 처리해 태그와 비교하면 집게 끝
 >   오차가 왼쪽 17 mm, 오른쪽 9–14 mm입니다. 첫 세트: 11-11 train 29개, 11-12 지금까지 16개 더.
 >
@@ -90,7 +90,7 @@
 | [`src/laundry_shared/`](src/laundry_shared/) | 1단계와 재생: 녹화기 `tag_rig_record`, 집게 분류기, reBot IK, 재생 계획(파이프라인이 import하는 HandUMI / teleop 모듈의 사본) | 녹화기나 재생 계획을 보고 싶을 때 |
 | [`src/laundry_reference/`](src/laundry_reference/README.md) | 궤적 단계의 작은 독립 재구현, 합성 데이터로 실행 가능 | 실험실 장비 없이 핵심 아이디어를 보고 싶을 때 |
 | [`src/laundry_common/`](src/laundry_common/paths.py) | `paths`: 장비마다 다른 모든 루트, 환경 변수로 바꿀 수 있음 | 다른 폴더에서 코드를 돌리고 싶을 때 |
-| [`scripts/laundry/`](scripts/laundry/) | 재생 비교·리타깃 script, 클러스터 / pod 작업(CoTracker, DiT DDP, X-VLA, 변환), X-VLA 데이터 변환기, 태그 없는 위치 체인(11-12 운영 코드 스냅샷, [`tagfree/`](scripts/laundry/tagfree/README.md)) | 운영용 실행 위치를 찾을 때 |
+| [`scripts/laundry/`](scripts/laundry/) | 재생 비교·리타깃 script, 클러스터 / pod 작업(CoTracker, DiT DDP, X-VLA, 변환), X-VLA 데이터 변환기, 태그 없는 위치 체인(11-12 작업 코드 스냅샷, [`tagfree/`](scripts/laundry/tagfree/README.md)) | 운영용 실행 위치를 찾을 때 |
 | [`configs/laundry/`](configs/laundry/README.md) | 캘리브레이션 결과, 로봇 보정값, 집게 모델, 고정 버전 환경 | 코드가 읽는 숫자를 보고 싶을 때 |
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke test와 패키지별 특성화 테스트 | 코드가 도는지 확인하고 싶을 때 |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | 합성(SYNTHETIC) 시연 + 시뮬레이션 재생 | 참고 구현을 돌릴 데이터가 필요할 때 |

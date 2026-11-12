@@ -44,13 +44,13 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   ([interim report below](#latest-robot-run-interim-report-7-november)); the shirt is not laid flat yet. On the robot,
 >   p_grasp comes from the jaw state, not the wrist camera: the human-trained classifier calls the robot's closed empty
 >   jaws "held". Robot runs were not counted.
-> * **Deploy (11-06/07).** The robot computer now runs this repository's `laundry_deploy`. Added: UMI-style latency
->   matching (arm commands are sent 58–64 ms and jaw commands 171–173 ms ahead, as measured), robot-side p_grasp, a
->   torque-based contact floor (built, switched off) and a joint-limit hold.
-> * **X-VLA on the flattening data (11-10 →).** Fine-tuned from our SoftFold X-VLA checkpoint (650k) with a new domain id: 5
+> * **Latency on the robot (11-06).** The robot closed its jaws late. Measured command-to-motion delay: arm 58–64 ms,
+>   jaw 171–173 ms; following UMI, commands are now sent ahead by these delays and the state is taken at image capture.
+> * **A second policy family: X-VLA on the same data (11-10 →).** Fine-tuned from our SoftFold X-VLA checkpoint (650k) with a new domain id: 5
 >   epochs on 2× RTX 4090, then (11-12, running) to epoch 100 on 4× H100 on 330 demos (the 301 above + 29 tag-free). No
 >   offline or robot result yet.
-> * **Tag-free collection (11-11 →).** All AprilTags were removed (hand units and table start tags); demos start on black
+> * **Collection without markers (11-11 →).** The policy acts in relative motion, so its labels need a start pose and a
+>   heading, not absolute marker poses. All AprilTags were removed (hand units and table start tags); demos start on black
 >   L tapes and the pose chain takes its start seed from depth and its heading from the IMU at rest. On a tagged take
 >   processed without its tags, the jaw-tip error against the tags is 17 mm (left) and 9–14 mm (right). First sets: 29
 >   train demos on 11-11, 16 more on 11-12 so far.
@@ -98,7 +98,7 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`src/laundry_shared/`](src/laundry_shared/) | stage 1 and replay: recorder `tag_rig_record`, jaw classifier, reBot IK, replay planner (copies of the HandUMI / teleop modules the pipeline imports) | you want the recorder or the replay planner |
 | [`src/laundry_reference/`](src/laundry_reference/README.md) | small standalone re-implementations of the trajectory stages, runnable on synthetic data | you want the core ideas without the lab set-up |
 | [`src/laundry_common/`](src/laundry_common/paths.py) | `paths`: every machine-specific root, with environment-variable overrides | you want to run the code on other folders |
-| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, X-VLA, conversion), X-VLA data converters, the tag-free pose chain (production snapshot of 11-12, [`tagfree/`](scripts/laundry/tagfree/README.md)) | you want the operational entry points |
+| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, X-VLA, conversion), X-VLA data converters, the tag-free pose chain (working-code snapshot of 11-12, [`tagfree/`](scripts/laundry/tagfree/README.md)) | you want the operational entry points |
 | [`configs/laundry/`](configs/laundry/README.md) | calibration results, robot overrides, jaw models, pinned environments | you want the numbers the code reads |
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke tests and per-package characterization tests | you want to check that the code runs |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | SYNTHETIC demo + simulated replay | you want data to run the reference code on |

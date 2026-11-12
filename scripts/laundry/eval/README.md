@@ -30,6 +30,3 @@ Characterization tests: `tests/laundry/test_eval_retarget_scripts.py`.
 
 ## Provenance
 Moved from flat `scripts/` in the 11-01 layout refactor, then `scripts/evaluation/` -> `scripts/laundry/eval/`; OA code style 11-04.
-- `ada_pull_eval.sh` (11-05/06): the same for the FLAT-PGRASP 0.3× run on a RunPod 4× RTX 6000 Ada pod: pulls every epoch
-  checkpoint to the external SSD (the pod's disk goes with the pod) and evaluates the newest pulled one on val + test →
-  `reports/FLATPG_ADA/epoch_evals.jsonl`. Pod address of that day.
