@@ -65,6 +65,22 @@ def installPatches():
             tOpt.grad_clip_norm = float(os.environ["GRAD_CLIP"])
             return tOpt
         MC.MultiTaskDiTConfig.get_optimizer_preset = presetNoClip
+    # 11-05 RunPod 4x Ada: rank 0 builds the dataset for > 10 min while ranks 1-3 wait in the first barrier -> the default 10 min
+    # process-group timeout killed the run. DIST_TIMEOUT_S=<s> raises it (unset = lerobot / accelerate default).
+    if os.environ.get("DIST_TIMEOUT_S"):
+        import datetime
+
+        import accelerate
+        from accelerate.utils import InitProcessGroupKwargs
+
+        class AcceleratorLongTimeout(accelerate.Accelerator):
+            def __init__(self, *args, kwargs_handlers=None, **kwargs):
+                tPg = InitProcessGroupKwargs(timeout=datetime.timedelta(seconds=int(os.environ["DIST_TIMEOUT_S"])))
+                super().__init__(*args, kwargs_handlers=[*(kwargs_handlers or []), tPg], **kwargs)
+        # lerobot imports Accelerator inside train() (pinned commit) or at module level (newer) -> patch both names
+        accelerate.Accelerator = AcceleratorLongTimeout
+        if hasattr(LT, "Accelerator"):
+            LT.Accelerator = AcceleratorLongTimeout
     installMetrics(LT, MD, "mse_loss")
     if env_options.GRIP_BCE:
         installGripBce(MD)                      # 10-29 UMI-style recipe: BCE jaw head

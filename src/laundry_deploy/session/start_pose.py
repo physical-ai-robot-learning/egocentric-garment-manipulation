@@ -53,7 +53,6 @@ def _leg(arm, qa, Ta, Tb, n: int = APPROACH_STEPS) -> list:
 
 
 def startCmd(args) -> None:
-    from lerobot.datasets.lerobot_dataset import LeRobotDataset
     from laundry_shared.visual_teleop import config as vcfg
     from laundry_shared.visual_teleop.robot.bridge import HttpBridge
     from laundry_shared.visual_teleop.tools.robot_moves import READY_Q_DEG, unpark
@@ -65,10 +64,14 @@ def startCmd(args) -> None:
         tP0 = {tSide: tLabel.poseAt(tSide, 0.0) for tSide in SIDES}
     else:  # 10-28 --root (GOLD-281)
         tRoot = TRAIN_ROOT / "data/lerobot" / (getattr(args, "root", "") or DEFAULT_ROOT)
-        tHf = LeRobotDataset("local/x", root=tRoot, video_backend="pyav").hf_dataset.with_format("numpy")
-        tP = np.asarray(tHf["pose_abs"]).astype(float)
-        tFrame = np.asarray(tHf["frame_index"])
-        tEp = np.asarray(tHf["episode_index"])
+        # 11-06: the parquet columns only -- LeRobotDataset() goes to the HF hub for a set pulled without its videos (train_nov)
+        import pandas as pd
+
+        tHf = pd.concat([pd.read_parquet(tF, columns=["pose_abs", "frame_index", "episode_index"])
+                         for tF in sorted((tRoot / "data").rglob("*.parquet"))], ignore_index=True)
+        tP = np.stack(tHf["pose_abs"].to_numpy()).astype(float)
+        tFrame = tHf["frame_index"].to_numpy()
+        tEp = tHf["episode_index"].to_numpy()
         tStarts = np.flatnonzero(tFrame == 0)
         tMedian = np.median(tP[tStarts][:, XYZ_COLUMNS], 0)
         tMedoid = int(tEp[tStarts[np.argmin(np.linalg.norm(tP[tStarts][:, XYZ_COLUMNS] - tMedian, axis=1))]])

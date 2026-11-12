@@ -13,7 +13,7 @@ import numpy as np
 from laundry_common import paths as egopaths
 
 ROBOT_CAM_FILE = egopaths.DATA_CALIB / "robot_cam_v001.json"  # intrinsics (848x480)
-ROBOT_CAM_EXT_FILE = egopaths.DATA_CALIB / "robot_cam_v005.json"  # extrinsic T_C_B
+ROBOT_CAM_EXT_FILE = egopaths.DATA_CALIB / "robot_cam_v006.json"  # extrinsic T_C_B (11-06: v006 = after the 11-03 Orbbec re-aim; v005 put the UI TCP 40-90 px off)
 MIN_DEPTH_M = 0.05  # points closer than this (or behind the camera) do not project
 
 

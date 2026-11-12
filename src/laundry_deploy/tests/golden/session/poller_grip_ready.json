@@ -1,7 +1,7 @@
 {
  "GRIP_OPEN_FRAC_MAX": {
-  "left": 0.5,
-  "right": 1.0
+  "left": 0.7,
+  "right": 0.79
  },
  "fake_read": [
   {
@@ -28,11 +28,11 @@
   },
   false
  ],
- "grip_left_open": "그리퍼 열림 제한 불일치 {'left': 1.0} (허용 최대 {'left': 0.5, 'right': 1.0}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.5 로 다시 띄우세요. GO 거부",
+ "grip_left_open": "그리퍼 열림 제한 불일치 {'left': 1.0, 'right': 1.0} (허용 최대 {'left': 0.7, 'right': 0.79}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.70 MIT_GRIP_OPEN_FRAC_RIGHT=0.79 이하로 다시 띄우세요. GO 거부",
  "grip_lower": "ok",
- "grip_missing": "그리퍼 열림 제한 불일치 {'right': None} (허용 최대 {'left': 0.5, 'right': 1.0}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.5 로 다시 띄우세요. GO 거부",
- "grip_none": "그리퍼 열림 제한 불일치 {'left': None, 'right': None} (허용 최대 {'left': 0.5, 'right': 1.0}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.5 로 다시 띄우세요. GO 거부",
- "grip_ok": "ok",
+ "grip_missing": "그리퍼 열림 제한 불일치 {'right': None} (허용 최대 {'left': 0.7, 'right': 0.79}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.70 MIT_GRIP_OPEN_FRAC_RIGHT=0.79 이하로 다시 띄우세요. GO 거부",
+ "grip_none": "그리퍼 열림 제한 불일치 {'left': None, 'right': None} (허용 최대 {'left': 0.7, 'right': 0.79}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.70 MIT_GRIP_OPEN_FRAC_RIGHT=0.79 이하로 다시 띄우세요. GO 거부",
+ "grip_ok": "그리퍼 열림 제한 불일치 {'right': 1.0} (허용 최대 {'left': 0.7, 'right': 0.79}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.70 MIT_GRIP_OPEN_FRAC_RIGHT=0.79 이하로 다시 띄우세요. GO 거부",
  "grip_raise": "bridge /status 읽기 실패 (down) -- 그리퍼 열림 제한을 확인할 수 없어 GO 거부",
  "grip_urls": [
   [

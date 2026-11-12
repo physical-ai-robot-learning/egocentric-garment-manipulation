@@ -13,12 +13,13 @@ export PYTHONPATH=$PWD/src:$PYTHONPATH HF_HOME=$U/scratch/hf
 mkdir -p $OUT
 export LR
 if [ "$STAGE" = agg ]; then   # 11-04 night: per-take S03G sets of 11-03 + 11-04 -> one train / val / test (lerobot aggregate_datasets)
-  AGG=${AGG:-flat1103_1104_S03G} $PY - <<'PY'
+  AGG=${AGG:-flat1103_1104_S03G} SUF=${SUF:-S03G} $PY - <<'PY'
 import json, os, pathlib, shutil
 from lerobot.datasets.aggregate import aggregate_datasets
 D = pathlib.Path(os.environ["LR"]); A = os.environ["AGG"]
 for sp in ("train", "val", "test"):
-    roots = sorted(r for r in list(D.glob(f"flat1103n_*_S03G_{sp}")) + list(D.glob(f"flat1104_*_S03G_{sp}")) + list(D.glob(f"flat1105_*_S03G_{sp}")) if (r / "meta/info.json").exists())
+    SUF = os.environ.get("SUF", "S03G")   # 11-05: SUF=S10G -> the speed-1.0 twins of the per-take sets
+    roots = sorted(r for r in list(D.glob(f"flat1103n_*_{SUF}_{sp}")) + list(D.glob(f"flat1104_*_{SUF}_{sp}")) + list(D.glob(f"flat1105_*_{SUF}_{sp}")) if (r / "meta/info.json").exists())
     dst = D / f"{A}_{sp}"
     if dst.exists(): shutil.rmtree(dst)
     aggregate_datasets([f"local/{r.name}" for r in roots], f"local/{dst.name}", roots=roots, aggr_root=dst)
@@ -26,7 +27,7 @@ for sp in ("train", "val", "test"):
     for r in roots:
         s = r / "meta/split.json"
         if s.exists(): eps += json.loads(s.read_text())["episodes"].get(sp, [])
-    (dst / "meta/split.json").write_text(json.dumps({"method": f"11-03 + 11-04 flatten {sp} (+ 11-05 when present): per-take S03G sets (Cg, 0.3x, continuous jaw, gated mask 0.3 s, trimmed)",
+    (dst / "meta/split.json").write_text(json.dumps({"method": f"11-03 + 11-04 flatten {sp} (+ 11-05 when present): per-take {SUF} sets (Cg, {'1.0x' if SUF == 'S10G' else '0.3x'}, continuous jaw, gated mask 0.3 s, trimmed)",
                                                      "episodes": {s2: (eps if s2 == sp else []) for s2 in ("train", "val", "test")}}, indent=1))
     info = json.loads((dst / "meta/info.json").read_text()); print(dst.name, len(roots), "sets", info["total_episodes"], "episodes", info["total_frames"], "frames", len(eps), "split keys", flush=True)
 PY
@@ -55,6 +56,15 @@ if [ "$STAGE" = train ]; then
   ( while sleep 120; do
       cs=$(ls -d $OUT/$RUN/checkpoints/[0-9]* 2>/dev/null | sort | head -n -2) || true   # keep training_state on the newest 2 (a stop mid-save leaves the newest incomplete)
       for c in $cs; do [ -d $c/training_state ] && rm -rf $c/training_state; done
+      # 11-06 /mnt/shared full (ENOSPC at epoch 44) -> user: keep every KEEP_EVERY-th epoch + best val + newest 2 only. An epoch goes only once the
+      # Mac eval watcher pushed it into evaluated.txt (its done_steps.txt) -- BEST_VAL_STEP comes from the same push
+      if [ -n "$KEEP_EVERY" ] && [ -f $OUT/$RUN/evaluated.txt ]; then
+        best=$(cut -c1-6 $OUT/$RUN/BEST_VAL_STEP 2>/dev/null)
+        for c in $cs; do st=$(basename $c)
+          grep -qx $st $OUT/$RUN/evaluated.txt || continue; [ "$st" = "$best" ] && continue; [ $(( 10#$st / EPOCH % KEEP_EVERY )) -eq 0 ] && continue
+          rm -rf $c
+        done
+      fi
       [ -f $OUT/$RUN/train.done ] && break
     done ) &
   if [ "${RESUME:-0}" = 1 ]; then

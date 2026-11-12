@@ -341,6 +341,7 @@ class _Acc:
     def __init__(self):
         from contextlib import nullcontext
         self.autocast = nullcontext
+        self.num_processes = 1  # single process: metrics never enters no_sync (11-05 DDP micro-batch change)
 
     def backward(self, loss):
         loss.backward()

@@ -28,6 +28,7 @@ class RobotObs:
     joints_deg_all: list
     estop: bool = False
     latency_ms: float = 0.0
+    tau: dict | None = None      # side -> 6 arm joint torques N*m (motor-native sign) or None; MIT bridge /observe tau_nm (11-06)
 
     def g(self, side: str) -> float: return g_from_raw(self.grip_raw[side])
 
@@ -46,7 +47,7 @@ def parse_observe(d: dict, t_ns: int, latency_ms: float = 0.0, estop: bool = Fal
     j = [float(v) for v in d["joints_deg"]]
     if len(j) != N_ACTION: raise RuntimeError(f"/observe returned {len(j)} joints, expected {N_ACTION}")
     q = {s: np.radians(np.asarray(j[sl], np.float64)) for s, sl in SIDE_SLICE.items()}
-    return RobotObs(t_ns, q, {s: j[i] for s, i in GRIPPER_INDEX.items()}, j, estop, latency_ms)
+    return RobotObs(t_ns, q, {s: j[i] for s, i in GRIPPER_INDEX.items()}, j, estop, latency_ms, d.get("tau_nm"))
 
 
 class HttpBridge:

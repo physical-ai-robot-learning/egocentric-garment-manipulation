@@ -307,6 +307,13 @@ def main() -> None:
             try: imus[side] = open_imu(vcfg.load(), side); imus[side].buffer.drain()
             except Exception as e: print(f"[태그] {side} IMU 없음: {e}", flush=True)
     except Exception as e: print(f"[태그] IMU 열기 실패: {e}", flush=True)
+    # 11-11 take 132124 was recorded with NO imu_*.npz (10 demos unusable: the tag-free pipeline needs the IMU rotation) -> never record
+    # a task / free take without both IMUs
+    if a.proto in ("task", "free", "grip") and len(imus) < 2:
+        for d_ in imus.values():
+            try: d_.stop()
+            except Exception: pass
+        raise SystemExit(f"[태그] !!! IMU {sorted({'right', 'left'} - set(imus))} 를 열지 못해 녹화하지 않습니다 -- XIAO IMU USB 를 뽑았다 꽂고, IMU 를 쓰는 다른 프로그램이 없는지 확인한 뒤 다시 시작하세요")
     IMU = {sd: [] for sd in imus}
     motors = {}
     if not a.no_motor:

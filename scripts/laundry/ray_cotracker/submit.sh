@@ -10,7 +10,7 @@ retry_rsync() {   # 11-04 18:0x: one gateway rsync at a time from this Mac (loca
  P=$(cd "$1" && pwd); PK=$(basename $P); H=$(cd $(dirname $0) && pwd); GPU=${GPU:-any}
 GW=${RAY_GATEWAY_HOST:-100.64.0.1}   # BH Ray gateway (tailnet); override with RAY_GATEWAY_HOST
 RS=retry_rsync; export RAY_ADDRESS=http://$GW:8266; RAY=~/ray-env/bin/ray
-$RS -aL --mkpath --exclude tracks.npz $P/ johann@$GW:mine/data/cotrack/$PK/
+$RS -aL --mkpath --exclude tracks.npz --delete-excluded $P/ johann@$GW:mine/data/cotrack/$PK/   # 11-11: --delete-excluded drops a stale remote tracks.npz (run_cotracker skips demos that have one -> a re-packed take got the OLD tracks back)
 # --no-wait + status poll: a dropped gateway connection while waiting no longer loses a job that is still running (11-04 135359)
 # 11-04 user "병렬로": up to 3 jobs at once (cluster rule: <= 3 GPUs per person incl. pending), any free GPU (cu128 works on Ada + Blackwell)
 SLOT=""; while [ -z "$SLOT" ]; do for i in 1 2 3; do mkdir /tmp/johann_ct_slot$i 2>/dev/null && SLOT=/tmp/johann_ct_slot$i && break; done; [ -z "$SLOT" ] && sleep 15; done

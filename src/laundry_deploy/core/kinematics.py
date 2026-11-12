@@ -23,6 +23,7 @@ ROBOTIZE_ARGS = dict(
     level_max=0.0,
     roll_thr=115.0,
     roll_relax=1.5,
+    lim_margin_deg=3.0,  # 11-07 user (wrist flex sat ON its -80 deg limit, measured 0.2-0.3 deg past it): solver limits 3 deg inside
 )
 
 

@@ -1,5 +1,5 @@
 """The checked READY move of the UI's [READY로 이동] button: visual_teleop ready_pose's fixed READY_Q_DEG with ready_pose's checks
-(TCP >= 0.10 m along the joint line, bridge joint limits) and its smoothstep joint ramp at 15 deg/s through HttpBridge.send; both
+(bridge joint limits; 11-06 user "리밋 다 없애줘": no TCP-height check along the joint line) and its smoothstep joint ramp at 15 deg/s through HttpBridge.send; both
 arms, one at a time (right, then left), each path also checked against the other arm (capsule clearance). /clear_estop first (the
 user confirmed in the UI).
 """
@@ -11,11 +11,7 @@ import numpy as np
 
 from ..core.contract import SIDES
 from ..core.errors import HardwareError, RunRefused
-from ..core.kinematics import fk
 
-PATH_SAMPLES = 41  # TCP height samples along the joint line
-MIN_TCP_Z_M = 0.10
-MIN_MOVE_DEG = 2  # a move this small is allowed even below MIN_TCP_Z_M
 COLLISION_SAMPLES = 21
 UNPARK_TIMEOUT_S = 15.0  # 11-01: a PARKED arm is re-enabled by its first write (~3 s)
 CLEAR_ESTOP_TIMEOUT_S = 2.0
@@ -46,9 +42,6 @@ def moveReady(bridge, rig) -> None:
         tQ0 = tObs.q[tSide].copy()
         tQr = rig.mQReady[tSide]
         tOther = "left" if tSide == "right" else "right"
-        tZMin = min(fk(rig.mArms, tSide, tQ0 + tU * (tQr - tQ0))[2, 3] for tU in np.linspace(0, 1, PATH_SAMPLES))
-        if tZMin < MIN_TCP_Z_M and np.degrees(np.abs(tQr - tQ0)).max() > MIN_MOVE_DEG:
-            raise RunRefused(f"{tSide}: 경로 중 TCP 최저 {tZMin:.3f} m < 0.10 -- 이동 안 함")
         if np.any(tQr < rig.mArms[tSide].mLo) or np.any(tQr > rig.mArms[tSide].mHi):
             raise RunRefused("READY 가 관절 한계 밖")
         for tU in np.linspace(0, 1, COLLISION_SAMPLES):

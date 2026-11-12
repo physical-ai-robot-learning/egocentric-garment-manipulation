@@ -13,6 +13,7 @@ import time
 import numpy as np
 
 from ..core import height_calib as heightCalib
+from ..core.contact import ContactFloor
 from ..core.chunk import buildState, decodeChunk, retime, rtcWeights
 from ..core.contract import (
     ACT_CKPT,
@@ -29,10 +30,11 @@ from ..core.contract import (
 from ..core.errors import DeployError, HardwareError, RunRefused
 from ..core.kinematics import fk, linkGap, rotAngleDeg, rotInterp
 from ..core.label_runner import LabelRunner
+from ..core.pgrasp import VERSION as PGRASP_VERSION
 from ..core.xvla_runner import XvlaRunner
 from laundry_shared.contracts.action_contract import T_to_pose9, inv_T
 from .bridge import checkGripLimits
-from .paths import HIST_TOL_S, RUN_OUT_DIR, START_FILE, say
+from .paths import HIST_TOL_S, LATENCY_FILE, RUN_OUT_DIR, START_FILE, say
 from .preview import Preview
 from .report import summarize
 from .streamer import Streamer
@@ -52,6 +54,9 @@ WARMUP_PREDICTIONS = 3  # MPS warm-up (first call ~1.4 s DiT / 0.2 s ACT); nothi
 START_POSE_TOL_DEG = 5  # "at the start pose" = every joint within this of start_pose.json
 UNPARK_WAIT_S = 3.0
 POLL_S = 0.05
+PGRASP_START_TIMEOUT_S = 10.0  # the p_grasp estimator must give its first value within this (classifier load + first tick)
+PGRASP_POLL_S = 0.05
+GRIP_AT_ROW = "row"  # 11-06: --grip-at row, the jaw command follows each committed chunk row
 RECOVER_WAIT_S = 1.0
 STALE_IMAGE_SKIP_S = 0.05
 RESYNC_HOLD_S = 0.3
@@ -68,6 +73,7 @@ BLOCKING = ("STOP", "HOLD")
 MIN_BRIDGE_TIMEOUT_S = 0.3
 MM_PER_M = 1e3
 MS_PER_S = 1e3
+LIMIT_TOUCH_RAD = np.radians(0.2)  # a joint this close to its solver limit counts as pinned (ik_hold)
 MIN_ELAPSED_S = 1e-3  # plan-rate denominator floor of the first cycle
 NS_PER_MS = 1e6
 
@@ -192,6 +198,12 @@ def _limitAndSolve(side: str, args, Tn, cand, spd: float, rowDt: float, j: int, 
     tIkMm, tIkDeg = tPe * MM_PER_M, tRe
     if not np.isfinite(tQ).all():
         flags.append(f"STOP:ik_nan_{side[0]}")
+    # 11-07 user "ik 관절값이 안되는 곳을 가는거 방어": a target that needs a joint past its limit (IK pinned at a solver limit AND far
+    # from the target) holds THIS arm at its last accepted joints instead of going to a twisted closest pose; the other arm runs on
+    tAtLim = np.any((tQ <= arm.mLo + arm.mLimMargin + LIMIT_TOUCH_RAD) | (tQ >= arm.mHi - arm.mLimMargin - LIMIT_TOUCH_RAD))
+    if tAtLim and (tPe > args.ik_hold_mm / MM_PER_M or tRe > args.ik_hold_deg):
+        flags.append(f"LIM:ik_hold_{side[0]}_{tIkMm:.0f}mm_{tRe:.0f}deg")
+        return tT, tQ, qPrev.copy(), tIkMm, tIkDeg
     # 10-23 user: like the robotized labels (FK of the feasible IK path), go to the closest reachable pose; STOP only if far off
     if tPe > args.max_ik_stop_mm / MM_PER_M:
         flags.append(f"STOP:ik_{side[0]}_{tPe * MM_PER_M:.0f}mm_{tRe:.0f}deg")
@@ -260,8 +272,23 @@ def runSession(args, rig, ctl):
         tRunner.mGripFakeOpen = bool(getattr(args, "grip_fake_open", False))
         if tRunner.mGripFakeOpen:
             say("진단: 상태 입력의 집게를 항상 '열림'으로 넣음 (집게 명령은 청크 중간 행)")
-        if getattr(tRunner, "mGripMask", False):
+        if getattr(tRunner, "mGripMask", False) and not getattr(tRunner, "mPGrasp", None):
             say("집게 상태 가림 체크포인트: 상태 입력의 집게 = 0")
+    # 11-06 FLAT-PGRASP checkpoints: the jaw slots of the state (18, 19) = robot-side p_grasp at the observation time (and at t - 50 ms
+    # for the DiT's older obs step), same frozen classifier / rule as the training side file (core.pgrasp)
+    tPGrasp = None
+    if getattr(tRunner, "mPGrasp", None):
+        if tRunner.mPGrasp != PGRASP_VERSION:
+            raise RunRefused(f"체크포인트 p_grasp 버전 {tRunner.mPGrasp} != 배포 {PGRASP_VERSION}")
+        tPGrasp = rig.pGrasp(args.device)
+        tT0 = time.monotonic()
+        while tPGrasp.at() is None:
+            if time.monotonic() - tT0 > PGRASP_START_TIMEOUT_S:
+                raise HardwareError(f"p_grasp 추정기가 값을 못 냄: {tPGrasp.mError}")
+            time.sleep(PGRASP_POLL_S)
+        tP0 = tPGrasp.at()
+        tSrc = "집게 개폐 (닫힘 = 1, 열림 = 0)" if tPGrasp.mSource == "jaw" else "로봇 손목 카메라 집게 판정"
+        say(f"p_grasp 입력 ({PGRASP_VERSION}, {tPGrasp.mSource}): state 18,19 = {tSrc} (지금 L {tP0[0]:.2f} R {tP0[1]:.2f})")
     tKind = getattr(tRunner, "mKind", "")
     tXvla = tKind == KIND_XVLA
     tRetimed = tXvla or tDit  # 10-29: X-VLA, then DiT (user "dit에도 적용해줘")
@@ -283,6 +310,12 @@ def runSession(args, rig, ctl):
     # rows);
     # later chunks chain on the commanded pose (q_acc), so it neither accumulates nor fades.  Not a limit: any value, 0 = off.
     tZOffM = float(getattr(args, "z_offset_mm", 0.0)) / MM_PER_M
+    # 11-06: optional floor (mm above the robot table plane, + the height-calibration plane when on) for every committed TCP target;
+    # None = off. The policy's chunks reached 10 cm below the table (training labels: 1st percentile -3 mm)
+    tZFloorMm = getattr(args, "z_floor_mm", None)
+    tZFloorM = None if tZFloorMm is None or tZFloorMm == "" else float(tZFloorMm) / MM_PER_M
+    if tZFloorM is not None:
+        say(f"바닥 제한: 집게 TCP 목표 높이 >= 테이블 + {tZFloorM * MM_PER_M:.0f} mm (로봇 좌표)")
     tZOffDone = tZOffM == 0.0
     # 11-01 user "로봇에 맞추어서": --height-calib adds the per-arm table-height error measured by tools.height_calib (robot jaw tip on
     # the table tags vs the training B frame), on top of any manual z offset.  The measured error is a PLANE (left 5 touches: tilt
@@ -338,6 +371,16 @@ def runSession(args, rig, ctl):
         raise HardwareError("로봇 상태 E-STOP/미연결/읽기 지연 (읽기 지연 = 로봇 꺼짐/USB). 로봇 없이 확인만: --assume-ready")
     tReadyOff = {tSide: float(np.degrees(np.abs(tQ0[tSide] - tQReady[tSide])).max()) for tSide in SIDES}
     tStartPose = json.loads(START_FILE.read_text()) if START_FILE.exists() else None
+    # 11-06 UMI latency matching (LATENCY_FILE from tools.latency_probe / tools.cam_latency): arm_ms / jaw_ms = send-ahead of the
+    # streamer, cam_ms.global = the head image's capture delay -> state, history and chunk anchor are taken at the capture time
+    tLat = {}
+    if getattr(args, "latency_match", False):
+        if LATENCY_FILE.exists():
+            tLat = json.loads(LATENCY_FILE.read_text())
+            say(f"지연 보정: 팔 {tLat.get('arm_ms')} ms, 집게 {tLat.get('jaw_ms')} ms, 카메라 {tLat.get('cam_ms')} ms 앞당김")
+        else:
+            say("지연 보정 켜짐, 하지만 측정값 없음 (tools.latency_probe 먼저) -- 보정 없이 진행")
+    tCamLagNs = int(float((tLat.get("cam_ms") or {}).get("global", 0.0)) * NS_PER_MS)
     tStartOff = (
         {tSide: float(np.degrees(np.abs(tQ0[tSide] - np.asarray(tStartPose["q"][tSide]))).max()) for tSide in SIDES}
         if tStartPose
@@ -374,7 +417,12 @@ def runSession(args, rig, ctl):
     }
     tQAcc = {tSide: tQ0[tSide].copy() for tSide in SIDES}
     tStreamer = None
+    tContact = None
     tLiveBridge = None
+
+    def floorBase(side, xy):  # 11-06: the static floor at a TCP xy (robot table + z_floor + height-calibration plane)
+        return tRobotArgs.table_z + (tZFloorM or 0.0) + (heightCalib.dzAt(tCalib, side, xy) if tCalib is not None else 0.0)
+
     tLog = collections.defaultdict(list)
     tEns = []
     tStopReason = None
@@ -403,8 +451,24 @@ def runSession(args, rig, ctl):
             tQ0, _, tEst = tPoller.read()
             if tEst:
                 raise HardwareError("unpark 후 E-STOP/읽기 지연")
+            # 11-06: the start pose has right j4 ON its lower limit (-79.5 deg); the measured q read 0.005 deg past it and every IK
+            # seeded from it warned "Value ... at index 3 is out of limits" -> seed the timeline inside the limits
+            tQ0 = {tSide: np.clip(tQ0[tSide], tArms[tSide].mLo + tArms[tSide].mLimMargin, tArms[tSide].mHi - tArms[tSide].mLimMargin)
+                   for tSide in SIDES}  # 11-07: inside the (3 deg) solver limits
             tQAcc = {tSide: tQ0[tSide].copy() for tSide in SIDES}
-            tStreamer = Streamer(tLiveBridge, tQ0, tGCmd, args.stream_hz, dt=tRowDt)
+            tStreamer = Streamer(
+                tLiveBridge, tQ0, tGCmd, args.stream_hz, dt=tRowDt, gripHoldS=float(getattr(args, "grip_hold_s", 0.0)),
+                execLeadS={tSide: tV / MS_PER_S for tSide, tV in (tLat.get("arm_ms") or {}).items()},
+                jawLeadS={tSide: tV / MS_PER_S for tSide, tV in (tLat.get("jaw_ms") or {}).items()},
+            )
+            tPoller.mTauLog, tPoller.mCmdFn = [], (lambda: tStreamer.mLast)  # 11-07: q / torque / commanded q -> qtau.npz
+            if getattr(args, "contact_floor", False):
+                tContact = ContactFloor(tArms, tPoller, tStreamer, float(getattr(args, "contact_gap_mm", 8.0)),
+                                        float(getattr(args, "contact_tau_nm", 2.0)), say)
+                tStreamer.mFloorGuard = tContact.below
+                tContact.start()
+                say(f"바닥 접촉 감지 (토크, 높이 모델 없음): 명령보다 {tContact.mGap * 1e3:.0f} mm 위에서 멈추고 토크 +{tContact.mTau} N·m "
+                    "-> 그 자리 높이 아래로 안 감")
             tStreamer.start()
         tStart = time.monotonic()
         if tLabel:
@@ -468,11 +532,25 @@ def runSession(args, rig, ctl):
                 tCycle += 1
                 continue
             tImgs = {"global": tGlobalImg, "left_wrist": tWristLatest["left"][1], "right_wrist": tWristLatest["right"][1]}
+            # 11-06 UMI: the reference time is the head image's CAPTURE (arrival - measured camera delay); the robot state is the
+            # 25 Hz ring sample nearest to it, like the training pairs (state at the image's time), not the newest read
+            tRefNs = tObsNs
+            if tCamLagNs:
+                tRefNs = tGlobalNs - tCamLagNs
+                tNearQ = tPoller.mRing.near(tRefNs, HIST_TOL_S)
+                if tNearQ is not None and tNearQ[1][0] is not None:
+                    tQm = tNearQ[1][0]
             tTm = {tSide: fk(tArms, tSide, tQm[tSide]) for tSide in SIDES}
             tState = buildState(tTm["left"], tTm["right"], tAnchor["left"], tAnchor["right"], tGCmd["left"], tGCmd["right"])
+            tPNow = None
+            if tPGrasp is not None:
+                rig.mJawFallback = dict(tGCmd)
+                tPNow = tPGrasp.at(tObsNs)
+                tState = np.array(tState, np.float64)
+                tState[GRIP_COLUMNS] = tPNow
             tPrevObs, tHistUsed = None, False
             if tDit:
-                tHistNs = tObsNs - int(ROW_DT_S * NS_PER_S)
+                tHistNs = tRefNs - int(ROW_DT_S * NS_PER_S)
                 tHistQ = tPoller.mRing.near(tHistNs, HIST_TOL_S)
                 tHistGlobal = tGlobalCam.mRing.near(tHistNs, HIST_TOL_S + GLOBAL_HIST_EXTRA_TOL_S)
                 tHistState = None
@@ -484,6 +562,9 @@ def runSession(args, rig, ctl):
                         tHistQ[0],
                         buildState(tTh["left"], tTh["right"], tAnchor["left"], tAnchor["right"], tGCmd["left"], tGCmd["right"]),
                     )
+                    if tPGrasp is not None:
+                        tHistState = (tHistState[0], np.array(tHistState[1], np.float64))
+                        tHistState[1][GRIP_COLUMNS] = tPGrasp.at(tHistNs)
                 tHistWrist = {tSide: tWristCams[tSide].mRing.near(tHistNs, HIST_TOL_S) for tSide in SIDES}
                 if tHistState is not None and tHistGlobal is not None and all(tV is not None for tV in tHistWrist.values()):
                     tPrevObs = (
@@ -495,7 +576,7 @@ def runSession(args, rig, ctl):
             # ---- policy
             tRtc = None
             if tRtcMode != "off":
-                tIr, tQr = tStreamer.anchor(tObsNs / NS_PER_S)
+                tIr, tQr = tStreamer.anchor(tRefNs / NS_PER_S)
                 tQp = tStreamer.plannedAfter(tIr, CHUNK_ROWS)
                 if tQp:
                     tTaInv = {tSide: inv_T(fk(tArms, tSide, tQr[tSide])) for tSide in SIDES}
@@ -552,7 +633,7 @@ def runSession(args, rig, ctl):
                 tFlags.append("STOP:nan_chunk")
             tTc = decodeChunk(tChunk, tTm["left"], tTm["right"])  # absolute targets anchored at T(t_obs)
             if tLook:
-                tIAnc, tQAnc = tStreamer.anchor(tObsNs / NS_PER_S)  # tick of the observation + the commanded q there
+                tIAnc, tQAnc = tStreamer.anchor(tRefNs / NS_PER_S)  # tick of the observation (capture) + the commanded q there
             tPreview.submit(tEl, tTc, tQm)
             tWsOut = {
                 tSide: float(
@@ -587,9 +668,9 @@ def runSession(args, rig, ctl):
             # no longer matches the arm and the next IK fails.  Re-seed that arm on its measured q, hold it there this cycle,
             # continue.
             if args.go:
-                tQRef = (
-                    tStreamer.mLast if (tLook and tStreamer.mLast is not None) else tQAcc
-                )  # look-ahead: the q being streamed NOW
+                # look-ahead: the timeline q at the physical time NOW (11-06: not mLast -- with --latency-match it is sent ~60 ms
+                # ahead and the gap to the measured pose grew past resync_deg on a fast first move)
+                tQRef = tStreamer.anchor(time.monotonic())[1] if tLook else tQAcc
                 tResyncSides = [
                     tSide for tSide in SIDES if float(np.degrees(np.abs(tQRef[tSide] - tQn[tSide])).max()) > args.resync_deg
                 ]
@@ -607,7 +688,7 @@ def runSession(args, rig, ctl):
                     time.sleep(RESYNC_HOLD_S)
                     tCycle += 1
                     continue
-            tAgeS = (time.monotonic_ns() - tObsNs) / NS_PER_S
+            tAgeS = (time.monotonic_ns() - tRefNs) / NS_PER_S
             tK0 = int(np.clip(np.floor(tAgeS / ROW_DT_S), 0, CHUNK_ROWS - args.commit))
             if tLabel or tLook:
                 tK0 = 0  # label cursor / look-ahead: rows are keyed by tick, the timeline drops the late ones
@@ -630,11 +711,26 @@ def runSession(args, rig, ctl):
                         "mid": tSeg[len(tSeg) // 2, GRIP_INDEX[tSide]],
                         "last": tSeg[-1, GRIP_INDEX[tSide]],
                         "max": tSeg[:, GRIP_INDEX[tSide]].max(),
-                    }[args.grip_at]
+                    }["mid" if args.grip_at == GRIP_AT_ROW else args.grip_at]
                 )
                 for tSide in SIDES
             }
             tGNew = jawCommand(args, tGripPred, tActive, tGCmd)
+            # 11-06 user (jaw stayed open while the chunk's later rows closed it): --grip-at row = the jaw follows every committed row
+            # in time like the joints (same binary / linear mapping per row); the mid-row value stays the logged / state jaw command
+            tGRows = None
+            if args.grip_at == GRIP_AT_ROW:
+                # 11-06 user (jaw closed after the arm already lifted): --grip-lead-rows L = row j's jaw takes chunk row j + L
+                tLead = 0 if tLat.get("jaw_ms") else int(getattr(args, "grip_lead_rows", 0))  # measured jaw send-ahead replaces it
+                tGRows = [
+                    jawCommand(
+                        args,
+                        {tSide: float(tChunk[min(tK0 + tJ + tLead, CHUNK_ROWS - 1), GRIP_INDEX[tSide]]) for tSide in SIDES},
+                        tActive,
+                        tGCmd,
+                    )
+                    for tJ in range(len(tSeg))
+                ]
             tPrevRes = tPreview.mResult
             if tPrevRes is not None:
                 tFlags += [tF for tF in tPrevRes["flags"] if tF.startswith("HOLD")]
@@ -672,6 +768,14 @@ def runSession(args, rig, ctl):
                         tQa[tSide] = tQPrev[tSide]
                         tEm[tSide] = tEd[tSide] = 0.0
                         continue
+                    if tZFloorM is not None or tContact is not None:  # 11-06 user "너무 바닥을 찍어": robot-frame TCP floor
+                        tXy = tCand[tSide][:2, 3]  # 11-07: static floor (z_floor set) and/or the measured contact floor
+                        tFloor = max(floorBase(tSide, tXy) if tZFloorM is not None else -np.inf,
+                                     tContact.floor(tSide, tXy) if tContact is not None else -np.inf)
+                        if tCand[tSide][2, 3] < tFloor:
+                            tFlags.append(f"LIM:z_floor_{tSide[0]}_{(tFloor - tCand[tSide][2, 3]) * MM_PER_M:.0f}mm")
+                            tCand[tSide] = tCand[tSide].copy()
+                            tCand[tSide][2, 3] = tFloor
                     tLim[tSide], tQj[tSide], tQa[tSide], tEm[tSide], tEd[tSide] = _limitAndSolve(
                         tSide,
                         args,
@@ -728,7 +832,7 @@ def runSession(args, rig, ctl):
             elif args.go and tStep and not tTakeStep():
                 tFlags.append("WAIT:step")  # step mode: plan shown, nothing sent, the streamer holds the last accepted pose
             elif tLook:
-                tNd, tNb = tStreamer.merge(tIAnc, [tQAccs[tJ] for tJ in range(args.commit)], tGNew)
+                tNd, tNb = tStreamer.merge(tIAnc, [tQAccs[tJ] for tJ in range(args.commit)], tGNew, tGRows)
                 tDropped += tNd
                 tBlended += tNb
                 tQAcc = tQAccs[-1]
@@ -743,7 +847,7 @@ def runSession(args, rig, ctl):
                     for tI in [tI for tI in tRtcJaw if tI < tIAnc - RTC_JAW_KEEP_TICKS]:
                         del tRtcJaw[tI]
             elif args.go:
-                tStreamer.setTimeline([tQAccs[tJ] for tJ in range(args.commit)], ROW_DT_S, tGNew)
+                tStreamer.setTimeline([tQAccs[tJ] for tJ in range(args.commit)], ROW_DT_S, tGNew, tGRows)
                 tQAcc = tQAccs[-1]
                 tGCmd = tGNew
                 if tStep:
@@ -815,6 +919,8 @@ def runSession(args, rig, ctl):
                 wr=tImgs["right_wrist"],
                 **tSmooth,
             )
+            if tPNow is not None:  # 11-06 PGRASP runs only: the p_grasp fed as state 18, 19
+                tEntry["pgrasp"] = list(tPNow)
             for tKey, tValue in tEntry.items():
                 tLog[tKey].append(tValue)
             tD1 = {tSide: np.linalg.norm(tTc[tSide][0][:3, 3] - tTm[tSide][:3, 3]) * MM_PER_M for tSide in SIDES}
@@ -824,6 +930,7 @@ def runSession(args, rig, ctl):
                     f"[{tEl:5.1f}s] loop {tLog['lat_total_ms'][-1]:5.1f} ms (obs {tLog['lat_obs_ms'][-1]:4.1f} pol {tLog['lat_pol_ms'][-1]:5.1f} "
                     f"ctrl {tLog['lat_ctrl_ms'][-1]:4.1f}) k0 {tK0} | k1 L {tD1['left']:5.1f} R {tD1['right']:5.1f} mm | "
                     f"k32 L {np.round(tD32['left']).astype(int)} R {np.round(tD32['right']).astype(int)} mm | g L {tGripPred['left']:.2f} R {tGripPred['right']:.2f} | "
+                    + (f"p_grasp L {tPNow[0]:.2f} R {tPNow[1]:.2f} | " if tPNow is not None else "") +
                     f"preview IK {tPrevRes['ik_ok'] if tPrevRes else '-'} clr {tCheck['arm_clear_m'] * MM_PER_M:.0f} mm | "
                     f"{' '.join(tF for tF in tFlags if not tF.startswith('LIM'))}",
                     flush=True,
@@ -844,6 +951,7 @@ def runSession(args, rig, ctl):
                     stop=tStop,
                     go=args.go,
                     k0=tK0,
+                    **({} if tPNow is None else dict(pgrasp=[round(float(tX), 2) for tX in tPNow])),
                 )
             )
             tCycle += 1
@@ -905,6 +1013,23 @@ def runSession(args, rig, ctl):
                     tLiveBridge.close()
                 say(f"정지 + 현재 자세 유지 (E-STOP 홀드): {tStopReason}")
         tPreview.mStop = True
+    tTauLog, tPoller.mTauLog, tPoller.mCmdFn = tPoller.mTauLog, None, None
+    if tTauLog:  # 11-07: 25 Hz measured q, joint torque and the streamer's commanded q of this run (gravity-model data)
+        tNan = np.full(6, np.nan)
+        np.savez_compressed(
+            tRunDir / "qtau.npz",
+            t_ns=np.array([tR[0] for tR in tTauLog], np.int64),
+            q=np.array([[tR[1][tSide] for tSide in SIDES] for tR in tTauLog], float),
+            tau=np.array([[tR[2][tSide] if tR[2].get(tSide) is not None else tNan for tSide in SIDES] for tR in tTauLog], float),
+            q_cmd=np.array([[tR[3][tSide] if tR[3] else tNan for tSide in SIDES] for tR in tTauLog], float),
+        )
+    if tContact is not None:
+        tContact.mStop = True
+        (tRunDir / "contact.json").write_text(json.dumps(dict(
+            events=tContact.mEvents, points=tContact.mPoints,
+            guard_holds=tStreamer.mGuardHolds if tStreamer is not None else 0, gap_mm=tContact.mGap * 1e3, tau_nm=tContact.mTau,
+            trace=tContact.mTrace), indent=0))
+        say(f"바닥 접촉 {len(tContact.mEvents)} 회, 스트리머 홀드 {tStreamer.mGuardHolds if tStreamer else 0} 틱")
     say(f"끝: {tStopReason}")
     tSummary = summarize(tLog, args, tStopReason, tViolations, tRunDir, tWs, tReadyOff, tCamsCfg, tPreview, tCkpt, tRunner)
     if tLook:  # 10-29 look-ahead counters (summarize() has no access to the loop state)

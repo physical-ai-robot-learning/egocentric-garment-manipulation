@@ -411,7 +411,9 @@ def _runDry(
     tG = {"left": 0.7, "right": 0.2}
     tHist = (Q0, tG, False) if history else None
     tImg = np.zeros((216, 384, 3), np.uint8)
-    tRob = types.SimpleNamespace(read=lambda: (Q0, tG, False), mRing=_Ring(tClock, (Q0, tG, False), history=tHist), mError=None)
+    tRob = types.SimpleNamespace(
+        read=lambda: (Q0, tG, False), mRing=_Ring(tClock, (Q0, tG, False), history=tHist), mError=None, mTauLog=None, mCmdFn=None
+    )
     tFixed = int(5000.0 * 1e9) if staleImages else None
     tGl = types.SimpleNamespace(
         mRing=_Ring(tClock, (tImg + 1, b"jpg-global"), fixedT=tFixed, history=(tImg + 2, b"old") if history else None)

@@ -553,8 +553,8 @@
    "right": 19
   },
   "GRIP_OPEN_FRAC_MAX": {
-   "left": 0.5,
-   "right": 1.0
+   "left": 0.7,
+   "right": 0.79
   },
   "HIST_TOL_S": 0.03,
   "IMG_WH": [
@@ -565,6 +565,7 @@
    "ik_step": 7.5,
    "jaw_half": 0.02,
    "level_max": 0.0,
+   "lim_margin_deg": 3.0,
    "ori_cost": 0.1,
    "roll_relax": 1.5,
    "roll_thr": 115.0,
@@ -3232,7 +3233,8 @@
     "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-UMI50E150-U1030AP-S05-B64ACC4-BCE-GSM-E1000-NOCLIP/checkpoints",
     "<TMP>/ego_ckpt_root/ckpts/4090/DITFT-E1000F227795-U200CG-S05-B64ACC4-BCE-GSM-AUG-E500-NOCLIP/checkpoints",
     "<TMP>/ego_train_root/checkpoints/FLAT149_h100",
-    "<TMP>/ego_train_root/checkpoints/FLAT250_rollout"
+    "<TMP>/ego_train_root/checkpoints/FLAT250_rollout",
+    "<TMP>/ego_train_root/checkpoints/FLATPG_rollout"
    ],
    "xvla": [
     "<TMP>/ego_ckpt_root/ckpts/runpod/pod2/XVLA-FT-GOLD281-D21-FROM-MIX3-100K-RELBIN32-B8-300K-FP32/checkpoints"
@@ -3245,7 +3247,7 @@
   "here_ui": "<SRC>/laundry_deploy/ui",
   "out": "<TMP>/ego_train_root/reports/act_deploy",
   "robot_cam": "<TMP>/ego_data_root/configs/calibration/robot_cam_v001.json",
-  "robot_cam_ext": "<TMP>/ego_data_root/configs/calibration/robot_cam_v005.json",
+  "robot_cam_ext": "<TMP>/ego_data_root/configs/calibration/robot_cam_v006.json",
   "start": "<TMP>/ego_train_root/deploy/start_pose.json",
   "ui_settings": "<TMP>/ego_train_root/deploy/act_tagrig_ui_settings.json",
   "uvc": "<TMP>/ego_cockpit_root/bin/uvc-util",
@@ -3654,10 +3656,7 @@
    "K1_SHOWN",
    "LIVE_BRIDGE_TIMEOUT_S",
    "MAX_RUNS_LISTED",
-   "MIN_MOVE_DEG",
-   "MIN_TCP_Z_M",
    "MOVE_ORDER",
-   "PATH_SAMPLES",
    "POLL_PERIOD_S",
    "RAMP_DEG_S",
    "REST_TIMEOUT_S",
@@ -3715,6 +3714,9 @@
   "ckpt": null,
   "cmd": "run",
   "commit": null,
+  "contact_floor": false,
+  "contact_gap_mm": 8.0,
+  "contact_tau_nm": 2.0,
   "device": "mps",
   "dit_fixed_noise": 1,
   "dit_samples": 1,
@@ -3729,10 +3731,13 @@
   "grip_step": 1,
   "grip_thr": 0.5,
   "height_calib": false,
+  "ik_hold_deg": 30.0,
+  "ik_hold_mm": 15.0,
   "init_grip": 0.0,
   "keep_going": 1,
   "label": "",
   "label_rate": 0.2,
+  "latency_match": false,
   "max_deg_s": 30.0,
   "max_ik_deg": 20.0,
   "max_ik_mm": 10.0,

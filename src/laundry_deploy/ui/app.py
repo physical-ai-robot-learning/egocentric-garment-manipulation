@@ -194,6 +194,22 @@ class UiApp:
             tRa.grip_mode = tGripMode if tGripMode in GRIP_MODES_SHAPED else ""
             tRa.grip_gain = float(tS.get("grip_gain", GRIP_GAIN_DEFAULT))
             tRa.z_offset_mm = float(tS.get("z_offset_mm", 0.0))  # 10-30 height correction (not a limit)
+            if tS.get("z_floor_mm") is not None:  # 11-06 robot-frame floor for the TCP targets (settings file key; absent = off)
+                tRa.z_floor_mm = float(tS["z_floor_mm"])
+            if tS.get("grip_thr") is not None:  # 11-06 user: binary jaw opens only above this model output (absent = cli 0.5)
+                tRa.grip_thr = float(tS["grip_thr"])
+            if tS.get("grip_at") is not None:  # 11-06: "row" = the jaw follows every committed chunk row (absent = cli mid)
+                tRa.grip_at = str(tS["grip_at"])
+            if tS.get("grip_hold_s") is not None:  # 11-06: a closed jaw may not re-open for this many seconds (absent = off)
+                tRa.grip_hold_s = float(tS["grip_hold_s"])
+            if tS.get("grip_lead_rows") is not None:  # 11-06: jaw rows taken this many chunk rows ahead (grip_at row; absent = 0)
+                tRa.grip_lead_rows = int(tS["grip_lead_rows"])
+            # 11-06 UMI latency matching: send-ahead + capture-time state from $TAGRIG_STATE_DIR/latency.json (absent = off)
+            tRa.latency_match = bool(tS.get("latency_match", False))
+            # 11-06 user "땅밑으로 가면 토크로": per-arm floor raised at a measured table contact (core.contact; absent = off)
+            tRa.contact_floor = bool(tS.get("contact_floor", False))
+            tRa.contact_gap_mm = float(tS.get("contact_gap_mm", 8.0))
+            tRa.contact_tau_nm = float(tS.get("contact_tau_nm", 2.0))
             tRa.amp = float(tS.get("amp", 1.0))  # 11-03 motion amplitude scale (1 = as predicted)
             tRa.height_calib = bool(
                 tS.get("height_calib", False)
@@ -334,7 +350,9 @@ class UiApp:
                 argparse.Namespace(
                     go=True,
                     episode=-1,
-                    start_lift=0.0,
+                    # 11-06: the 11-03..05 flatten starts put the jaw tip ON the table (medoid ep 161: tcp z 0 mm, link -5 mm) ->
+                    # settings "start_lift_m" (0.02 passes: link-table 14 mm); the policy's first chunk goes down from there
+                    start_lift=float(self.mSettings.get("start_lift_m", 0.0)),
                     deg_s=10.0,
                     assume_ready=False,
                     root=self.mSettings.get("start_root") or DEFAULT_START_ROOT,

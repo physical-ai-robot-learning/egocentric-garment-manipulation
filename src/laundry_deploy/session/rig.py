@@ -91,6 +91,23 @@ class Rig:
             for tSide in SIDES
         }
         self.mRunners = {}
+        self.mPGrasp = None
+        self.mJawFallback = {tSide: None for tSide in SIDES}  # the run's jaw command, used when the poller has no jaw reading
+
+    def pGrasp(self, device: str):
+        """[11-06] the robot-side p_grasp estimator (PGRASP checkpoints, core.pgrasp), started once and kept for every run. Jaw = the
+        measured opening from the robot poller; without one (dry-run --assume-ready) the run's jaw command (mJawFallback)."""
+        if self.mPGrasp is None:
+            from ..core.pgrasp import PGraspEstimator
+
+            def jaw() -> dict:
+                tRead = self.mPoller.mRing.latest()[1]
+                tG = tRead[1] if tRead is not None else None
+                return {tSide: (tG[tSide] if tG and tG.get(tSide) is not None else self.mJawFallback[tSide]) for tSide in SIDES}
+
+            self.mPGrasp = PGraspEstimator(self.mWristCams, jaw, device=device)
+            self.mPGrasp.start()
+        return self.mPGrasp
 
     def _threads(self) -> tuple:
         return (*self.mWristCams.values(), self.mGlobalCam, self.mPoller)
@@ -118,5 +135,7 @@ class Rig:
     def close(self) -> None:
         for tThread in self._threads():
             tThread.mStop = True
+        if self.mPGrasp is not None:
+            self.mPGrasp.mStop = True
         if self.mBridge is not None:
             self.mBridge.close()

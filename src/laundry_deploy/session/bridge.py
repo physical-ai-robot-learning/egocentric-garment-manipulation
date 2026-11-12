@@ -15,7 +15,7 @@ from .paths import say
 from .ring import Ring
 
 # 10-27: the 10-23 bridge ran MIT_GRIP_OPEN_FRAC_LEFT=0.5; restarted without it -> left jaw over-opened, holder broke
-GRIP_OPEN_FRAC_MAX = {"left": 0.5, "right": 1.0}
+GRIP_OPEN_FRAC_MAX = {"left": 0.70, "right": 0.79}  # 11-06: tip gap matched to HandUMI full open (80 mm = L -218 / R -213 deg); left capped below the -189 deg holder break
 GRIP_FRAC_TOL = 1e-6
 STATUS_TIMEOUT_S = 2
 POLL_HZ = 25.0
@@ -41,7 +41,7 @@ def checkGripLimits(url: str) -> None:
     }
     if tBad:
         raise HardwareError(
-            f"그리퍼 열림 제한 불일치 {tBad} (허용 최대 {GRIP_OPEN_FRAC_MAX}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.5 로 다시 띄우세요. GO 거부"
+            f"그리퍼 열림 제한 불일치 {tBad} (허용 최대 {GRIP_OPEN_FRAC_MAX}) -- bridge 를 MIT_GRIP_OPEN_FRAC_LEFT=0.70 MIT_GRIP_OPEN_FRAC_RIGHT=0.79 이하로 다시 띄우세요. GO 거부"
         )
 
 
@@ -52,6 +52,10 @@ class RobotPoller(threading.Thread):
         super().__init__(daemon=True)
         self.mBridge, self.mQReady, self.mFake, self.mHz = bridge, qReady, assumeReady, hz
         self.mRing = Ring(POLL_RING)
+        self.mTauRing = Ring(POLL_RING)  # 11-06 (t, {side: 6 joint torques N*m | None}) for core.contact
+        # 11-07 user (torque contact needs a gravity model first): while a list, every read appends (t_ns, q, tau, commanded q)
+        self.mTauLog = None
+        self.mCmdFn = None  # -> {side: last commanded q} (the run's Streamer), or None
         self.mStop = False
         self.mError = None
         self.mLat = []
@@ -61,6 +65,12 @@ class RobotPoller(threading.Thread):
             return {tSide: self.mQReady[tSide].copy() for tSide in SIDES}, {tSide: None for tSide in SIDES}, False
         tObs = self.mBridge.observe()
         self.mLat.append(tObs.latency_ms)
+        if tObs.tau is not None:
+            tNs = time.monotonic_ns()
+            self.mTauRing.put(tNs, (tObs.q, tObs.tau))
+            if self.mTauLog is not None:
+                tCmd = self.mCmdFn() if self.mCmdFn is not None else None
+                self.mTauLog.append((tNs, tObs.q, tObs.tau, tCmd))
         return tObs.q, {tSide: tObs.g(tSide) for tSide in SIDES}, tObs.estop
 
     def run(self) -> None:

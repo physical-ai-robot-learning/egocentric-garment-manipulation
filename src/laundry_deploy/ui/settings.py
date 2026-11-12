@@ -56,6 +56,9 @@ CKPT_DIRS = {
         # 11-05: flattening 250 demos (11-03 + 11-04, Cg, 0.3x, gated masks), UMI recipe 100 epochs from H100 663012, 2x4090 B1024;
         # CONTINUOUS jaw -> grip_mode "binary"; early rollout candidates ep08 (val 60.74) + ep10-12
         (TRAIN_ROOT / "checkpoints/FLAT250_rollout"),
+        # 11-06: FLAT-PGRASP best / last of S03 (0.3x, RunPod Ada) and S10 (1.0x, cluster); state 18, 19 = robot-side p_grasp
+        # (core.pgrasp, needs $TAGRIG_STATE_DIR/pgrasp_roi.json); S10 moves at human speed -> start with a low UI speed
+        (TRAIN_ROOT / "checkpoints/FLATPG_rollout"),
     ],
     "xvla": [XVLA_FT_CKPTS],
 }  # 10-28: Exp 3 X-VLA through xvla_server.py (:8775, separate venv)

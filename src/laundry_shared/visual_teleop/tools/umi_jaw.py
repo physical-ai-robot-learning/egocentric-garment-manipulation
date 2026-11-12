@@ -18,7 +18,9 @@ import numpy as np
 from laundry_common import paths as egopaths
 
 ROOT = Path(__file__).resolve().parents[4]
-LOCATIONS = {"right": "0x0314", "left": "0x0114"}   # 11-03 re-cable (user-checked 11:58: first guess was swapped): right UMI cam 0x0314, left 0x0114
+LOCATIONS = {"right": "0x0313", "left": "0x0113"}   # 11-11 re-cable, user-checked on the preview (the same-hub guess below was swapped): right UMI cam 0x03131400, left 0x01131320 -- the cameras are NOT on their own unit's motor/IMU hub
+_LOCATIONS_1111_guess = {"right": "0x0113", "left": "0x0313"}   # 11-11 first guess (each unit on one hub) -- WRONG, left/right swapped
+_LOCATIONS_1103 = {"right": "0x0314", "left": "0x0114"}   # 11-03 re-cable (user-checked 11:58: first guess was swapped): right UMI cam 0x0314, left 0x0114
 _LOCATIONS_1102 = {"right": "0x0311", "left": "0x0314"}   # 11-02: left UMI cam now on the robot-left-cam port (0x0111 before)  # 11-01 14:40 re-cable for laundry pinching x100: right cam now 0x03110000 (left 0x01110000 cover test 88 -> 21, right unchanged 146; left jaw motor 5B3D049747 moved -591..-118, right 5B3D048082 still)
 _LOCATIONS_1030 = {"right": "0x03131", "left": "0x0111"}  # 10-30 10:25 re-cable after the robot deploy: left cam 0x01110000 shares hub 1 with the LEFT IMU 63ACF722, right cam 0x03131100 shares the 0x03131500 adapter with the RIGHT motor 5B3D048082 (10:31 cover test PASS: covering the LEFT hand lens dropped 0x0111 132 -> 61-83, 0x03131 unchanged 179-187)
 _LOCATIONS_1029b = {"right": "0x03110", "left": "0x03140"}  # 10-29 15:57 physical test: the LEFT hand unit = camera 0x03140 + motor 5B3D049747 + IMU 63ACF722 (all three swapped)

@@ -65,6 +65,7 @@ class FakeArm:
         self.mArgs = args
         self.mLo = np.full(6, -1.2)
         self.mHi = np.full(6, 1.2)
+        self.mLimMargin = np.radians(float(getattr(args, "lim_margin_deg", 0.5)))
         self.mFree = FakeIk(side)
         self.mF0 = FakeIk(side, maxStep=3.0)
         self.mPk = FakePk(side)
@@ -158,6 +159,7 @@ class Observation:
         self.mG = g or {s: 0.0 for s in SIDES}
         self.estop = estop
         self.latency_ms = 3.0
+        self.tau = None  # 11-06 MIT bridge /observe tau_nm; the fake robot reports none
 
     def g(self, side):
         return self.mG[side]

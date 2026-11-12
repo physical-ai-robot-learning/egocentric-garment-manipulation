@@ -69,14 +69,16 @@ class Arm:
         self.mFine = tMake(FINE_STEP_DEG, FINE_ITERS)
         tLimits = ArmIk.from_cfg(tCfg, tPk).gate.cfg.limits
         self.mLo, self.mHi = np.asarray(tLimits.lower_rad), np.asarray(tLimits.upper_rad)
+        # 11-07 deploy: args.lim_margin_deg widens the solver margin (the dataset robotization keeps BRIDGE_LIMIT_MARGIN_DEG)
+        self.mLimMargin = np.radians(float(getattr(args, "lim_margin_deg", BRIDGE_LIMIT_MARGIN_DEG)))
         for tSolver in (self.mFree, self.mF0, self.mFine):
             tSolver.sync(tReadyDeg)
             for tK, tIq in enumerate(tSolver.ridx):
                 tOffset = tSolver.joff[side][tK]
                 tSolver.model.lowerPositionLimit[tIq] = max(tSolver.model.lowerPositionLimit[tIq],
-                                                            self.mLo[tK] + tOffset + np.radians(BRIDGE_LIMIT_MARGIN_DEG))
+                                                            self.mLo[tK] + tOffset + self.mLimMargin)
                 tSolver.model.upperPositionLimit[tIq] = min(tSolver.model.upperPositionLimit[tIq],
-                                                            self.mHi[tK] + tOffset - np.radians(BRIDGE_LIMIT_MARGIN_DEG))
+                                                            self.mHi[tK] + tOffset - self.mLimMargin)
         self.mPk = tPk
         tNames = tuple(f"{side}_{tN}" for tN in LINK_FRAMES)
         self.mLinkFrameIds = [tI for tI, tF in enumerate(tPk.model.frames) if tF.name in tNames]

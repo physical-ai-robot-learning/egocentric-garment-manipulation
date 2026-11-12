@@ -13,7 +13,7 @@ import numpy as np
 from ..core.camera_model import project, robotCam
 from ..core.contract import CHUNK_ROWS, SIDES, TRAIN_ROOT
 from ..core.plot import cvPlot
-from .paths import DESKTOP
+from .paths import DESKTOP, ROLLOUT_VIDEO_DIR
 
 ARM_COLOURS_BGR = {"left": (255, 140, 0), "right": (0, 140, 255)}  # was COL; left = blue, right = orange (tagrig_qa convention)
 BLACK, WHITE = (0, 0, 0), (255, 255, 255)
@@ -203,7 +203,8 @@ def gripPlot(arr: dict, runDir):
         )
         for tJ, tSide in enumerate(SIDES)
     ]
-    tPath = DESKTOP / f"act_{runDir.name}_grip.png"
+    ROLLOUT_VIDEO_DIR.mkdir(parents=True, exist_ok=True)
+    tPath = ROLLOUT_VIDEO_DIR / f"act_{runDir.name}_grip.png"
     cv2.imwrite(str(tPath), np.vstack(tImages))
     return tPath
 
@@ -211,7 +212,8 @@ def gripPlot(arr: dict, runDir):
 def renderVideo(log: dict, arr: dict, runDir, workspace: dict):
     tCamFromBase, tK = robotCam()
     tTrain = np.load(TRAIN_TCP_SAMPLE) if TRAIN_TCP_SAMPLE.exists() else np.zeros((0, 3))
-    tPath = DESKTOP / f"act_{runDir.name}.mp4"
+    ROLLOUT_VIDEO_DIR.mkdir(parents=True, exist_ok=True)
+    tPath = ROLLOUT_VIDEO_DIR / f"act_{runDir.name}.mp4"
     tTmp = runDir / "video_raw.mp4"
     tW, tH = ORBBEC_WH[0] + TOP_SIZE_PX, ORBBEC_WH[1] + WRIST_WH[1]
     tFps = VIDEO_FPS_DIT if runDir.name.startswith("dit") else VIDEO_FPS

@@ -129,6 +129,9 @@ def buildParser() -> argparse.ArgumentParser:
     tRun.add_argument("--max-deg-s", type=float, default=30.0)
     tRun.add_argument("--max-ik-mm", type=float, default=10.0)
     tRun.add_argument("--max-ik-deg", type=float, default=20.0)
+    tRun.add_argument("--ik-hold-mm", type=float, default=15.0,
+                      help="11-07: IK pinned at a joint limit and farther than this from the target -> that arm holds (mm)")
+    tRun.add_argument("--ik-hold-deg", type=float, default=30.0, help="11-07: the same for the orientation error (deg)")
     tRun.add_argument("--ws-margin", type=float, default=0.05)
     tRun.add_argument("--arm-clear", type=float, default=0.010, help="capsule link-link clearance (m) -> STOP")
     tRun.add_argument("--warn-gap", type=float, default=0.12, help="link-origin gap (m) -> WARN + speed x0.5")
@@ -169,9 +172,13 @@ def buildParser() -> argparse.ArgumentParser:
         "--dit-fixed-noise", type=int, default=1, help="DiT: 1 = same initial noise every plan (less jitter), 0 = seed per cycle"
     )
     tRun.add_argument(
-        "--grip-at", choices=["first", "mid", "last", "max"], default="mid", help="which committed chunk row sets the jaw"
+        "--grip-at", choices=["first", "mid", "last", "max", "row"], default="mid", help="which committed chunk row sets the jaw (row = every row, in time)"
     )
     tRun.add_argument("--grip-thr", type=float, default=0.5, help="jaw opens above this")
+    tRun.add_argument("--latency-match", action="store_true", help="send-ahead + capture-time state from latency.json (UMI)")
+    tRun.add_argument("--contact-floor", action="store_true", help="raise an arm's floor where it pressed on the table (torque)")
+    tRun.add_argument("--contact-gap-mm", type=float, default=8.0, help="contact: measured TCP this far above the commanded one")
+    tRun.add_argument("--contact-tau-nm", type=float, default=2.0, help="contact: pitch-joint torque this far off its free baseline")
     tRun.add_argument("--grip-continuous", action="store_true", help="10-30: jaw opening = predicted P(open) 0..1 (no threshold)")
     tRun.add_argument(
         "--grip-mode",

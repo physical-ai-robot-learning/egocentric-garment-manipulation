@@ -90,9 +90,13 @@ def accumUpdate(train_metrics, policy, batch, optimizer, grad_clip_norm, acceler
             BATCH[tKey] = _sliceBatch(tVal, tSl, tB)
         tMicro = {tK: (tV[tSl] if (torch.is_tensor(tV) and tV.dim() > 0 and tV.shape[0] == tB)
                        or (isinstance(tV, list) and len(tV) == tB) else tV) for tK, tV in batch.items()}
-        with accelerator.autocast():
-            tLoss, tOd = policy.forward(tMicro)
-        accelerator.backward(tLoss / tN)
+        # 11-05: DDP all-reduce only on the last micro-batch (no_sync before it; same summed gradient). Without it every
+        # micro-batch synced the full gradient -> 4x Ada across 2 NUMA nodes ran 24.7 s / update, GPUs at ~55 % power.
+        tSync = accelerator.no_sync(policy) if tJ < tN - 1 and accelerator.num_processes > 1 else contextlib.nullcontext()
+        with tSync:
+            with accelerator.autocast():
+                tLoss, tOd = policy.forward(tMicro)
+            accelerator.backward(tLoss / tN)
         tTotal += float(tLoss.detach()) / tN
     BATCH.update(tFull)
     if grad_clip_norm > 0:

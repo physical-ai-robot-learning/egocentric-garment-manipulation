@@ -15,6 +15,7 @@ from .checkpoint import loadPolicy
 from .contract import ACT_CKPT, CAMS, CHUNK_ROWS, GRIP_COLUMNS, POSE_SLICE, SIDES
 from .errors import CheckpointError
 from .images import makeItem, makeItemPair
+from .pgrasp import checkpointVersion
 
 ACT_KIND = "act"
 DIT_KIND = "multi_task_dit"
@@ -33,6 +34,8 @@ NORMALIZE_EPS = 1e-8  # MIN_MAX range floor
 class PolicyRunner:
     """ACT: predict_action_chunk. Multi-Task DiT (n_obs 2, horizon 33): DDIM 10 (offline-eval sampler), torch.manual_seed(seed)
     before sampling, rows 1..32 of the 33; nSamples > 1 = mean of K batched samples (dit_serving style)."""
+
+    mPGrasp = None  # 11-06: PGRASP version of the checkpoint (set in __init__)
 
     def __init__(self, ckpt=ACT_CKPT, device: str = "mps", nSamples: int = 1) -> None:
         self.mDevice = device
@@ -53,11 +56,15 @@ class PolicyRunner:
         tCk = pathlib.Path(ckpt)
         self.mGripMask = GSM_TAG in str(ckpt) or any((tDir / GSM_FILE).exists() for tDir in (tCk, tCk.parent, tCk.parent.parent))
         self.mGripFakeOpen = False  # 10-29 diagnostic (UI): feed the jaw state as OPEN to a copycat checkpoint
+        # 11-06 PGRASP checkpoints: state 18, 19 = robot-side p_grasp, written into the state by the run loop (core.pgrasp)
+        self.mPGrasp = checkpointVersion(ckpt)
 
     def setDitSteps(self, steps: int) -> None:
         self.mPolicy.objective.num_inference_steps = int(steps)
 
     def _jawState(self, state30):
+        if self.mPGrasp and not self.mGripFakeOpen:
+            return state30
         if not (self.mGripMask or self.mGripFakeOpen):
             return state30
         tS = np.array(state30, np.float32, copy=True)
