@@ -11,14 +11,14 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[Technical Report (PDF, 11-07)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project history](docs/history.md) · [Pipeline](docs/pipeline.md)
-· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-07
+· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-12
 
 ![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
 *Human demonstration (left) vs. robot replay of the converted trajectory (right). Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.*
 
-## Status (7 November 2026)
+## Status (12 November 2026)
 
 > **What works, and how it was measured**
 > * **Replay (10-08 → 10-22).** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and the jaws
@@ -44,9 +44,20 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   ([interim report below](#latest-robot-run-interim-report-7-november)); the shirt is not laid flat yet. On the robot,
 >   p_grasp comes from the jaw state, not the wrist camera: the human-trained classifier calls the robot's closed empty
 >   jaws "held". Robot runs were not counted.
+> * **Deploy (11-06/07).** The robot computer now runs this repository's `laundry_deploy`. Added: UMI-style latency
+>   matching (arm commands are sent 58–64 ms and jaw commands 171–173 ms ahead, as measured), robot-side p_grasp, a
+>   torque-based contact floor (built, switched off) and a joint-limit hold.
+> * **X-VLA on the flattening data (11-10 →).** Fine-tuned from our SoftFold X-VLA checkpoint (650k) with a new domain id: 5
+>   epochs on 2× RTX 4090, then (11-12, running) to epoch 100 on 4× H100 on 330 demos (the 301 above + 29 tag-free). No
+>   offline or robot result yet.
+> * **Tag-free collection (11-11 →).** All AprilTags were removed (hand units and table start tags); demos start on black
+>   L tapes and the pose chain takes its start seed from depth and its heading from the IMU at rest. On a tagged take
+>   processed without its tags, the jaw-tip error against the tags is 17 mm (left) and 9–14 mm (right). First sets: 29
+>   train demos on 11-11, 16 more on 11-12 so far.
 >
 > **What is not shown:** no success rate (no robot trials were counted, for replay or for any policy); one setup, one
-> demonstrator; flattening is not finished and folding is not achieved.
+> demonstrator; flattening is not finished and folding is not achieved. Details of 11-06 → 11-12:
+> [status note 11-12](docs/status_2026-11-12.md).
 
 ### Latest robot run (interim report, 7 November)
 
@@ -77,12 +88,12 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`src/laundry_shared/`](src/laundry_shared/) | stage 1 and replay: recorder `tag_rig_record`, jaw classifier, reBot IK, replay planner (copies of the HandUMI / teleop modules the pipeline imports) | you want the recorder or the replay planner |
 | [`src/laundry_reference/`](src/laundry_reference/README.md) | small standalone re-implementations of the trajectory stages, runnable on synthetic data | you want the core ideas without the lab set-up |
 | [`src/laundry_common/`](src/laundry_common/paths.py) | `paths`: every machine-specific root, with environment-variable overrides | you want to run the code on other folders |
-| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, conversion) | you want the operational entry points |
+| [`scripts/laundry/`](scripts/laundry/) | replay parity and retargeting scripts, cluster / pod jobs (CoTracker, DiT DDP, X-VLA, conversion), X-VLA data converters, the tag-free pose chain (production snapshot of 11-12, [`tagfree/`](scripts/laundry/tagfree/README.md)) | you want the operational entry points |
 | [`configs/laundry/`](configs/laundry/README.md) | calibration results, robot overrides, jaw models, pinned environments | you want the numbers the code reads |
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke tests and per-package characterization tests | you want to check that the code runs |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | SYNTHETIC demo + simulated replay | you want data to run the reference code on |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | checks every number in the report against the document it came from | you want to check the report |
-| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [codebase guide](docs/codebase.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [environments](docs/environments.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md), [refactor map](docs/refactor_2026-11.md) | you want the long form |
+| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [codebase guide](docs/codebase.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [environments](docs/environments.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md), [refactor map](docs/refactor_2026-11.md) | you want the long form |
 | [`report/`](report/README.md) | technical report (English 11-07, Korean 11-02), LaTeX + PDF | you want the whole method and results in one document |
 | [`media/`](media/README.md) | GIFs, videos and photos of the real setup | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI build copy (BrikHMP18's design) + our modified parts, IMU firmware | you want to build the gripper |
@@ -147,8 +158,9 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # camera ↔ r
 
 The tests are characterization tests of every package (outputs recorded before the code was restructured, on synthetic
 recordings, fake IK and golden files), layout / import smoke tests and the reference regression on the synthetic
-example: 596 pass and 3 skip with torch, Pink IK and Flask installed (lerobot not installed, reBot URDF not included;
-2026-11-05). A base install (`uv sync` or `pip install -e ".[test]"` alone) runs everything else: 425 pass, 41 skip (the
+example: 598 pass and 5 skip with torch, Pink IK and Flask installed (lerobot not installed, reBot URDF not included;
+2026-11-12, fresh pinned environment; there `test_robotize_bi_take`, one of the two optimizer goldens CI skips, also
+fails). A base install (2026-11-05) (`uv sync` or `pip install -e ".[test]"` alone) runs everything else: 425 pass, 41 skip (the
 tests that need torch, Pink or Flask). CI runs on Apple Silicon with the pinned versions of
 `configs/laundry/envs/requirements-test.txt`; it skips the IK tests (the reBot URDF is a vendor file, not included) and two
 goldens of iterative optimizers whose outputs differ by up to ~1e-4 on another machine. Dependency groups: `vision`, `robot`, `train`, `collector` ([codebase guide](docs/codebase.md#installation-details)).
@@ -162,7 +174,8 @@ records, not a re-computation from data. Environments that produced the results:
 
 Measured in October and November 2026 on one setup with one demonstrator. Full tables and metric definitions:
 [docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 7 November); the 11-05 and
-11-07 numbers: status notes [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md).
+11-07 numbers: status notes [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md); after the report:
+[11-12](docs/status_2026-11-12.md).
 
 | milestone | result |
 |---|---|
@@ -186,6 +199,9 @@ Measured in October and November 2026 on one setup with one demonstrator. Full t
 | Flattening, FLAT250 (11-04/05) | val / test `val_score_mm` 71.67 / 72.27 (initial) → **52.56 / 52.32** (epoch 13, best); no counted robot result |
 | Grasp held / empty (11-05) | wrist-camera classifier, take-grouped 5-fold CV per event: F1 held 0.90, empty 0.78 |
 | Flattening, FLAT-PGRASP 0.3× (11-05 → 11-07) | train 301 / val 46 / test 45 demos; val / test `val_score_mm` 75.88 / 76.08 (epoch 1) → **46.04 / 46.61** (epoch 53, best); not comparable with FLAT250 (different held-out sets) |
+| Deploy latency (11-06) | measured command-to-motion delay: arm 58 / 64 ms, jaw 173 / 171 ms (left / right); cameras: fixed 1.4 ms, wrist 38 / 61 ms — matched in the deploy |
+| X-VLA on the flattening data (11-10 →) | from our SoftFold checkpoint (650k), domain 22: 5 epochs (train loss 0.6 → 0.07), then to epoch 100 on 330 demos (running 11-12); no offline or robot result yet |
+| Tag-free pose (11-11/12) | tagged take processed without tags vs its tag measurements: jaw-tip error left 17 mm, right 9–14 mm; 11-12 camera re-aim corrected by depth-scene ICP (`robot_cam_v007`; uncorrected 6–27 mm) |
 | Flattening on the robot (11-06/07) | 0.3× looked better than 1.0× on the robot (6 November); on 7 November both jaws took the shirt edges and spread it, then it bunched up again; the shirt was not laid flat. 27 runs, not counted or scored — **no success rate** |
 
 ![Pinching on the real robot, 2 November](media/pinching_robot_20261102_113704.gif)
@@ -215,6 +231,10 @@ list: [history](docs/history.md#limitations).
 | 11-05 | a closed jaw does not say whether cloth is held | wrist-camera grasp labels → p_grasp in the jaw slots of the state (`PGRASP`) |
 | 11-06 | the human-trained grasp classifier calls the robot's closed empty jaws "held" (0.97 / 0.94) | on the robot, p_grasp = jaw state (closed → 1) until a robot-domain classifier exists |
 | 11-06 | on the robot the 0.3× policy looked better than the 1.0× one (uncounted) | keep the 0.3× time-stretch for flattening |
+| 11-06 | the robot jaw closed late (jaw ~110 ms slower than the arm) | UMI-style latency matching in the deploy |
+| 11-07 | IK pinned at a joint limit sent an arm to a twisted closest pose | that arm holds its last joints instead |
+| 11-10 | a second policy family on the same data | X-VLA from our SoftFold checkpoint, then a daily continual schedule |
+| 11-11 | relative actions and the task-anchor state do not need absolute marker poses | all tags removed; L-tape start marks, IMU heading at rest, start seed from depth |
 
 Earlier decisions (robot model corrections, controller model, continuous warps instead of clipping) and the reasons:
 [history](docs/history.md#what-was-hard-and-what-i-changed); dated narrative from replay to flattening:

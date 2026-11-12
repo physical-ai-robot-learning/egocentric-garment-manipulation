@@ -10,14 +10,14 @@
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
 · **[테크니컬 리포트 (PDF, 영문 11-07)](report/report_en.pdf)** ([한국어 11-02](report/report_ko.pdf)) · [이전 버전](report/archive/)
 · [자세한 결과](docs/results.md) · [프로젝트 이력](docs/history_ko.md) · [파이프라인](docs/pipeline_ko.md)
-· [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-07
+· [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-12
 
 ![사람 vs 로봇 재생](media/human_vs_robot_replay_large.gif)
 
 *사람 시연(왼쪽) vs 변환한 궤적의 로봇 재생(오른쪽). 같은 고정 카메라, 하나의 시계로 맞췄고 사람 속도로 보여 줍니다. 막대는
 로봇 집게 명령입니다.*
 
-## 현재 상태 (2026년 11월 7일)
+## 현재 상태 (2026년 11월 12일)
 
 > **되는 것과 측정 방법**
 > * **재생 (10-08 → 10-22).** 33초 데모 하나의 양팔 재생은 결정적이고(실행 사이 약 1 mm), 집게가 사람과 같은 높이·시점에
@@ -40,9 +40,18 @@
 >   가장자리를 잡아 두 팔 사이로 폈습니다([아래 중간 보고](#최근-로봇-실행-중간-보고-11월-7일)). 셔츠를 평평하게 내려놓는 데까지는
 >   아직 못 갑니다. 로봇에서 p_grasp는 손목 카메라가 아니라 집게 상태에서 얻습니다. 사람 데이터로 학습한 분류기가 로봇의 닫힌 빈
 >   집게를 '잡음'으로 보기 때문입니다. 로봇 시행 횟수는 세지 않았습니다.
+> * **배포 (11-06/07).** 로봇 컴퓨터가 이제 이 저장소의 `laundry_deploy`를 돌립니다. 추가한 것: UMI식 지연 맞추기(측정한 만큼
+>   팔 명령은 58–64 ms, 집게 명령은 171–173 ms 앞당겨 보냄), 로봇 쪽 p_grasp, 토크 기반 접촉 바닥(만들었지만 꺼 둠), 관절 한계
+>   유지.
+> * **펴기 데이터로 X-VLA (11-10 →).** 우리 SoftFold X-VLA 체크포인트(650k)에서 새 domain id로 파인튜닝: RTX 4090 2장에서
+>   5 에포크, 이어서(11-12, 학습 중) H100 4장에서 시연 330개(위 301개 + tag-free 29개)로 100 에포크까지. 오프라인·로봇 결과는
+>   아직 없습니다.
+> * **태그 없는 수집 (11-11 →).** AprilTag를 모두 뗐습니다(손 장치, 테이블 시작 태그). 시연은 검은 L 테이프에서 시작하고, 위치
+>   체인은 시작 시드를 depth에서, 방향을 정지 때의 IMU에서 얻습니다. 태그가 있는 take를 태그 없이 처리해 태그와 비교하면 집게 끝
+>   오차가 왼쪽 17 mm, 오른쪽 9–14 mm입니다. 첫 세트: 11-11 train 29개, 11-12 지금까지 16개 더.
 >
 > **보여 주지 않는 것:** 성공률 없음(재생이든 어떤 정책이든 로봇 시행 횟수를 세지 않았음), 장치 하나·시연자 한 명, 펴기는 아직
-> 끝까지 못 하고 접기는 못 함.
+> 끝까지 못 하고 접기는 못 함. 11-06 → 11-12 자세한 내용: [11-12 상태 노트](docs/status_2026-11-12.md)(영문).
 
 ### 최근 로봇 실행 (중간 보고, 11월 7일)
 
@@ -72,12 +81,12 @@
 | [`src/laundry_shared/`](src/laundry_shared/) | 1단계와 재생: 녹화기 `tag_rig_record`, 집게 분류기, reBot IK, 재생 계획(파이프라인이 import하는 HandUMI / teleop 모듈의 사본) | 녹화기나 재생 계획을 보고 싶을 때 |
 | [`src/laundry_reference/`](src/laundry_reference/README.md) | 궤적 단계의 작은 독립 재구현, 합성 데이터로 실행 가능 | 실험실 장비 없이 핵심 아이디어를 보고 싶을 때 |
 | [`src/laundry_common/`](src/laundry_common/paths.py) | `paths`: 장비마다 다른 모든 루트, 환경 변수로 바꿀 수 있음 | 다른 폴더에서 코드를 돌리고 싶을 때 |
-| [`scripts/laundry/`](scripts/laundry/) | 재생 비교·리타깃 script, 클러스터 / pod 작업(CoTracker, DiT DDP, 변환), 잡음 라벨 script | 운영용 실행 위치를 찾을 때 |
+| [`scripts/laundry/`](scripts/laundry/) | 재생 비교·리타깃 script, 클러스터 / pod 작업(CoTracker, DiT DDP, X-VLA, 변환), X-VLA 데이터 변환기, 태그 없는 위치 체인(11-12 운영 코드 스냅샷, [`tagfree/`](scripts/laundry/tagfree/README.md)) | 운영용 실행 위치를 찾을 때 |
 | [`configs/laundry/`](configs/laundry/README.md) | 캘리브레이션 결과, 로봇 보정값, 집게 모델, 고정 버전 환경 | 코드가 읽는 숫자를 보고 싶을 때 |
 | [`tests/laundry/`](tests/laundry/), `src/laundry_*/tests/` | smoke test와 패키지별 특성화 테스트 | 코드가 도는지 확인하고 싶을 때 |
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | 합성(SYNTHETIC) 시연 + 시뮬레이션 재생 | 참고 구현을 돌릴 데이터가 필요할 때 |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | 리포트의 모든 숫자를 그것을 옮겨 온 문서와 대조 | 리포트를 확인하고 싶을 때 |
-| [`docs/`](docs/) | [파이프라인](docs/pipeline_ko.md), [코드 안내](docs/codebase_ko.md), [이력](docs/history_ko.md), [세부 내용](docs/details_ko.md), [결과](docs/results.md)(영어), [환경](docs/environments.md), 상태 노트 [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md), [경로 대응표](docs/refactor_2026-11.md) | 긴 설명을 원할 때 |
+| [`docs/`](docs/) | [파이프라인](docs/pipeline_ko.md), [코드 안내](docs/codebase_ko.md), [이력](docs/history_ko.md), [세부 내용](docs/details_ko.md), [결과](docs/results.md)(영어), [환경](docs/environments.md), 상태 노트 [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md), [경로 대응표](docs/refactor_2026-11.md) | 긴 설명을 원할 때 |
 | [`report/`](report/README.md) | 테크니컬 리포트(영어 11-07, 한국어 11-02), LaTeX + PDF | 방법과 결과 전체를 한 문서로 보고 싶을 때 |
 | [`media/`](media/README.md) | 실제 장치의 GIF, 영상, 사진 | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI 제작 사본(BrikHMP18의 설계) + 우리 변경 부품, IMU 펌웨어 | 집게를 만들고 싶을 때 |
@@ -139,7 +148,8 @@ python -m laundry_tracking.calib.robot_cam_solve --synthetic      # 시뮬레이
 
 테스트는 모든 패키지의 특성화 테스트(코드 구조를 바꾸기 전에 합성 녹화, 가짜 IK, golden 파일로 기록한 출력), 구조·import smoke
 test, 합성 예제에 대한 참고 구현 회귀 검사입니다. torch, Pink IK, Flask가 있는 환경에서
-596개 통과, 3개 건너뜀(lerobot 미설치, reBot URDF 미포함, 2026-11-05). 기본 설치(`uv sync`나 `pip install -e ".[test]"`만)에서는
+598개 통과, 5개 건너뜀(lerobot 미설치, reBot URDF 미포함, 2026-11-12, 새로 만든 고정 버전 환경; 여기서는 CI가 건너뛰는 최적화
+golden 두 개 중 `test_robotize_bi_take`도 실패). 기본 설치(2026-11-05)(`uv sync`나 `pip install -e ".[test]"`만)에서는
 나머지가 모두 돌아서 425개 통과, 41개 건너뜀(torch, Pink, Flask가 필요한 테스트). CI는 `configs/laundry/envs/requirements-test.txt`의 고정 버전으로 Apple Silicon에서
 돌고, IK 테스트(reBot URDF는 제조사 파일이라 포함하지 않음)와 다른 기계에서 출력이 1e-4 정도까지 달라지는 반복 최적화 golden 두 개를 건너뜁니다. dependency group: `vision`, `robot`, `train`, `collector`([코드 안내](docs/codebase_ko.md#설치-참고)).
 
@@ -151,7 +161,7 @@ deploy는 로봇이 필요합니다. 숫자 검사는 기록과의 일관성을 
 ## 결과
 
 2026년 10월과 11월, 장치 하나와 시연자 한 명으로 측정했습니다. 전체 표와 지표 정의: [docs/results.md](docs/results.md)(영어)와
-[테크니컬 리포트](report/report_ko.pdf). 11-05·11-07 숫자: 상태 노트 [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md)(영문).
+[테크니컬 리포트](report/report_ko.pdf). 11-05·11-07 숫자: 상태 노트 [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md)(영문). 리포트 뒤: [11-12](docs/status_2026-11-12.md).
 
 | 단계 | 결과 |
 |---|---|
@@ -175,6 +185,9 @@ deploy는 로봇이 필요합니다. 숫자 검사는 기록과의 일관성을 
 | 펴기, FLAT250 (11-04/05) | val / test `val_score_mm` 71.67 / 72.27(시작) → **52.56 / 52.32**(13 에포크, 최고). 센 로봇 결과 없음 |
 | 잡음 / 빈손 (11-05) | 손목 카메라 분류기, take 단위 5-fold CV, 이벤트별 F1 잡음 0.90, 빈손 0.78 |
 | 펴기, FLAT-PGRASP 0.3배 (11-05 → 11-07) | train 301 / val 46 / test 45 시연; val / test `val_score_mm` 75.88 / 76.08(1 에포크) → **46.04 / 46.61**(53 에포크, 최고); held-out 셋이 달라 FLAT250과 비교할 수 없음 |
+| 배포 지연 (11-06) | 측정한 명령→동작 지연: 팔 58 / 64 ms, 집게 173 / 171 ms(왼쪽 / 오른쪽). 카메라: 고정 1.4 ms, 손목 38 / 61 ms — 배포에서 맞춤 |
+| 펴기 데이터로 X-VLA (11-10 →) | 우리 SoftFold 체크포인트(650k), domain 22: 5 에포크(train loss 0.6 → 0.07), 이어서 시연 330개로 100 에포크까지(11-12 학습 중). 오프라인·로봇 결과 아직 없음 |
+| 태그 없는 위치 (11-11/12) | 태그 있는 take를 태그 없이 처리해 태그 측정과 비교: 집게 끝 오차 왼쪽 17 mm, 오른쪽 9–14 mm. 11-12 카메라 재조준은 depth 장면 ICP로 보정(`robot_cam_v007`, 보정 안 하면 6–27 mm) |
 | 로봇에서 펴기 (11-06/07) | 로봇에서 0.3배가 1.0배보다 나아 보임(11월 6일). 11월 7일 두 집게가 셔츠 가장자리를 잡아 폈다가 다시 뭉침, 평평하게 내려놓지는 못함. 27번, 횟수를 세거나 채점하지 않음 — **성공률 없음** |
 
 ![실제 로봇 핀칭, 11월 2일](media/pinching_robot_20261102_113704.gif)
@@ -203,6 +216,10 @@ deploy는 로봇이 필요합니다. 숫자 검사는 기록과의 일관성을 
 | 11-05 | 닫힌 집게만으로는 천을 잡았는지 모름 | 손목 카메라 잡음 라벨 → 상태의 집게 칸에 p_grasp(`PGRASP`) |
 | 11-06 | 사람 데이터로 학습한 잡음 분류기가 로봇의 닫힌 빈 집게를 '잡음'으로 봄(0.97 / 0.94) | 로봇에서는 p_grasp = 집게 상태(닫힘 → 1), 로봇용 분류기가 생길 때까지 |
 | 11-06 | 로봇에서 0.3배 정책이 1.0배보다 나아 보임(횟수 안 셈) | 펴기는 0.3배로 늘린 데이터 유지 |
+| 11-06 | 로봇 집게가 늦게 닫힘(집게가 팔보다 약 110 ms 느림) | 배포에 UMI식 지연 맞추기 |
+| 11-07 | IK가 관절 한계에 걸리면 팔이 비틀린 가장 가까운 자세로 감 | 그 팔은 마지막 관절값 유지 |
+| 11-10 | 같은 데이터로 두 번째 정책 계열 | 우리 SoftFold 체크포인트의 X-VLA, 이어서 매일 데이터를 더하는 continual 학습 |
+| 11-11 | 상대 action과 task-anchor 상태는 마커의 절대 위치가 필요 없음 | 태그 전부 제거. L 테이프 시작 표시, 정지 때의 IMU 방향, depth로 시작 시드 |
 
 그 전의 결정(로봇 모델 보정, 제어기 모델, 자르지 않고 연속 변형)과 이유: [이력](docs/history_ko.md#어려웠던-점과-바꾼-것).
 재생에서 펴기까지 날짜순 설명: [docs/history_ko.md](docs/history_ko.md).
