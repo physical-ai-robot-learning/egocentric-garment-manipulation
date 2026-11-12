@@ -9,7 +9,7 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 
 [![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report (PDF, 11-07)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
+· **[Technical Report (PDF, 11-12)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project history](docs/history.md) · [Pipeline](docs/pipeline.md)
 · [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · status: 2026-11-12
 
@@ -69,6 +69,16 @@ shirt between the arms and keep it spread; later in the run the shirt bunches up
 report, not a result: the clip is the clearest of 27 runs that day, and **the runs were not counted or scored**, so it
 shows what the policy can do, not how often it does it. Details: [status note](docs/status_2026-11-07.md).*
 
+### Tag-free conversion (12 November)
+
+![Tag-free jaw-tip tracking, take 20261112_135910 demo 2](media/tagfree_20261112_135910_d02.gif)
+
+*A flattening demonstration recorded after all AprilTags were removed (take 20261112_135910, demo 2, graded GOLD, train
+split), converted by the tag-free chain. Left: fixed camera with each jaw-tip pose (blue = left, orange = right; red = x,
+green = z axis, 5 cm) and its recent path; right: the two wrist cameras. The start pose comes from the black L tapes and the
+resting units in depth, the heading from the IMU at rest. About 2× real time. [MP4](media/tagfree_20261112_135910_d02.mp4) ·
+[status note](docs/status_2026-11-12.md) §4.*
+
 **Research question.** *If a robot simply replays the converted human motion, open loop, does it do what the human
 did?* Replay exercises every stage at once (calibration, pose, jaw state, robotization, IK, timing, control), puts
 human, robot command and measured robot motion on one clock and in one frame so that errors can be attributed to a
@@ -94,7 +104,7 @@ Motivation and subsidiary questions: [history](docs/history.md#motivation-and-re
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | SYNTHETIC demo + simulated replay | you want data to run the reference code on |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | checks every number in the report against the document it came from | you want to check the report |
 | [`docs/`](docs/) | [pipeline](docs/pipeline.md), [codebase guide](docs/codebase.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [environments](docs/environments.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md), [refactor map](docs/refactor_2026-11.md) | you want the long form |
-| [`report/`](report/README.md) | technical report (English 11-07, Korean 11-02), LaTeX + PDF | you want the whole method and results in one document |
+| [`report/`](report/README.md) | technical report (English 11-12, Korean 11-02), LaTeX + PDF | you want the whole method and results in one document |
 | [`media/`](media/README.md) | GIFs, videos and photos of the real setup | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI build copy (BrikHMP18's design) + our modified parts, IMU firmware | you want to build the gripper |
 | [`archive/`](archive/README.md) | superseded code: MASt3R / ORB-SLAM3 pose, UMIalign, stereo VIO, red-tape jaw, bare-hand collector, grasp-label exploration | you want to see what was tried and dropped |
@@ -173,7 +183,7 @@ records, not a re-computation from data. Environments that produced the results:
 ## Results
 
 Measured in October and November 2026 on one setup with one demonstrator. Full tables and metric definitions:
-[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 7 November); the 11-05 and
+[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 12 November); the 11-05 and
 11-07 numbers: status notes [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md); after the report:
 [11-12](docs/status_2026-11-12.md).
 

@@ -8,7 +8,7 @@
 
 [![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[테크니컬 리포트 (PDF, 영문 11-07)](report/report_en.pdf)** ([한국어 11-02](report/report_ko.pdf)) · [이전 버전](report/archive/)
+· **[테크니컬 리포트 (PDF, 영문 11-12)](report/report_en.pdf)** ([한국어 11-02](report/report_ko.pdf)) · [이전 버전](report/archive/)
 · [자세한 결과](docs/results.md) · [프로젝트 이력](docs/history_ko.md) · [파이프라인](docs/pipeline_ko.md)
 · [English README](README.md) · [출처](ATTRIBUTION.md) · 기준일: 2026-11-12
 
@@ -63,6 +63,15 @@
 골랐고, **시행 횟수를 세거나 채점하지 않았으므로** 정책이 할 수 있는 동작을 보여 줄 뿐, 얼마나 자주 되는지는 보여 주지 않습니다.
 자세한 내용: [상태 노트](docs/status_2026-11-07.md)(영문).*
 
+### 태그 없는 변환 (11월 12일)
+
+![태그 없는 집게 끝 추적, take 20261112_135910 demo 2](media/tagfree_20261112_135910_d02.gif)
+
+*AprilTag를 모두 뗀 뒤 녹화한 펴기 시연(take 20261112_135910, demo 2, GOLD, train)을 태그 없는 체인으로 변환한 결과. 왼쪽:
+고정 카메라 위에 집게 끝 자세(파랑 = 왼쪽, 주황 = 오른쪽; 빨강 = x, 초록 = z 축, 5 cm)와 최근 궤적. 오른쪽: 손목 카메라 두 대.
+시작 자세는 검은 L 테이프와 정지한 장치의 depth에서, 방향은 정지 때의 IMU에서 얻습니다. 약 2배속. [MP4](media/tagfree_20261112_135910_d02.mp4) ·
+[상태 노트](docs/status_2026-11-12.md) §4(영문).*
+
 **연구 질문.** *로봇이 변환된 사람 동작을 open-loop로 그대로 재생하면, 사람이 한 일을 하는가?* 재생은 모든 단계(캘리브레이션,
 위치, 집게 상태, 로봇화, IK, 시간, 제어)를 한꺼번에 거치고, 사람·로봇 명령·측정한 로봇 동작을 하나의 시계와 하나의 좌표에 두어
 오차가 어느 단계에서 생겼는지 가를 수 있게 하며, 실패가 눈에 보입니다. 같은 변환 데이터가 그다음 정책 학습 라벨이 됩니다.
@@ -87,7 +96,7 @@
 | [`assets/laundry/examples/`](assets/laundry/examples/README.md) | 합성(SYNTHETIC) 시연 + 시뮬레이션 재생 | 참고 구현을 돌릴 데이터가 필요할 때 |
 | [`analysis/verify_claims.py`](analysis/verify_claims.py) | 리포트의 모든 숫자를 그것을 옮겨 온 문서와 대조 | 리포트를 확인하고 싶을 때 |
 | [`docs/`](docs/) | [파이프라인](docs/pipeline_ko.md), [코드 안내](docs/codebase_ko.md), [이력](docs/history_ko.md), [세부 내용](docs/details_ko.md), [결과](docs/results.md)(영어), [환경](docs/environments.md), 상태 노트 [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md), [경로 대응표](docs/refactor_2026-11.md) | 긴 설명을 원할 때 |
-| [`report/`](report/README.md) | 테크니컬 리포트(영어 11-07, 한국어 11-02), LaTeX + PDF | 방법과 결과 전체를 한 문서로 보고 싶을 때 |
+| [`report/`](report/README.md) | 테크니컬 리포트(영어 11-12, 한국어 11-02), LaTeX + PDF | 방법과 결과 전체를 한 문서로 보고 싶을 때 |
 | [`media/`](media/README.md) | 실제 장치의 GIF, 영상, 사진 | — |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI 제작 사본(BrikHMP18의 설계) + 우리 변경 부품, IMU 펌웨어 | 집게를 만들고 싶을 때 |
 | [`archive/`](archive/README.md) | 더 이상 안 쓰는 코드: MASt3R / ORB-SLAM3 위치, UMIalign, 스테레오 VIO, 빨간 테이프 집게, 맨손 수집기 | 무엇을 시도하고 버렸는지 보고 싶을 때 |

@@ -1,6 +1,6 @@
 # report
 
-The technical report of the project: English `report_en` status of 7 November 2026 (Section XII, flattening after
+The technical report of the project: English `report_en` status of 12 November 2026 (Section XIII, 6–12 November: deploy latency matching, X-VLA fine-tune, tag-free collection, figure `fig_tagfree_1112`; Section XII, flattening after
 the pinching test: FLAT149, re-aimed camera, gap-based split, FLAT250, grasp labels; 11-07: FLAT-PGRASP at 0.3× vs 1.0×,
 p_grasp on the robot from the jaw state, robot runs of 7 November as an interim observation, figure `fig_flatpg_robot_1107`); Korean `report_ko` status of
 2 November 2026 (not updated). LaTeX source and figures. Earlier versions are in [`archive/`](archive/).
@@ -15,7 +15,7 @@ macOS AppleMyungjo / Apple SD Gothic Neo fonts).
 ## Checking the numbers
 Every number in `report_en.tex` is mapped to the repository file it was taken from (README, `docs/pipeline.md`,
 `docs/history.md`, `docs/results.md`, `docs/details.md`, `docs/status_2026-11-01.md`, `docs/status_2026-11-02.md`,
-`docs/status_2026-11-05.md`, `docs/status_2026-11-07.md` or `archive/report_v0.1_en.tex`) and checked by
+`docs/status_2026-11-05.md`, `docs/status_2026-11-07.md`, `docs/status_2026-11-12.md` or `archive/report_v0.1_en.tex`) and checked by
 [`../analysis/verify_claims.py`](../analysis/verify_claims.py) (run from the repository root; prints
 `N claims checked, 0 failed`; also run in CI). The Korean version may print no number the English one lacks.
 

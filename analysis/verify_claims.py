@@ -29,6 +29,7 @@ STATUS = "docs/status_2026-11-01.md"
 STATUS2 = "docs/status_2026-11-02.md"
 STATUS3 = "docs/status_2026-11-05.md"
 STATUS4 = "docs/status_2026-11-07.md"
+STATUS5 = "docs/status_2026-11-12.md"
 V01 = "report/archive/report_v0.1_en.tex"
 # 2026-11-05: the long parts of the README moved to docs/ (text unchanged); numbers that left the README point there
 PIPELINE, HISTORY = "docs/pipeline.md", "docs/history.md"
@@ -121,6 +122,9 @@ SOURCES.update({
 
 # 11-07: FLAT-PGRASP, p_grasp on the robot, robot runs of 7 November (report section sec:flat)
 SOURCES.update({n: STATUS4 for n in ("1.0", "75.88", "76.08", "48.89", "49.05", "46.04", "46.61", "0.97", "0.94", "81", "174")})
+
+# 11-12: deploy latency, X-VLA run, tag-free collection (report section sec:after)
+SOURCES.update({n: STATUS5 for n in ("64", "173", "110", "650", "330", "0.02")})
 
 def norm_source(text):
     t = re.sub(r"(\d)\\,(\d{3})(?!\d)", r"\1\2", text)          # 1\,524 -> 1524

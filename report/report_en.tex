@@ -19,7 +19,7 @@
 \begin{document}
 \title{Egocentric Human Demonstrations for\\Bimanual Garment Manipulation:\\[1mm]\Large From Hand-Worn-Gripper Recordings to Robot Policies}
 \author{\IEEEauthorblockN{Jeong Hwan Lee}
-\IEEEauthorblockA{Technical report, status of 7 November 2026\\
+\IEEEauthorblockA{Technical report, status of 12 November 2026\\
 Repository: \texttt{egocentric-garment-manipulation}}}
 \maketitle
 
@@ -46,8 +46,9 @@ the policy grasps elsewhere instead of retrying. Back on flattening, a policy tr
 UMI on 250 demonstrations under a re-aimed camera improves its offline score from epoch to epoch, and a vision
 classifier now labels whether a closed jaw holds the cloth, because the jaw servo has no load signal. Trained on 301
 demonstrations with that label in its state, a flattening policy on the robot took both edges of a crumpled shirt and
-spread it between the arms (7 November 2026, uncounted runs); it does not yet lay the shirt flat. We report no
-success rate.
+spread it between the arms (7 November 2026, uncounted runs); it does not yet lay the shirt flat. Since 11 November all
+markers are removed: a tag-free variant of the pose chain takes its start pose from tape marks and depth and its heading
+from the IMU at rest, and a second policy family (X-VLA) is being fine-tuned on the same data. We report no success rate.
 \end{abstract}
 
 % =====================================================================
@@ -77,11 +78,12 @@ fails visibly. The follow-up question is whether the same conversion yields labe
   recorded causes of their failure and the data problems found afterwards (Secs.~\ref{sec:data}--\ref{sec:policy}).
 \end{itemize}
 
-\textbf{Status} (7 November 2026). Replay is finished; folding by replay does not succeed. The first policies fine-tuned
+\textbf{Status} (12 November 2026). Replay is finished; folding by replay does not succeed. The first policies fine-tuned
 on the flattening data were run on the robot in uncounted trials and did not grasp. In a one-sleeve pinching test
 (Sec.~\ref{sec:pinch}), successful grasps were observed in real-robot trials on 2 November; the trials were not
 counted. A flattening policy that sees whether each closed jaw holds the cloth took both shirt edges and spread the shirt
-between the arms on 7 November (Sec.~\ref{sec:flat}, an interim observation from uncounted runs). No success rate is reported anywhere in this report, because no counted
+between the arms on 7 November (Sec.~\ref{sec:flat}, an interim observation from uncounted runs). Deploy changes, an
+X-VLA fine-tune and tag-free collection followed (Sec.~\ref{sec:after}). No success rate is reported anywhere in this report, because no counted
 trials were run.
 
 \textbf{Relation to earlier versions.} This report replaces version 0.1 (27 October) and version 0 (21 October), which
@@ -762,6 +764,47 @@ shirt, spread it between the arms and hold it (Fig.~\ref{fig:flatpg1107}); later
 laid it flat on the table. The runs were not counted or scored, so this shows what the policy can do, not how often.
 
 % =====================================================================
+\section{After the First Flattening Runs (6--12 November)}\label{sec:after}
+The numbers of this section are in \code{docs/status_2026-11-12.md}. No robot runs were made after 7 November.
+
+\textbf{Deploy.} Since 6 November the robot computer runs the maintained deploy package of this repository (an offline
+evaluation of one checkpoint gave identical output in the old and the new code). Following UMI~\cite{chi2024umi}, the
+command-to-motion delay was measured with chirps through the robot bridge: 58 / 64\,ms for the arms and 173 / 171\,ms for
+the jaws (left / right), so the jaw closed about 110\,ms later than the arm moved; camera delays are 1.4\,ms (fixed) and
+38 / 61\,ms (wrist). With latency matching on, arm and jaw commands are sent ahead by these delays and the state is taken
+at the capture time of the fixed-camera image. When inverse kinematics is pinned at a joint limit and far from the
+target, that arm now holds its last joints instead of moving to a twisted closest pose. A torque-based contact floor was
+built and switched off: near the table the arm sags below its command and the torque change is not yet separable from
+gravity.
+
+\textbf{X-VLA on the flattening data.} A second policy family starts from our SoftFold X-VLA checkpoint (650k steps), with a
+new domain id, the 0.3$\times$ data converted to relative 32-step chunks, a continuous jaw target, the jaw state masked and
+no gradient clipping. Five epochs on two RTX 4090 brought the training loss from 0.6 to 0.07; on 12 November a run to
+epoch 100 started on four H100 on 330 demonstrations (the 301 training demonstrations and 29 tag-free ones, below). No
+offline or robot result exists yet.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_tagfree_1112.jpg}
+\caption{Tag-free conversion of a flattening demonstration recorded without any marker (take \texttt{20261112\_135910},
+demo 2, GOLD, training split). Left of each frame: fixed camera with the jaw-tip pose of each hand (blue = left,
+orange = right; red = $x$, green = $z$ axis) and its recent path; right: the two wrist cameras. Top: grasping the shirt;
+bottom: spreading it.}
+\label{fig:tagfree1112}
+\end{figure}
+
+\textbf{Tag-free collection.} On 11 November all AprilTags were removed, from both hand units and from the table. The policy
+acts in relative motion with a task-anchor state, so absolute marker poses are not needed for its labels; what is needed
+is a start pose and a heading. Each demonstration now starts with both units resting on black L tapes; the start pose
+comes from the tapes and the resting units in depth, and the heading from the IMU (Mahony filter) anchored at rest. The
+rest of the chain is unchanged (point tracking, solver, gate, fusion, labels). Processing a tagged take as if it had no
+tags and comparing with its tags gave a jaw-tip error of 17\mm (left) and 9--14\mm (right), constant over the
+demonstration, after two seeding errors were fixed. Fig.~\ref{fig:tagfree1112} shows one converted demonstration. The first tag-free sets have 29 training demonstrations from
+11 November and 16 more from 12 November so far. On 12 November the fixed camera was re-aimed by hand after re-cabling;
+the residual was measured by registering the static depth scene against the previous day (control pair: 0.02$^\circ$,
+1.5\mm) and folded into the calibration; uncorrected, it would have moved the workspace by 6--27\mm.
+
+% =====================================================================
 \section{Superseded Approaches}\label{sec:superseded}
 \begin{table*}[t]
 \caption{Current pipeline and what it replaced}\label{tab:superseded}
@@ -827,6 +870,8 @@ approaches is in \code{archive/}, with a README table of dates and reasons.
   events, so its output on those events is in-sample.
 \item \emph{$p_\mathrm{grasp}$ on the robot} comes from the jaw state, not from the wrist camera: the classifier trained on
   the human jaw does not transfer to the robot jaw.
+\item \emph{Tag-free poses} are checked on one tagged take processed without its tags; the tag-free chain is a production
+  snapshot, not yet part of the maintained packages.
 \item \emph{Hardware.} The left robot wrist connector has dropped out repeatedly.
 \end{itemize}
 
@@ -854,7 +899,7 @@ X-VLA fine-tuning code. Real-data stages need the recordings, some need a GPU or
 config-path smoke tests), \texttt{python scripts/laundry/eval/replay\_parity.py -\/-synthetic} and
 \texttt{python -m laundry\_tracking.calib.robot\_cam\_solve -\/-synthetic}
 (self-tests of the parity scorer and the camera-to-robot solver on simulated data), all run in CI. \cmd{python analysis/verify_claims.py} checks that every number in this report also appears in the in-repository
-document it was taken from (README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md}, \code{docs/status_2026-11-07.md} or
+document it was taken from (README, \code{docs/pipeline.md}, \code{docs/history.md}, \code{docs/results.md}, \code{docs/details.md}, \code{docs/status_2026-11-01.md}, \code{docs/status_2026-11-02.md}, \code{docs/status_2026-11-05.md}, \code{docs/status_2026-11-07.md}, \code{docs/status_2026-11-12.md} or
 the archived report v0.1). This is a check of consistency with the project's records, not a re-computation of the
 numbers from data.
 
@@ -869,9 +914,10 @@ the recorded causes and the label problems found afterwards are changed, except 
 pinching test, a policy fine-tuned on 197 demonstrations grasped the sleeve in uncounted robot trials on 2 November; it
 does not recover from a miss. Back on flattening, the policy conditioned on $p_\mathrm{grasp}$ and trained at
 0.3$\times$ takes both shirt edges and spreads the shirt between the arms in uncounted robot runs, but does not yet lay
-it flat. Next: teach the policy to put the spread shirt down flat, train a $p_\mathrm{grasp}$ classifier on the robot
-jaw, record recovery demonstrations, re-mount the robot wrist cameras, and evaluate the flattening policy with counted
-trials.
+it flat. Markers are no longer needed for collection, and an X-VLA policy is being trained on the same data. Next: teach
+the policy to put the spread shirt down flat, evaluate the X-VLA policy offline and on the robot, train a
+$p_\mathrm{grasp}$ classifier on the robot jaw, record recovery demonstrations, re-mount the robot wrist cameras, and
+evaluate the flattening policies with counted trials.
 
 \section*{Acknowledgements}
 The hand-worn gripper is HandUMI by BrikHMP18 (murobotics-ai, Apache-2.0), following UMI~\cite{chi2024umi}. Pretraining
