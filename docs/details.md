@@ -17,7 +17,7 @@
 ## 3. Current pipeline: policy training data (2026-10-26 / 27)
 
 For learning a policy (not open-loop replay) the pose source and the labels were rebuilt on top of the replay track's
-calibration, recorder and robot tools. Code: the packages `laundry_tracking`, `laundry_dataset`, `laundry_training` and `laundry_deploy` (part of the code, available on request).
+calibration, recorder and robot tools. Code: the packages `laundry_tracking`, `laundry_dataset`, `laundry_training` and `laundry_deploy` (part of the non-public code).
 
 ### 3.1 Data: 300 flattening demonstrations
 

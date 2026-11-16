@@ -103,7 +103,7 @@ published here (see [Code availability](#code-availability)).
 
 ## Code availability
 
-The source code is available on request: please open an issue in this repository. It comprises the recorder and
+Source code is not publicly released. Research access may be considered upon reasonable request (please open an issue in this repository). The code comprises the recorder and
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
@@ -255,7 +255,7 @@ list: [pipeline](docs/pipeline.md#system-at-a-glance). Previous work:
 
 **License.** This is a research project in progress, not a product. Numbers are from one setup, one demonstrator and a
 small number of runs, and are reported as measured, including failures. The documentation, report and media in this
-repository (and the code, when shared on request) are licensed under the **PolyForm Noncommercial License 1.0.0** ([LICENSE](LICENSE)): free for
+repository are licensed under the **PolyForm Noncommercial License 1.0.0** ([LICENSE](LICENSE)): free for
 research, teaching, personal and other noncommercial use; **commercial use is not permitted** without a separate
 written agreement with the author. Exception: `hardware/umihand/` keeps the upstream HandUMI Apache-2.0 licence
 ([LICENSE](hardware/umihand/LICENSE), [NOTICE](hardware/umihand/NOTICE.md)). Third-party designs and methods remain
@@ -268,7 +268,7 @@ Pretraining data named in the training plan: Soft-Fold, iPhUMI (MIT), PrimeBot U
 **Provenance.** Until 1 November 2026 the full code and detailed notes lived in a separate working repository,
 `egocentric-laundry-folding`, and this repository held the public write-up; the two were merged here. On 5 November
 the code was restructured into its current layout. On 16 November this public version was reduced to documentation,
-the technical report and media; the code is available on request. The archived technical reports in `report/archive/`
+the technical report and media; the code is not publicly released. The archived technical reports in `report/archive/`
 and the dated status notes name the code paths of their date.
 
 **Citation.** See [CITATION.cff](CITATION.cff) (GitHub's "Cite this repository").

@@ -17,7 +17,7 @@
 ## 3. 현재 파이프라인: 정책 학습 데이터 (2026-10-26 / 27)
 
 open-loop 재생이 아니라 정책 학습을 위해, 재생 트랙의 캘리브레이션·녹화기·로봇 도구 위에 위치 추정과 라벨을 다시 만들었습니다.
-코드: 패키지 `laundry_tracking`, `laundry_dataset`, `laundry_training`, `laundry_deploy`(코드는 요청하시면 드립니다)
+코드: 패키지 `laundry_tracking`, `laundry_dataset`, `laundry_training`, `laundry_deploy`(코드는 공개하지 않습니다)
 
 ### 3.1 데이터: 펴기 시연 300개
 

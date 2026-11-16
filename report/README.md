@@ -13,7 +13,7 @@ The technical report of the project.
 **Checking the numbers.** Every number in the English report is mapped to the document it was taken from (the project
 README, `docs/pipeline.md`, `docs/history.md`, `docs/results.md`, `docs/details.md` and the dated status notes in
 `docs/`) and checked by a script: 260 claims, 0 failed on 16 November. The LaTeX source and the checking script are part
-of the code, available on request (open an issue).
+of the non-public code.
 
 **Paths named in the reports.** The current reports name the code paths of the layout of 5 November 2026
 (`src/laundry_*`, `scripts/laundry/`, `configs/laundry/`); the archived reports were written in the project's former

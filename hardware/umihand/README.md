@@ -4,7 +4,7 @@
 > original hardware [murobotics-ai/handumi-hw](https://github.com/murobotics-ai/handumi-hw) (first published as
 > `robonet-ai/handumi-hw`), original software [murobotics-ai/handumi-sw](https://github.com/murobotics-ai/handumi-sw).
 > This repository is our **build copy**: the upstream print files, STEP and BOM from commit `e58de33` as we used them, plus
-> our own additions only: three modified parts (`mods/`) and the wrist-IMU firmware (part of the code, available on request). See `LICENSE` and `NOTICE.md`.
+> our own additions only: three modified parts (`mods/`) and the wrist-IMU firmware (part of the non-public code). See `LICENSE` and `NOTICE.md`.
 
 3D-printing files and hardware for building the hand-worn UMI gripper (HandUMI) used to record human demonstrations for the
 reBot B601. Software, data pipeline and reports live in the `egocentric` repository.
@@ -66,7 +66,7 @@ Our capture rig deviates from upstream in three ways:
 
 - **No VR tracking.** The upstream design gets wrist SE(3) from a PICO/Quest controller. Our collector gets wrist
   motion from the fisheye camera plus an IMU (software in the `egocentric` repository).
-- **Added wrist IMU per unit**: a Teensy 4.1 with an ICM-42688-P on SPI. Firmware (part of the code, available on request)
+- **Added wrist IMU per unit**: a Teensy 4.1 with an ICM-42688-P on SPI. Firmware (part of the non-public code)
   (`teensy_imu/`, plus a `xiao_imu/` variant and the `bringup/` probes).
 - **Head camera**: a Logitech C922 at 640x480@30 is the shared human/robot policy view.
 

@@ -1,6 +1,6 @@
 # Attribution
 
-This repository's documentation, report and media (and the project's code, shared on request) are licensed for
+This repository's documentation, report and media are licensed for
 noncommercial use only under the PolyForm Noncommercial License 1.0.0 (see [LICENSE](LICENSE)). The exception is `hardware/umihand/`, a build copy of
 the upstream HandUMI design, which keeps its Apache-2.0 licence ([LICENSE](hardware/umihand/LICENSE),
 [NOTICE](hardware/umihand/NOTICE.md)). The project builds on the following work, which keeps its own licence and credit.
