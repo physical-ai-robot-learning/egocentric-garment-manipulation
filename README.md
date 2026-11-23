@@ -62,13 +62,22 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   light faded (wrist-image brightness −37 %; a per-run gain fixed the drift offline) and the right jaw rarely opened,
 >   because the policy reads the jaw from the wrist image and the robot jaw looks closed to it.
 >   [Status note 11-18](docs/status_2026-11-18.md).
+> * **First robot tests of the 34-D DiT and X-VLA; where the DiT grasps (23 November).** In uncounted deploy tests, a
+>   start-state mismatch first kept the right arm away (the deploy read a closed, empty jaw as "holding"; fixed). X-VLA did
+>   not approach the shirt although its deploy output equals its offline output, and it is no longer pursued for this
+>   task. Offline, the DiT follows the human's grasp point only shortly before the grasp: on 247 validation grasps it
+>   closes within a median 17.8 mm of it when starting 0.5 s before, but only 20.2 % of its plans come within 20 mm from
+>   1.5 s before. The demonstrations do not grasp one defined seam point (operator marks lie a median 34 px from where the
+>   human grasped), and the current wrist features separate a marked seam point from cloth only weakly (AUC 0.585; 0.82
+>   from a native-resolution crop). A DiT with higher-resolution wrist inputs and a grasp-goal head is being prepared.
+>   [Status note 11-23](docs/status_2026-11-23.md), Secs. 7–9.
 > * **The robot table, a 34-dimensional state, and X-VLA repaired (19 → 23 November).** Deploy tests (not scored) found
 >   the robot table 24.8 / 22.2 mm above the data's table, and that each arm's own wrist camera decides how far it goes
 >   down. A DiT whose state adds the jaw-tip height above the table and the jaw opening, with cross-attention to CLIP
 >   patch tokens, trained on a 0.7× rebuild of the data, reaches **75.8 mm** on 574 validation anchors (moving segments,
 >   5 integration steps), against 81.0 mm for X-VLA (now with a learned embedding per wrist view, so it binds each wrist
 >   camera to its arm), 86.5 mm for an X-VLA fine-tuned from the public folding checkpoint and 123.6 mm for holding still.
->   The new DiT has not run on the robot yet. [Status note 11-23](docs/status_2026-11-23.md).
+>   [Status note 11-23](docs/status_2026-11-23.md).
 > * **Collection without markers (11-11 →).** The policy acts in relative motion, so its labels need a start pose and a
 >   heading, not absolute marker poses. All AprilTags were removed (hand units and table start tags); demos start on black
 >   L tapes and the pose chain takes its start seed from depth and its heading from the IMU at rest. On a tagged take
@@ -79,7 +88,7 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 > demonstrator; flattening is not finished and folding is not achieved. Details: status notes
 > [11-12](docs/status_2026-11-12.md) (11-06 → 11-12), [11-16](docs/status_2026-11-16.md) (X-VLA, 11-13 data) and
 > [11-18](docs/status_2026-11-18.md) (robot runs of 16–18 November, wrist-primary policy) and
-> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA).
+> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA, robot tests, where the DiT grasps).
 
 ### Latest robot run (interim report, 7 November)
 
@@ -126,7 +135,7 @@ Source code is not publicly released. Research access may be considered upon rea
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
-from (300 claims, 0 failed on 23 November). Code paths named in this README and in the documents refer to that code.
+from (308 claims, 0 failed on 23 November). Code paths named in this README and in the documents refer to that code.
 
 The real-system numbers come from recorded data that is not published (raw takes, datasets, trained checkpoints); the
 reBot vendor plugin and URDF and the robot-PC driver stack are third-party and not included in either version.
@@ -205,7 +214,9 @@ Measured in October and November 2026 on one setup with one demonstrator. Full t
 | Deploy latency (11-06) | measured command-to-motion delay: arm 58 / 64 ms, jaw 173 / 171 ms (left / right); cameras: fixed 1.4 ms, wrist 38 / 61 ms — matched in the deploy |
 | X-VLA on the flattening data (11-10 →) | from our SoftFold checkpoint (650k), domain 22, 416 training demos: jaw-tip error 16 rows ahead 36.7 / 36.3 mm (val / test) vs DiT 38.5 / 36.8 mm and hold 54.6 / 54.9 mm on the same anchors (11-16); on the robot (11-16, uncounted) wrong-arm motions: left / right wrist swap changes its output by 0–1 mm |
 | Wrist-primary flow policy (11-17 →) | 0.5× set, 537 train demos (177 with recovery), val 42 / test 43: 32-row jaw-tip error 52.4 / 52.0 mm vs hold 83.1 / 81.7 mm; on the robot (11-18, uncounted) grasps the cloth, drift traced to wrist-camera lighting, right jaw rarely opens — **no success rate**; stopped at epoch 67: 48.7 / 47.9 mm (11-19) |
-| DiT, 34-D state + spatial attention (11-19 →) | 0.7× set; state adds jaw-tip height above the table and jaw opening; 574 val anchors, moving segments: 75.8 mm (5 steps) vs X-VLA with per-wrist embeddings 81.0, X-VLA from the public folding checkpoint 86.5, hold 123.6 mm; not yet on the robot |
+| DiT, 34-D state + spatial attention (11-19 →) | 0.7× set; state adds jaw-tip height above the table and jaw opening; 574 val anchors, moving segments: 75.8 mm (5 steps) vs X-VLA with per-wrist embeddings 81.0, X-VLA from the public folding checkpoint 86.5, hold 123.6 mm; robot deploy tests 11-23, uncounted |
+| Where the DiT grasps (11-23) | 247 val grasps: from 0.5 s before, closes in 93.7 %, median 17.8 mm from the human's grasp point; from 1.5 s before, 20.2 % of plans within 20 mm. Operator marks lie a median 34 px from the demos' grasp points; wrist-feature AUC for a marked seam point 0.585 (0.82 from a native-resolution crop) |
+| X-VLA on the robot (11-23) | deploy output equals offline output; arms did not approach the shirt; greying the robot arms in the fixed camera made the left arm rise ~18 cm; no longer pursued for this task |
 | Robot table (11-19) | robot table 24.8 / 22.2 mm (left / right) above the data's table; left shoulder offset corrected (table spread 10.5 → 3.8 mm) |
 | Tag-free pose (11-11/12) | tagged take processed without tags vs its tag measurements: jaw-tip error left 17 mm, right 9–14 mm; 11-12 camera re-aim corrected by depth-scene ICP (`robot_cam_v007`; uncorrected 6–27 mm) |
 | Flattening on the robot (11-06/07) | 0.3× looked better than 1.0× on the robot (6 November); on 7 November both jaws took the shirt edges and spread it, then it bunched up again; the shirt was not laid flat. 27 runs, not counted or scored — **no success rate** |
