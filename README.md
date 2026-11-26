@@ -70,8 +70,8 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   3–7 mm right, 1 cm left), a **scripted grasp at a point clicked by a person** held the cloth in **4 of 9** recorded
 >   trials (right 3 of 4, left 1 of 5); this tests the robot side, not a policy. 72 of 100 demos of 25 November failed
 >   conversion, so collection changed: fixed camera at 29.9 Hz (was about 12 Hz), wrist video at 1920×1080, and one
->   AprilTag back on each hand unit (jaw-tip distance to the tag measurement 28 → 11 mm left, 40 → 13 mm right, partly
->   circular). Earlier demos are no longer used for training; 103 tagged demos were recorded on 26 November.
+>   AprilTag back on each hand unit (jaw-tip distance to the tag measurement 28 → 11 mm left, 40 → 13 mm right on one take, partly
+>   circular and worse on a larger take). Earlier demos are no longer used for training; 113 tagged demos were recorded on 26 November.
 >   [Status note 11-26](docs/status_2026-11-26.md).
 > * **First robot tests of the 34-D DiT and X-VLA; where the DiT grasps (23 November).** In uncounted deploy tests, a
 >   start-state mismatch first kept the right arm away (the deploy read a closed, empty jaw as "holding"; fixed). X-VLA did
