@@ -9,16 +9,16 @@ Part of **[physical-ai-robot-learning](https://github.com/physical-ai-robot-lear
 
 ![ci](https://github.com/physical-ai-robot-learning/egocentric-garment-manipulation/actions/workflows/ci.yml/badge.svg)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange.svg)](LICENSE)
-· **[Technical Report (PDF, 11-23)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
+· **[Technical Report (PDF, 11-26)](report/report_en.pdf)** ([한국어, 11-02](report/report_ko.pdf)) · [earlier versions](report/archive/)
 · [Detailed results](docs/results.md) · [Project history](docs/history.md) · [Pipeline](docs/pipeline.md)
-· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · [Code availability](#code-availability) · status: 2026-11-23
+· [한국어 README](README_ko.md) · [Attribution](ATTRIBUTION.md) · [Code availability](#code-availability) · status: 2026-11-26
 
 ![human vs robot replay](media/human_vs_robot_replay_large.gif)
 
 *Human demonstration (left) vs. robot replay of the converted trajectory (right). Same fixed camera, aligned on one
 clock, shown at the human's speed; the bar shows the robot jaw commands.*
 
-## Status (23 November 2026)
+## Status (26 November 2026)
 
 > **What works, and how it was measured**
 > * **Replay (10-08 → 10-22).** Two-arm replay of one 33 s demo is deterministic (≈1 mm between runs) and the jaws
@@ -62,6 +62,17 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   light faded (wrist-image brightness −37 %; a per-run gain fixed the drift offline) and the right jaw rarely opened,
 >   because the policy reads the jaw from the wrist image and the robot jaw looks closed to it.
 >   [Status note 11-18](docs/status_2026-11-18.md).
+> * **High-resolution wrist input, a scripted grasp test, and a data restart (23 → 26 November).** A DiT with
+>   higher-resolution wrist inputs and a grasp-goal head barely uses the added detail: native vs blurred wrist images
+>   56.36 vs 56.39 mm, and blurring a labelled seam moves the predicted path by a median 0.54 mm. Around grasps it catches
+>   93 / 90 % of the human's jaw closings (±200 ms) on training anchors but 48 / 54 % on validation, and sampling around
+>   grasp moments did not change this: the gap is generalization. With a redone camera-to-robot calibration (about
+>   3–7 mm right, 1 cm left), a **scripted grasp at a point clicked by a person** held the cloth in **4 of 9** recorded
+>   trials (right 3 of 4, left 1 of 5); this tests the robot side, not a policy. 72 of 100 demos of 25 November failed
+>   conversion, so collection changed: fixed camera at 29.9 Hz (was about 12 Hz), wrist video at 1920×1080, and one
+>   AprilTag back on each hand unit (jaw-tip distance to the tag measurement 28 → 11 mm left, 40 → 13 mm right, partly
+>   circular). Earlier demos are no longer used for training; 103 tagged demos were recorded on 26 November.
+>   [Status note 11-26](docs/status_2026-11-26.md).
 > * **First robot tests of the 34-D DiT and X-VLA; where the DiT grasps (23 November).** In uncounted deploy tests, a
 >   start-state mismatch first kept the right arm away (the deploy read a closed, empty jaw as "holding"; fixed). X-VLA did
 >   not approach the shirt although its deploy output equals its offline output, and it is no longer pursued for this
@@ -78,7 +89,7 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   5 integration steps), against 81.0 mm for X-VLA (now with a learned embedding per wrist view, so it binds each wrist
 >   camera to its arm), 86.5 mm for an X-VLA fine-tuned from the public folding checkpoint and 123.6 mm for holding still.
 >   [Status note 11-23](docs/status_2026-11-23.md).
-> * **Collection without markers (11-11 →).** The policy acts in relative motion, so its labels need a start pose and a
+> * **Collection without markers (11-11 → 11-25; tags back from 11-26).** The policy acts in relative motion, so its labels need a start pose and a
 >   heading, not absolute marker poses. All AprilTags were removed (hand units and table start tags); demos start on black
 >   L tapes and the pose chain takes its start seed from depth and its heading from the IMU at rest. On a tagged take
 >   processed without its tags, the jaw-tip error against the tags is 17 mm (left) and 9–14 mm (right). Training
@@ -88,7 +99,7 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 > demonstrator; flattening is not finished and folding is not achieved. Details: status notes
 > [11-12](docs/status_2026-11-12.md) (11-06 → 11-12), [11-16](docs/status_2026-11-16.md) (X-VLA, 11-13 data) and
 > [11-18](docs/status_2026-11-18.md) (robot runs of 16–18 November, wrist-primary policy) and
-> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA, robot tests, where the DiT grasps).
+> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA, robot tests, where the DiT grasps), [11-26](docs/status_2026-11-26.md) (high-res wrist DiT, scripted grasp test, data restart).
 
 ### Latest robot run (interim report, 7 November)
 
@@ -124,8 +135,8 @@ published here (see [Code availability](#code-availability)).
 | path | what |
 |---|---|
 | `README.md`, `README_ko.md` | status, pipeline, results, decision log, hardware and attribution |
-| [`report/`](report/README.md) | technical report (English 23 November, Korean 2 November) and earlier versions, PDF |
-| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [provenance](docs/provenance.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md) / [11-16](docs/status_2026-11-16.md) / [11-18](docs/status_2026-11-18.md) / [11-23](docs/status_2026-11-23.md) |
+| [`report/`](report/README.md) | technical report (English 26 November, Korean 2 November) and earlier versions, PDF |
+| [`docs/`](docs/) | [pipeline](docs/pipeline.md), [history](docs/history.md), [details](docs/details.md), [results](docs/results.md), [provenance](docs/provenance.md), status notes [11-05](docs/status_2026-11-05.md) / [11-07](docs/status_2026-11-07.md) / [11-12](docs/status_2026-11-12.md) / [11-16](docs/status_2026-11-16.md) / [11-18](docs/status_2026-11-18.md) / [11-23](docs/status_2026-11-23.md), [11-26](docs/status_2026-11-26.md) |
 | [`media/`](media/README.md) | GIFs, videos and photos of the real setup, the converted data and the robot |
 | [`hardware/umihand/`](hardware/umihand/README.md) | HandUMI build copy (BrikHMP18's design, Apache-2.0) and our modified parts |
 
@@ -135,7 +146,7 @@ Source code is not publicly released. Research access may be considered upon rea
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
-from (308 claims, 0 failed on 23 November). Code paths named in this README and in the documents refer to that code.
+from (320 claims, 0 failed on 26 November). Code paths named in this README and in the documents refer to that code.
 
 The real-system numbers come from recorded data that is not published (raw takes, datasets, trained checkpoints); the
 reBot vendor plugin and URDF and the robot-PC driver stack are third-party and not included in either version.
@@ -185,9 +196,9 @@ demonstrated motion and its jaws catch the shirt edge and drag it; folding itsel
 ## Results
 
 Measured in October and November 2026 on one setup with one demonstrator. Full tables and metric definitions:
-[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 23 November); the 11-05 and
+[docs/results.md](docs/results.md) and the [technical report](report/report_en.pdf) (to 26 November); the 11-05 and
 11-07 numbers: status notes [11-05](docs/status_2026-11-05.md), [11-07](docs/status_2026-11-07.md); after the report:
-[11-12](docs/status_2026-11-12.md), [11-16](docs/status_2026-11-16.md), [11-18](docs/status_2026-11-18.md), [11-23](docs/status_2026-11-23.md).
+[11-12](docs/status_2026-11-12.md), [11-16](docs/status_2026-11-16.md), [11-18](docs/status_2026-11-18.md), [11-23](docs/status_2026-11-23.md), [11-26](docs/status_2026-11-26.md).
 
 | milestone | result |
 |---|---|
@@ -217,6 +228,10 @@ Measured in October and November 2026 on one setup with one demonstrator. Full t
 | DiT, 34-D state + spatial attention (11-19 →) | 0.7× set; state adds jaw-tip height above the table and jaw opening; 574 val anchors, moving segments: 75.8 mm (5 steps) vs X-VLA with per-wrist embeddings 81.0, X-VLA from the public folding checkpoint 86.5, hold 123.6 mm; robot deploy tests 11-23, uncounted |
 | Where the DiT grasps (11-23) | 247 val grasps: from 0.5 s before, closes in 93.7 %, median 17.8 mm from the human's grasp point; from 1.5 s before, 20.2 % of plans within 20 mm. Operator marks lie a median 34 px from the demos' grasp points; wrist-feature AUC for a marked seam point 0.585 (0.82 from a native-resolution crop) |
 | X-VLA on the robot (11-23) | deploy output equals offline output; arms did not approach the shirt; greying the robot arms in the fixed camera made the left arm rise ~18 cm; no longer pursued for this task |
+| High-res wrist DiT (11-23/24) | 448×252 wrist view + native 224 crop, CLIP layers 4/8/12, four-target goal head; val (36 anchors × 2 seeds) lowest 47.6–48.5 mm at epochs 5/7/16/24, ~7 mm on train; native vs blurred wrist input 56.36 vs 56.39 mm; seam blur moves the path by a median 0.54 mm |
+| Grasp moments (11-24/25) | jaw closings caught within ±200 ms: train 93 / 90 %, val 48 / 54 %; grasp-moment sampling 47–48 / 52–53 % (no change) |
+| Scripted grasp test (11-25) | point clicked by a person, robot descends and closes: 4 of 9 recorded trials held 3 s (right 3/4, left 1/5), 2 runs unrecorded; tests the robot, not a policy |
+| Data restart (11-25/26) | 25 Nov: 1 GOLD / 27 SILVER / 72 REJECT of 100 (units too close to the depth camera); 26 Nov: fixed camera 29.9 Hz, wrist 1920×1080, one AprilTag per unit (28 → 11 / 40 → 13 mm); earlier demos no longer used for training |
 | Robot table (11-19) | robot table 24.8 / 22.2 mm (left / right) above the data's table; left shoulder offset corrected (table spread 10.5 → 3.8 mm) |
 | Tag-free pose (11-11/12) | tagged take processed without tags vs its tag measurements: jaw-tip error left 17 mm, right 9–14 mm; 11-12 camera re-aim corrected by depth-scene ICP (`robot_cam_v007`; uncorrected 6–27 mm) |
 | Flattening on the robot (11-06/07) | 0.3× looked better than 1.0× on the robot (6 November); on 7 November both jaws took the shirt edges and spread it, then it bunched up again; the shirt was not laid flat. 27 runs, not counted or scored — **no success rate** |
