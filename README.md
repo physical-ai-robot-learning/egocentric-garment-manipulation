@@ -71,7 +71,9 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   trials (right 3 of 4, left 1 of 5); this tests the robot side, not a policy. 72 of 100 demos of 25 November failed
 >   conversion, so collection changed: fixed camera at 29.9 Hz (was about 12 Hz), wrist video at 1920×1080, and one
 >   AprilTag back on each hand unit (jaw-tip distance to the tag measurement 28 → 11 mm left, 40 → 13 mm right on one take, partly
->   circular and worse on a larger take). Earlier demos are no longer used for training; 113 tagged demos were recorded on 26 November.
+>   circular and worse on a larger take). A GTSAM factor graph fusing IMU, depth-lifted point tracks and tags reduced
+>   the error inside simulated tracking gaps (25.9 → 19.8 mm left, 29.7 → 25.1 mm right, development take only). Earlier
+>   demos are no longer used for training; 113 tagged demos were recorded on 26 November.
 >   [Status note 11-26](docs/status_2026-11-26.md).
 > * **First robot tests of the 34-D DiT and X-VLA; where the DiT grasps (23 November).** In uncounted deploy tests, a
 >   start-state mismatch first kept the right arm away (the deploy read a closed, empty jaw as "holding"; fixed). X-VLA did
@@ -146,7 +148,7 @@ Source code is not publicly released. Research access may be considered upon rea
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
-from (319 claims, 0 failed on 26 November). Code paths named in this README and in the documents refer to that code.
+from (325 claims, 0 failed on 26 November). Code paths named in this README and in the documents refer to that code.
 
 The real-system numbers come from recorded data that is not published (raw takes, datasets, trained checkpoints); the
 reBot vendor plugin and URDF and the robot-PC driver stack are third-party and not included in either version.
