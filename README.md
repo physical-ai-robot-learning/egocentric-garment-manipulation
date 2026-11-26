@@ -146,7 +146,7 @@ Source code is not publicly released. Research access may be considered upon rea
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
-from (320 claims, 0 failed on 26 November). Code paths named in this README and in the documents refer to that code.
+from (319 claims, 0 failed on 26 November). Code paths named in this README and in the documents refer to that code.
 
 The real-system numbers come from recorded data that is not published (raw takes, datasets, trained checkpoints); the
 reBot vendor plugin and URDF and the robot-PC driver stack are third-party and not included in either version.
