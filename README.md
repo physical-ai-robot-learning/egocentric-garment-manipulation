@@ -63,12 +63,14 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 >   because the policy reads the jaw from the wrist image and the robot jaw looks closed to it.
 >   [Status note 11-18](docs/status_2026-11-18.md).
 > * **The first training set of the new collection (26 → 27 November).** No policy was trained or run in this period.
->   A tag-to-jaw-tip offset fitted from 50 clicked jaw tips brought the right hand from 11.2 to 4.3 px median (in-sample,
->   1 px ≈ 2 mm); each arm now takes whichever of two fusions stays closer to its tag. The right jaw servo had stopped
+>   The factor graph is now tag-first (tags dominate, point tracks bridge gaps and are rejected when they drift to the
+>   other hand; wrong-arm jumps 2 → 0): with tags hidden in 2 s windows of the same demos, the 90th-percentile error fell
+>   from 47.5 to 42.1 mm (left) and from 58.2 to 48.7 mm (right); it gives no gain on untagged data. The fixed colour
+>   camera had recorded at 848×480 throughout (the metadata said otherwise) and now records 1920×1080. The right jaw servo had stopped
 >   reporting for 106 of 128 demos of 26 November; a small image model reading the jaw from the wrist camera recovered
 >   it (mean absolute error 0.017, all 17 closings and openings detected on 4 held-out demos). Jaw labels are now binary
->   at 0.3. 107 demos of 26 November form the training set (one-hand out-of-view spans masked); 25 November gives
->   validation and test. The planned held-out test of the factor graph was not run: its take went into training.
+>   at 0.3. After review of every video, 234 demos of 26 and 27 November form the training set; 25 November gives
+>   validation and test (15 / 15). The planned held-out test of the factor graph was not run: its take went into training.
 >   [Status note 11-27](docs/status_2026-11-27.md).
 > * **High-resolution wrist input, a scripted grasp test, and a data restart (23 → 26 November).** A DiT with
 >   higher-resolution wrist inputs and a grasp-goal head barely uses the added detail: native vs blurred wrist images
@@ -109,7 +111,7 @@ clock, shown at the human's speed; the bar shows the robot jaw commands.*
 > demonstrator; flattening is not finished and folding is not achieved. Details: status notes
 > [11-12](docs/status_2026-11-12.md) (11-06 → 11-12), [11-16](docs/status_2026-11-16.md) (X-VLA, 11-13 data) and
 > [11-18](docs/status_2026-11-18.md) (robot runs of 16–18 November, wrist-primary policy) and
-> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA, robot tests, where the DiT grasps), [11-26](docs/status_2026-11-26.md) (high-res wrist DiT, scripted grasp test, data restart), [11-27](docs/status_2026-11-27.md) (trajectory choice, jaw recovery, first new training set).
+> [11-23](docs/status_2026-11-23.md) (robot table, 34-D state DiT, repaired X-VLA, robot tests, where the DiT grasps), [11-26](docs/status_2026-11-26.md) (high-res wrist DiT, scripted grasp test, data restart), [11-27](docs/status_2026-11-27.md) (tag-first factor graph, jaw recovery, 234-demo training set).
 
 ### Latest robot run (interim report, 7 November)
 
@@ -156,7 +158,7 @@ Source code is not publicly released. Research access may be considered upon rea
 calibration, the pose pipeline (fixed-camera point tracking, markers, IMU; tag-free mode), servo-encoder jaw labels, the
 grasp-probability labeller, the label and dataset builders, DiT and X-VLA training, the receding-horizon robot deploy,
 characterization tests, and the script that checks every number in the technical report against the record it comes
-from (330 claims, 0 failed on 27 November). Code paths named in this README and in the documents refer to that code.
+from (335 claims, 0 failed on 27 November). Code paths named in this README and in the documents refer to that code.
 
 The real-system numbers come from recorded data that is not published (raw takes, datasets, trained checkpoints); the
 reBot vendor plugin and URDF and the robot-PC driver stack are third-party and not included in either version.
@@ -242,7 +244,7 @@ Measured in October and November 2026 on one setup with one demonstrator. Full t
 | Grasp moments (11-24/25) | jaw closings caught within ±200 ms: train 93 / 90 %, val 48 / 54 %; grasp-moment sampling 47–48 / 52–53 % (no change) |
 | Scripted grasp test (11-25) | point clicked by a person, robot descends and closes: 4 of 9 recorded trials held 3 s (right 3/4, left 1/5), 2 runs unrecorded; tests the robot, not a policy |
 | Data restart (11-25/26) | 25 Nov: 1 GOLD / 27 SILVER / 72 REJECT of 100 (units too close to the depth camera); 26 Nov: fixed camera 29.9 Hz, wrist 1920×1080, one AprilTag per unit (28 → 11 / 40 → 13 mm); earlier demos no longer used for training |
-| New training set (11-26/27) | 107 demos of 26 Nov (72 graded + 30 one-hand-out-of-view + 5 kept on review); right jaw of 106 demos recovered from wrist video (MAE 0.017, F1 1.00); binary jaw at 0.3; per-arm choice of fusion by tag distance; no held-out test of the factor graph |
+| New training set (11-26/27) | 234 demos of 26–27 Nov after video review; tag-first factor graph (hidden-tag p90 47.5 → 42.1 mm left, 58.2 → 48.7 mm right, same demos); right jaw of 106 demos recovered from wrist video (MAE 0.017, F1 1.00); binary jaw at 0.3; no test on a separate take; no training yet |
 | Robot table (11-19) | robot table 24.8 / 22.2 mm (left / right) above the data's table; left shoulder offset corrected (table spread 10.5 → 3.8 mm) |
 | Tag-free pose (11-11/12) | tagged take processed without tags vs its tag measurements: jaw-tip error left 17 mm, right 9–14 mm; 11-12 camera re-aim corrected by depth-scene ICP (`robot_cam_v007`; uncorrected 6–27 mm) |
 | Flattening on the robot (11-06/07) | 0.3× looked better than 1.0× on the robot (6 November); on 7 November both jaws took the shirt edges and spread it, then it bunched up again; the shirt was not laid flat. 27 runs, not counted or scored — **no success rate** |
